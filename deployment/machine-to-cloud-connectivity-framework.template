@@ -1,0 +1,684 @@
+##################################################################################################################### 
+# Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.                                           # 
+#                                                                                                                   # 
+# Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance    # 
+# with the License. A copy of the License is located at                                                             # 
+#                                                                                                                   # 
+#     http://www.apache.org/licenses/LICENSE-2.0                                                                    # 
+#                                                                                                                   # 
+# or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES # 
+# OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing         # 
+# permissions and limitations under the License.                                                                    # 
+######################################################################################################################
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: The AWS cloud formation template for the deployment of Machine to Cloud connectivity solution. Version %%VERSION%%.
+
+Parameters:
+    ExistingGreengrassGroup:
+        Description: Do you want to use an existing greengrass group as the default group of the solution?
+        Type: String
+        AllowedValues:  
+            - 'true' 
+            - 'false' 
+        Default: 'false' 
+    ExistingGreengrassGroupID:
+        Description: If you want to use an existing greengrass group as the default group, enter the greengrass group ID.
+        Type: String
+    GreengrassGroupName:
+        Description: If you do not have an existing greengrass group, name of the greengrass group you want to create.
+        Type: String
+    DeviceGatewayName:
+        Description: If you do not have an existing greengrass group, name of the gateway that you wish to create
+        Type: String
+    GreengrassCoreCertificateArn:
+        Description: If you do not have an existing greengrass group, enter the certificate ARN of the certificate created in AWS IoT Core
+        Type: String
+
+Mappings: 
+    SourceCode:
+        General:
+            S3Bucket: "%%BUCKET_NAME%%"
+            KeyPrefix: "machine-to-cloud-connectivity-framework/%%VERSION%%"
+    Metadata:
+        General:
+            KeyPrefix: opcda-job-metadata/
+    OPCDAConnectorLambdaBucket:
+        General:
+            KeyPrefix: opcda-connector-lambda
+    LambdaRuntime:
+        Language:
+            Python: python3.7
+    Metrics: 
+        General:    
+            SendAnonymousUsage: Yes
+    Solution:
+        Parameters:
+            Id: SO0070
+
+
+Conditions:
+    Metrics: !Equals [ !FindInMap [Metrics,General,SendAnonymousUsage], Yes] 
+    CreateGreengrassResources: !Equals [ !Ref ExistingGreengrassGroup, false]
+
+Resources:
+    OpcDaJobBuilderFunction:
+        Type: AWS::Lambda::Function
+        Properties:
+            Description: AWS Machine to Cloud job builder function
+            Code:
+                S3Bucket: !Join ["-", [!FindInMap ["SourceCode", "General", "S3Bucket"], Ref: "AWS::Region" ]]
+                S3Key: !Join ["/", [!FindInMap ["SourceCode", "General", "KeyPrefix"],  "opcda-job-builder.zip"]]
+            Handler: m2c2_job_builder_main.lambda_handler
+            Role:
+                Fn::GetAtt: [ JobBuilderRole , "Arn" ]
+            FunctionName: "m2c2-opcda-job-builder"
+            Runtime: !FindInMap ["LambdaRuntime", "Language", "Python"]
+            Timeout: 60
+            MemorySize: 128
+            Environment:
+                Variables:
+                    JBM_TBL: !Ref JobMetadataTable
+                    JBM_BCK: !Ref M2C2Bucket
+                    JBM_KEY: !FindInMap ["Metadata", "General", "KeyPrefix"]
+                    CON_KEY: !FindInMap ["OPCDAConnectorLambdaBucket", "General", "KeyPrefix"]
+                    GGG_ID: !If [CreateGreengrassResources, !GetAtt M2C2GreengrassGroup.Id, !Ref ExistingGreengrassGroupID]
+                    RES_ID: !If [CreateGreengrassResources, M2C2LocalResourceId, ""]
+                    CON_ROL: !GetAtt M2C2ConnectorLambdaRole.Arn
+                    MET_ENB: !FindInMap ["Metrics", "General", "SendAnonymousUsage"]
+                    SOL_ID: !FindInMap ["Solution", "Parameters", "Id"]
+                    UUID: !GetAtt M2C2Helper.UUID
+                    SOL_VER: "%%VERSION%%"
+    
+    JobGeneratorRule:
+        Type: AWS::IoT::TopicRule
+        Properties:
+            TopicRulePayload:
+                RuleDisabled: false
+                Description: Processing of the job submitted and generating the job file to be pushed to Greengrass
+                Sql: >-
+                    SELECT * FROM 'm2c2/job/request'
+                Actions:
+                    -
+                        Lambda:
+                            FunctionArn: !GetAtt OpcDaJobBuilderFunction.Arn
+
+    LambdaInvokeBuilderPermission:
+        Type: AWS::Lambda::Permission
+        Properties:
+            FunctionName: !GetAtt OpcDaJobBuilderFunction.Arn
+            Action: lambda:InvokeFunction
+            Principal: iot.amazonaws.com
+            SourceArn: !Sub "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:rule/${JobGeneratorRule}"
+            SourceAccount: !Sub "${AWS::AccountId}"
+
+    JobBuilderRole:
+        Type: AWS::IAM::Role
+        Properties:
+            AssumeRolePolicyDocument:
+                Version: 2012-10-17
+                Statement:
+                    -
+                        Effect: Allow
+                        Principal:
+                            Service:
+                                - lambda.amazonaws.com
+                        Action:
+                                - sts:AssumeRole
+            Path: /
+            Policies:
+                -
+                    PolicyName: JobBuilderPolicy
+                    PolicyDocument:
+                      Version: 2012-10-17
+                      Statement:
+                        -
+                              Effect: Allow
+                              Action:
+                                  - logs:CreateLogGroup
+                                  - logs:CreateLogStream
+                                  - logs:PutLogEvents
+                              Resource:
+                                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*"
+                          
+                        -
+                            Effect: Allow
+                            Action:
+                                - "dynamodb:PutItem"
+                                - "dynamodb:GetItem"
+                                - "dynamodb:Query"
+                                - "dynamodb:Scan"
+                                - "dynamodb:UpdateItem"
+                            Resource:
+                                - !GetAtt JobMetadataTable.Arn
+                        -
+                            Effect: "Allow"
+                            Action:
+                                - "s3:GetBucketLocation"
+                                - "s3:GetObject"
+                                - "s3:ListBucket"
+                                - "s3:PutObject"
+                            Resource:
+                                - Fn::Sub: "arn:aws:s3:::${M2C2Bucket}"
+                                - Fn::Sub: "arn:aws:s3:::${M2C2Bucket}/*"
+                        -
+                            Effect: "Allow"
+                            Action:
+                                - "iot:publish"
+                            Resource:
+                                - !Join ["", ["arn:aws:iot:", Ref: "AWS::Region", ":", Ref: "AWS::AccountId", ":topic/m2c2/job/*"]]
+                        -
+                            Effect: "Allow"
+                            Action:
+                            -   lambda:CreateFunction
+                            -   lambda:DeleteFunction
+                            -   lambda:PublishVersion
+                            -   lambda:CreateAlias
+                            -   lambda:DeleteAlias
+
+                            Resource:
+                                -  !Join ["", ["arn:aws:lambda:", Ref: "AWS::Region", ":", Ref: "AWS::AccountId", ":function:", "m2c2-opcda-connector*"]]
+                        -
+                            Effect: "Allow"
+                            Action:
+                            -   iam:PassRole
+                            Resource:
+                                -  !Join ["", ["arn:aws:iam::", Ref: "AWS::AccountId", ":role/", "*", !Ref M2C2ConnectorLambdaRole, "*"]]
+                        -
+                            Effect: "Allow"
+                            Action:
+                            -   "greengrass:*"
+                            Resource: "*"
+        Metadata: 
+            cfn_nag: 
+                rules_to_suppress: 
+                    - 
+                        id: W11 
+                        reason: "The * resource allows JobBuilderRole to exchange information with solution resources."
+                    -
+                        id: F3
+                        reason: "Greengrass only supports * in resources" 
+    
+    JobMetadataTable:
+        Type: AWS::DynamoDB::Table
+        DeletionPolicy: Delete
+        Properties:
+            AttributeDefinitions:
+                -
+                    AttributeName: jobid
+                    AttributeType: "S"
+                -
+                    AttributeName: version
+                    AttributeType: "N"
+            KeySchema:
+                -
+                    AttributeName: jobid
+                    KeyType: "HASH"
+                -
+                    AttributeName: version
+                    KeyType: "RANGE"
+            ProvisionedThroughput:
+                ReadCapacityUnits: 5
+                WriteCapacityUnits: 5
+    
+    M2C2Bucket:
+        Type: AWS::S3::Bucket
+        DeletionPolicy: Delete
+        Properties:
+            BucketName: !Join ["", ["machine-to-cloud-connectivity-", Ref: "AWS::Region", "-", Ref: "AWS::AccountId"]]
+        Metadata: 
+            cfn_nag: 
+                rules_to_suppress: 
+                    - 
+                        id: W35
+                        reason: "Access logging not required as this only stores metadata for the solution"
+                    - 
+                        id: W41
+                        reason: "Encryption not required as this only stores metadata for the solution"
+                
+        
+    
+    M2C2Gateway:
+        Type: 'AWS::IoT::Thing'
+        Condition: CreateGreengrassResources
+        Properties:
+            ThingName: !Ref DeviceGatewayName
+    
+    M2C2CoreDefinition:
+        Type: 'AWS::Greengrass::CoreDefinition'
+        Condition: CreateGreengrassResources
+        Properties:
+            Name: !Join ["", [!Ref GreengrassGroupName, "_Core"]]
+            
+    M2C2CoreDefinitionVersion:
+        Type: 'AWS::Greengrass::CoreDefinitionVersion'
+        Condition: CreateGreengrassResources
+        Properties:
+            CoreDefinitionId: !Ref M2C2CoreDefinition
+            Cores:
+                -
+                    Id: M2C2CoreDefinitionId
+                    CertificateArn: !Ref GreengrassCoreCertificateArn
+                    SyncShadow: true
+                    ThingArn: !Join ["", ["arn:aws:iot", ":", Ref: "AWS::Region", ":", Ref: "AWS::AccountId", ":", "thing/", !Ref DeviceGatewayName]]
+        DependsOn: M2C2Gateway
+    
+    M2C2LoggerDefinition:
+        Type: 'AWS::Greengrass::LoggerDefinition'
+        Condition: CreateGreengrassResources
+        Properties:
+            Name: M2C2LoggerDefinition
+
+    M2C2LoggerDefinitionVersion:
+        Type: 'AWS::Greengrass::LoggerDefinitionVersion'
+        Condition: CreateGreengrassResources
+        Properties:
+            LoggerDefinitionId: !Ref M2C2LoggerDefinition
+            Loggers:
+                - 
+                    Id: M2C2Logger1
+                    Type: FileSystem
+                    Component: GreengrassSystem
+                    Level: INFO
+                    Space: 128
+                - 
+                    Id: M2C2Logger2
+                    Type: FileSystem
+                    Component: Lambda
+                    Level: INFO
+                    Space: 128
+                -
+                    Id: M2C2Logger3
+                    Type: AWSCloudWatch
+                    Component: Lambda
+                    Level: INFO
+    
+    M2C2ResourceDefinition:
+        Type: 'AWS::Greengrass::ResourceDefinition'
+        Condition: CreateGreengrassResources
+        Properties:
+            Name: DemoTestResourceDefinition
+
+    M2C2ResourceDefinitionVersion:
+        Type: 'AWS::Greengrass::ResourceDefinitionVersion'
+        Condition: CreateGreengrassResources
+        Properties:
+            ResourceDefinitionId: !Ref M2C2ResourceDefinition
+            Resources:
+                - 
+                    Id: M2C2LocalResourceId
+                    Name: M2C2LocalResource
+                    ResourceDataContainer:
+                        LocalVolumeResourceData:
+                            SourcePath: /m2c2/job
+                            DestinationPath: /m2c2/job
+                            GroupOwnerSetting:
+                                AutoAddGroupOwner: true
+    
+    M2C2GreengrassGroup:
+        Type: AWS::Greengrass::Group
+        Condition: CreateGreengrassResources
+        Properties: 
+            Name: !Ref GreengrassGroupName
+            RoleArn: !GetAtt M2C2GreengrassResourceRole.Arn
+            InitialVersion:
+                CoreDefinitionVersionArn: !Ref M2C2CoreDefinitionVersion
+                LoggerDefinitionVersionArn: !Ref M2C2LoggerDefinitionVersion
+                ResourceDefinitionVersionArn: !Ref M2C2ResourceDefinitionVersion
+
+    M2C2GreengrassResourceRole:
+        Type: "AWS::IAM::Role"
+        Condition: CreateGreengrassResources
+        Properties:
+            AssumeRolePolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                    -
+                        Effect: "Allow"
+                        Principal:
+                            Service:
+                                - "greengrass.amazonaws.com"
+                        Action:
+                                - "sts:AssumeRole"
+            Path: "/"
+    
+    M2C2GreengrassResourcePolicy:
+        Type: AWS::IAM::Policy
+        Condition: CreateGreengrassResources
+        Properties:
+            PolicyName: M2C2GreengrassResourcePolicy
+            PolicyDocument:
+                Version: 2012-10-17
+                Statement:
+                    -
+                        Effect: "Allow"
+                        Action:
+                            - "iot:Publish"
+                            - "iot:Subscribe"
+                            - "iot:Connect"
+                            - "iot:Receive"
+                            - "iot:GetThingShadow"
+                            - "iot:UpdateThingShadow"
+                            - "iot:DeleteThingShadow"
+                        Resource: "*"
+                    -
+                        Effect: "Allow"
+                        Action:
+                            - "greengrass:*"
+                        Resource: "*"
+                    -
+                        Effect: "Allow"
+                        Action:
+                            - "logs:CreateLogGroup"
+                            - "logs:CreateLogStream"
+                            - "logs:PutLogEvents"
+                        Resource:
+                            - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*m2c2*"
+            Roles:
+                -
+                    !Ref M2C2GreengrassResourceRole
+        Metadata: 
+            cfn_nag: 
+                rules_to_suppress: 
+                    - 
+                        id: W12 
+                        reason: "The * resource on its permission policy allows M2C2GreengrassResourcePolicy to write to multiple 
+                        lambda logs"
+                    -
+                        id: F4
+                        reason: "Greengrass only supports * in resources"
+    
+   
+    M2C2IoTResourcePolicy:
+        Type: AWS::IoT::Policy
+        Condition: CreateGreengrassResources
+        Properties:
+            PolicyDocument:
+                Version: 2012-10-17
+                Statement:
+                    -
+                        Effect: "Allow"
+                        Action:
+                            - "iot:Publish"
+                            - "iot:Subscribe"
+                            - "iot:Connect"
+                            - "iot:Receive"
+                            - "iot:GetThingShadow"
+                            - "iot:UpdateThingShadow"
+                            - "iot:DeleteThingShadow"
+                        Resource: "*"
+                    -
+                        Effect: "Allow"
+                        Action:
+                            - "greengrass:*"
+                        Resource: "*"
+                    -
+                        Effect: "Allow"
+                        Action:
+                            - "logs:CreateLogGroup"
+                            - "logs:CreateLogStream"
+                            - "logs:PutLogEvents"
+                        Resource:
+                            - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*m2c2*"
+        Metadata: 
+            cfn_nag: 
+                rules_to_suppress: 
+                    - 
+                        id: W38 
+                        reason: "The * resource on its permission policy allows M2C2IoTResourcePolicy to wto connect to multiple IoT things and topics"
+                    -
+                        id: W39
+                        reason: "The * resource on its permission policy allows M2C2IoTResourcePolicy to wto connect to multiple IoT things and topics"
+
+    M2C2PolicyPrincipalAttachment: 
+        Type: AWS::IoT::PolicyPrincipalAttachment
+        Condition: CreateGreengrassResources
+        Properties: 
+            PolicyName: !Ref M2C2IoTResourcePolicy
+            Principal: !Ref GreengrassCoreCertificateArn
+    
+    M2C2ThingPrincipalAttachment: 
+        Type: AWS::IoT::ThingPrincipalAttachment
+        Condition: CreateGreengrassResources
+        Properties: 
+            ThingName: !Ref M2C2Gateway
+            Principal: !Ref GreengrassCoreCertificateArn
+     
+    M2C2ConnectorLambdaRole:
+        Type: "AWS::IAM::Role"
+        Properties:
+            AssumeRolePolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                    -
+                        Effect: Allow
+                        Principal:
+                            Service:
+                                - lambda.amazonaws.com
+                        Action:
+                                - sts:AssumeRole
+            Path: "/"
+    
+    M2C2ConnectorLambdaPolicy:
+        Type: AWS::IAM::Policy
+        Properties:
+            PolicyName: M2C2ConnectorLambdaPolicy
+            PolicyDocument:
+                Version: 2012-10-17
+                Statement:
+                    -
+                        Effect: "Allow"
+                        Action:
+                            - "iot:Connect"
+                        Resource: !Join ["", ["arn:aws:iot:", Ref: "AWS::Region", ":", Ref: "AWS::AccountId", ":client/", !Ref DeviceGatewayName]]
+                    -
+                            Effect: "Allow"
+                            Action:
+                                - "iot:publish"
+                                - "iot:Subscribe"
+                            Resource:
+                                - !Join ["", ["arn:aws:iot:", Ref: "AWS::Region", ":", Ref: "AWS::AccountId", ":topic/m2c2/job/*"]]
+                    -
+                        Effect: "Allow"
+                        Action:
+                            - "logs:CreateLogGroup"
+                            - "logs:CreateLogStream"
+                            - "logs:PutLogEvents"
+                        Resource:
+                            - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*m2c2*"
+            Roles:
+                -
+                    !Ref M2C2ConnectorLambdaRole
+        Metadata: 
+            cfn_nag: 
+                rules_to_suppress: 
+                    - 
+                        id: W12 
+                        reason: "The * resource on its permission policy allows M2C2ConnectorLambdaPolicy to write to multiple topics" 
+    
+    M2C2Helper:
+        Type: Custom::M2C2Helper
+        Properties:
+            Resource: CopyConnectorLambdaZip
+            ServiceToken: !GetAtt M2C2HelperFunction.Arn
+            DestBucket: !Ref M2C2Bucket
+            DestPrefix: !FindInMap ["OPCDAConnectorLambdaBucket", "General", "KeyPrefix"]
+            SourceBucket: !Join ["-", [!FindInMap ["SourceCode", "General", "S3Bucket"], Ref: "AWS::Region" ]]
+            SourcePrefix: !FindInMap ["SourceCode", "General", "KeyPrefix"]
+            Objects:
+                - /m2c2-opcda-connector.zip
+        DependsOn: M2C2HelperFunction
+        DependsOn: M2C2Bucket
+
+    M2C2HelperSendAnonymousMetrics:
+        Condition: Metrics
+        Type: Custom::M2C2HelperSendAnonymousMetrics
+        Properties:
+            ServiceToken: !GetAtt M2C2HelperFunction.Arn 
+            Resource: SendAnonymousMetrics 
+            SolutionId: !FindInMap ["Solution", "Parameters", "Id"] 
+            UUID: !GetAtt M2C2Helper.UUID 
+            Version: "%%VERSION%%"
+            Region: !Join ["", [Ref: "AWS::Region"]]
+            ExistingGreengrassGroup: !Ref ExistingGreengrassGroup
+    
+    M2C2HelperRole:
+        Type: AWS::IAM::Role
+        Properties:
+            AssumeRolePolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                -   Effect: Allow
+                    Principal:
+                        Service: lambda.amazonaws.com
+                    Action: sts:AssumeRole
+            ManagedPolicyArns:
+                - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+            Path: /
+            Policies:
+                -   PolicyName: lambda-copier
+                    PolicyDocument:
+                        Version: '2012-10-17'
+                        Statement:
+                        -   Effect: Allow
+                            Action:
+                            -   s3:GetObject
+                            Resource:
+                            -   !Join ["", ["arn:aws:s3:::", !Join ["-", [!FindInMap ["SourceCode", "General", "S3Bucket"], Ref: "AWS::Region"]], "/*"]]
+                        -   Effect: Allow
+                            Action:
+                            -   s3:PutObject
+                            -   s3:DeleteObject
+                            -   s3:ListBucket
+                            Resource:
+                                - 
+                                    Fn::Sub: "arn:aws:s3:::${M2C2Bucket}"
+                                - 
+                                    Fn::Sub: "arn:aws:s3:::${M2C2Bucket}/*"
+        Metadata: 
+            cfn_nag: 
+                rules_to_suppress: 
+                    - 
+                        id: W11 
+                        reason: "The * resource on its permission policy allows M2C2HelperRole to copy lambda from the bucket." 
+    
+    M2C2HelperFunction:
+        Type: AWS::Lambda::Function
+        Properties:
+            Description: Copies objects from a source S3 bucket to a destination
+            Handler: index.handler
+            Runtime: !FindInMap ["LambdaRuntime", "Language", "Python"]
+            Role: !GetAtt 'M2C2HelperRole.Arn'
+            Timeout: 240
+            Code:
+                ZipFile: |
+                    import json
+                    import logging
+                    import threading
+                    import boto3
+                    import cfnresponse
+                    import uuid
+                    import datetime 
+                    import json 
+                    import urllib.request 
+
+                    def send_metrics(config): 
+                        metrics = {} 
+                        metrics['Solution'] = config['SolutionId'] 
+                        metrics['UUID'] = config['UUID'] 
+                        metrics['TimeStamp'] = str(datetime.datetime.utcnow().isoformat()) 
+                        metrics['Data'] = config
+                        url = 'https://metrics.awssolutionsbuilder.com/generic' 
+                        data = json.dumps(metrics).encode('utf8') 
+                        headers = {'content-type': 'application/json'} 
+                        req = urllib.request.Request(url, data,headers) 
+                        response = urllib.request.urlopen(req) 
+                        print('RESPONSE CODE:: {}'.format(response.getcode())) 
+                        print('METRICS SENT:: {}'.format(data)) 
+                        return
+                    
+                    def copy_objects(source_bucket, dest_bucket, prefix, objects, dest_prefix):
+                        s3 = boto3.client('s3')
+                        for o in objects:
+                            key = prefix + o
+                            dest_key = dest_prefix + o
+                            copy_source = {
+                                'Bucket': source_bucket,
+                                'Key': key
+                            }
+                            print('copy_source: %s' % copy_source)
+                            print('dest_bucket = %s'%dest_bucket)
+                            print('dest_key = %s' %dest_key)
+                            s3.copy_object(CopySource=copy_source, Bucket=dest_bucket,
+                                    Key=dest_key)
+                    def delete_objects(bucket, prefix, objects):
+                        print('in delete function')
+                        s3 = boto3.client('s3')
+                        for o in objects:
+                            delete_key = prefix + o
+                            s3.delete_object(Bucket=bucket, Key=delete_key)
+                    def timeout(event, context):
+                        logging.error('Execution is about to time out, sending failure response to CloudFormation')
+                        cfnresponse.send(event, context, cfnresponse.FAILED, {}, None)
+                    def handler(event, context):
+                        # make sure we send a failure to CloudFormation if the function
+                        # is going to timeout
+                        timer = threading.Timer((context.get_remaining_time_in_millis()
+                                    / 1000.00) - 0.5, timeout, args=[event, context])
+                        timer.start()
+                        print('Received event: %s' % json.dumps(event))
+                        status = cfnresponse.SUCCESS
+                        responseData = {}
+                        resource = event['ResourceProperties']['Resource']
+                        try:
+                            if event['RequestType'] == 'Create':
+                                if resource == 'CopyConnectorLambdaZip':
+                                    source_bucket = event['ResourceProperties']['SourceBucket']
+                                    dest_bucket = event['ResourceProperties']['DestBucket']
+                                    prefix = event['ResourceProperties']['SourcePrefix']
+                                    dest_prefix = event['ResourceProperties']['DestPrefix']
+                                    objects = event['ResourceProperties']['Objects']
+                                    responseData['UUID'] = str(uuid.uuid4())
+                                    copy_objects(source_bucket, dest_bucket, prefix, objects, dest_prefix)
+                                elif resource == 'SendAnonymousMetrics':
+                                    config = event['ResourceProperties']
+                                    config['EventType'] = 'DeployStack'
+                                    send_metrics(config)
+                            elif event['RequestType'] == 'Delete':
+                                if resource == 'CopyConnectorLambdaZip':
+                                    dest_bucket = event['ResourceProperties']['DestBucket']
+                                    dest_prefix = event['ResourceProperties']['DestPrefix']
+                                    objects = event['ResourceProperties']['Objects']
+                                    delete_objects(dest_bucket, dest_prefix, objects)
+                                elif resource == 'SendAnonymousMetrics':
+                                    delete_config = event['ResourceProperties']
+                                    delete_config['EventType'] = 'DeleteStack'
+                                    send_metrics(delete_config)
+                        except Exception as e:
+                            logging.error('Exception: %s' % e, exc_info=True)
+                            status = cfnresponse.FAILED
+                        finally:
+                            timer.cancel()
+                            cfnresponse.send(event, context, status, responseData)
+    
+
+Outputs:
+    UUID:
+        Condition: Metrics
+        Description: Anonymous metric UUID 
+        Value: !GetAtt M2C2Helper.UUID
+    M2C2Bucket:
+        Description: "Bucket where the job files and connector lambda source code will be stored"
+        Value: !Ref M2C2Bucket
+    M2C2JobMetadataTable:
+        Description: "Bucket where the job files and connector lambda source code will be stored"
+        Value: !Ref JobMetadataTable
+    M2C2GreengrassGroup:
+        Description: "Greengrass group that needs to be deployed to the on-premise gateway"
+        Value: !If [CreateGreengrassResources, !GetAtt M2C2GreengrassGroup.Id, !Ref ExistingGreengrassGroupID]
+    M2C2JobRequestTopic:
+        Description: "IoT Topic where job needs to be submitted"
+        Value: 'm2c2/job/request'
+    
+    
+    

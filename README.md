@@ -17,7 +17,7 @@ equipment, create notifications and alerts or integrate one of the many other se
 within the IoT Rule engine.
 
  
-For more information and a detailed deployment guide visit the Machine to Cloud Connectivity Framework at https://aws.amazon.com/solutions/machine-to-cloud-connectivity
+For more information and a detailed deployment guide visit the Machine to Cloud Connectivity Framework at https://aws.amazon.com/solutions/machine-to-cloud-connectivity-framework
 
 
 ## Building distributable for customization

@@ -5,4 +5,4 @@
 # ./run-unit-tests.sh
 
 # Run unit tests
-echo "Unit test completed"
+# echo "Unit test completed"

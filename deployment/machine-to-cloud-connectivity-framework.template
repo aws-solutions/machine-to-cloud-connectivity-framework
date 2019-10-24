@@ -12,7 +12,7 @@
 ######################################################################################################################
 
 AWSTemplateFormatVersion: 2010-09-09
-Description: The AWS cloud formation template for the deployment of Machine to Cloud connectivity solution. Version %%VERSION%%.
+Description: (SO0070) - The AWS cloud formation template for the deployment of %%SOLUTION_NAME%%. Version %%VERSION%%.
 
 Parameters:
     ExistingGreengrassGroup:
@@ -39,13 +39,19 @@ Mappings:
     SourceCode:
         General:
             S3Bucket: "%%BUCKET_NAME%%"
-            KeyPrefix: "machine-to-cloud-connectivity-framework/%%VERSION%%"
+            KeyPrefix: "%%SOLUTION_NAME%%/%%VERSION%%"
     Metadata:
         General:
-            KeyPrefix: opcda-job-metadata/
+            KeyPrefix: job-metadata/
     OPCDAConnectorLambdaBucket:
         General:
             KeyPrefix: opcda-connector-lambda
+    SLMPConnectorLambdaBucket:
+        General:
+            KeyPrefix: slmp-connector-lambda
+    ConnectorLambdaBucket:
+        General:
+            KeyPrefix: connector-lambda
     LambdaRuntime:
         Language:
             Python: python3.7
@@ -62,17 +68,17 @@ Conditions:
     CreateGreengrassResources: !Equals [ !Ref ExistingGreengrassGroup, false]
 
 Resources:
-    OpcDaJobBuilderFunction:
+    JobBuilderFunction:
         Type: AWS::Lambda::Function
         Properties:
             Description: AWS Machine to Cloud job builder function
             Code:
                 S3Bucket: !Join ["-", [!FindInMap ["SourceCode", "General", "S3Bucket"], Ref: "AWS::Region" ]]
-                S3Key: !Join ["/", [!FindInMap ["SourceCode", "General", "KeyPrefix"],  "opcda-job-builder.zip"]]
+                S3Key: !Join ["/", [!FindInMap ["SourceCode", "General", "KeyPrefix"],  "m2c2-job-builder.zip"]]
             Handler: m2c2_job_builder_main.lambda_handler
             Role:
                 Fn::GetAtt: [ JobBuilderRole , "Arn" ]
-            FunctionName: "m2c2-opcda-job-builder"
+            FunctionName: "m2c2-job-builder"
             Runtime: !FindInMap ["LambdaRuntime", "Language", "Python"]
             Timeout: 60
             MemorySize: 128
@@ -81,7 +87,7 @@ Resources:
                     JBM_TBL: !Ref JobMetadataTable
                     JBM_BCK: !Ref M2C2Bucket
                     JBM_KEY: !FindInMap ["Metadata", "General", "KeyPrefix"]
-                    CON_KEY: !FindInMap ["OPCDAConnectorLambdaBucket", "General", "KeyPrefix"]
+                    CON_KEY: !FindInMap ["ConnectorLambdaBucket", "General", "KeyPrefix"]
                     GGG_ID: !If [CreateGreengrassResources, !GetAtt M2C2GreengrassGroup.Id, !Ref ExistingGreengrassGroupID]
                     RES_ID: !If [CreateGreengrassResources, M2C2LocalResourceId, ""]
                     CON_ROL: !GetAtt M2C2ConnectorLambdaRole.Arn
@@ -89,7 +95,36 @@ Resources:
                     SOL_ID: !FindInMap ["Solution", "Parameters", "Id"]
                     UUID: !GetAtt M2C2Helper.UUID
                     SOL_VER: "%%VERSION%%"
+
+    OpcDaJobBuilderFunction: 
+        Type: AWS::Lambda::Function 
+        Properties: 
+            Description: AWS Machine to Cloud job builder function 
+            Code: 
+                S3Bucket: !Join ["-", [!FindInMap ["SourceCode", "General", "S3Bucket"], Ref: "AWS::Region" ]] 
+                S3Key: !Join ["/", [!FindInMap ["SourceCode", "General", "KeyPrefix"],  "m2c2-job-builder.zip"]] 
+            Handler: m2c2_job_builder_main.lambda_handler 
+            Role: 
+                Fn::GetAtt: [ JobBuilderRole , "Arn" ] 
+            FunctionName: "m2c2-opcda-job-builder" 
+            Runtime: !FindInMap ["LambdaRuntime", "Language", "Python"] 
+            Timeout: 60 
+            MemorySize: 128 
+            Environment: 
+                Variables: 
+                    JBM_TBL: !Ref JobMetadataTable 
+                    JBM_BCK: !Ref M2C2Bucket 
+                    JBM_KEY: !FindInMap ["Metadata", "General", "KeyPrefix"] 
+                    CON_KEY: !FindInMap ["OPCDAConnectorLambdaBucket", "General", "KeyPrefix"] 
+                    GGG_ID: !If [CreateGreengrassResources, !GetAtt M2C2GreengrassGroup.Id, !Ref ExistingGreengrassGroupID] 
+                    RES_ID: !If [CreateGreengrassResources, M2C2LocalResourceId, ""] 
+                    CON_ROL: !GetAtt M2C2ConnectorLambdaRole.Arn 
+                    MET_ENB: !FindInMap ["Metrics", "General", "SendAnonymousUsage"] 
+                    SOL_ID: !FindInMap ["Solution", "Parameters", "Id"] 
+                    UUID: !GetAtt M2C2Helper.UUID 
+                    SOL_VER: "%%VERSION%%" 
     
+
     JobGeneratorRule:
         Type: AWS::IoT::TopicRule
         Properties:
@@ -101,12 +136,12 @@ Resources:
                 Actions:
                     -
                         Lambda:
-                            FunctionArn: !GetAtt OpcDaJobBuilderFunction.Arn
+                            FunctionArn: !GetAtt JobBuilderFunction.Arn
 
     LambdaInvokeBuilderPermission:
         Type: AWS::Lambda::Permission
         Properties:
-            FunctionName: !GetAtt OpcDaJobBuilderFunction.Arn
+            FunctionName: !GetAtt JobBuilderFunction.Arn
             Action: lambda:InvokeFunction
             Principal: iot.amazonaws.com
             SourceArn: !Sub "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:rule/${JobGeneratorRule}"
@@ -178,6 +213,7 @@ Resources:
 
                             Resource:
                                 -  !Join ["", ["arn:aws:lambda:", Ref: "AWS::Region", ":", Ref: "AWS::AccountId", ":function:", "m2c2-opcda-connector*"]]
+                                -  !Join ["", ["arn:aws:lambda:", Ref: "AWS::Region", ":", Ref: "AWS::AccountId", ":function:", "m2c2-slmp-connector*"]]
                         -
                             Effect: "Allow"
                             Action:
@@ -510,6 +546,20 @@ Resources:
         DependsOn: M2C2HelperFunction
         DependsOn: M2C2Bucket
 
+    SLMPM2C2Helper:
+        Type: Custom::M2C2Helper
+        Properties:
+            Resource: CopySLMPConnectorLambdaZip
+            ServiceToken: !GetAtt M2C2HelperFunction.Arn
+            DestBucket: !Ref M2C2Bucket
+            DestPrefix: !FindInMap ["SLMPConnectorLambdaBucket", "General", "KeyPrefix"]
+            SourceBucket: !Join ["-", [!FindInMap ["SourceCode", "General", "S3Bucket"], Ref: "AWS::Region" ]]
+            SourcePrefix: !FindInMap ["SourceCode", "General", "KeyPrefix"]
+            Objects:
+                - /m2c2-slmp-connector.zip
+        DependsOn: M2C2HelperFunction
+        DependsOn: M2C2Bucket
+        
     M2C2HelperSendAnonymousMetrics:
         Condition: Metrics
         Type: Custom::M2C2HelperSendAnonymousMetrics
@@ -623,32 +673,38 @@ Resources:
                     def handler(event, context):
                         # make sure we send a failure to CloudFormation if the function
                         # is going to timeout
+                        print("EVENT: " + str(event))
                         timer = threading.Timer((context.get_remaining_time_in_millis()
                                     / 1000.00) - 0.5, timeout, args=[event, context])
                         timer.start()
                         print('Received event: %s' % json.dumps(event))
                         status = cfnresponse.SUCCESS
                         responseData = {}
-                        resource = event['ResourceProperties']['Resource']
+                        config = event['ResourceProperties']
                         try:
-                            if event['RequestType'] == 'Create':
-                                if resource == 'CopyConnectorLambdaZip':
-                                    source_bucket = event['ResourceProperties']['SourceBucket']
-                                    dest_bucket = event['ResourceProperties']['DestBucket']
-                                    prefix = event['ResourceProperties']['SourcePrefix']
-                                    dest_prefix = event['ResourceProperties']['DestPrefix']
-                                    objects = event['ResourceProperties']['Objects']
+                            if event['RequestType'] in ['Create', 'Update'] :
+                                if config['Resource'] == 'CopyConnectorLambdaZip' or config['Resource'] == 'CopySLMPConnectorLambdaZip':
+                                    source_bucket = config['SourceBucket']
+                                    dest_bucket = config['DestBucket']
+                                    prefix = config['SourcePrefix']
+                                    dest_prefix = config['DestPrefix']
+                                    objects = config['Objects']
                                     responseData['UUID'] = str(uuid.uuid4())
                                     copy_objects(source_bucket, dest_bucket, prefix, objects, dest_prefix)
-                                elif resource == 'SendAnonymousMetrics':
-                                    config = event['ResourceProperties']
-                                    config['EventType'] = 'DeployStack'
-                                    send_metrics(config)
+                                elif config['Resource'] == 'SendAnonymousMetrics':
+                                    if event['RequestType'] == 'Create':
+                                        config['EventType'] = 'DeployStack'
+                                    elif event['RequestType'] == 'Update':
+                                        config['EventType'] = 'UpdateStack'
+                                    try:
+                                        send_metrics(config)
+                                    except:
+                                        pass
                             elif event['RequestType'] == 'Delete':
-                                if resource == 'CopyConnectorLambdaZip':
-                                    dest_bucket = event['ResourceProperties']['DestBucket']
-                                    dest_prefix = event['ResourceProperties']['DestPrefix']
-                                    objects = event['ResourceProperties']['Objects']
+                                if config['Resource'] == 'CopySLMPConnectorLambdaZip':
+                                    dest_bucket = config['DestBucket']
+                                    dest_prefix = config['DestPrefix']
+                                    objects = config['Objects']
                                     delete_objects(dest_bucket, dest_prefix, objects)
                                 elif resource == 'SendAnonymousMetrics':
                                     delete_config = event['ResourceProperties']

@@ -1,0 +1,39 @@
+## Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+## SPDX-License-Identifier: Apache-2.0
+
+m2c2_local_resource_path = "/m2c2/job"
+m2c2_metrics_url = "https://metrics.awssolutionsbuilder.com/generic"
+m2c2_ddb_job_name_exists = "Job %s already exists in database."
+m2c2_ddb_job_name_does_not_exist = "Job %s not found in database."
+m2c2_ddb_job_name_version_must_be_unique = "A unique database entry must exist for Job %s version %s."
+m2c2_ddb_update_already = "<%s> control already issued."
+m2c2_ddb_access = "Unable to query database table %s."
+m2c2_ddb_job_name_running = " A version of job %s is already running."
+m2c2_ddb_controller_stop = "ACTION REQUIRED: the following jobs have been stopped and will need restarting after manual deployment of the greengrass group: %s"
+m2c2_gg_get_group_definition = "Unable to get group definition (Id %s)."
+m2c2_gg_get_group_definition_version = "Unable to get group definition version (Id %s, Version %s)."
+m2c2_gg_add_lambda = "Unable to load %s connector from %s."
+m2c2_gg_add_lambda_alias = "Unable to create connector lambda alias."
+m2c2_gg_create_definition = "Unable to create %s definition. (definition name: %s)"
+m2c2_gg_create_definition_version = "Unable to create %s definition."
+m2c2_gg_create_group_version = "Unable to create group version."
+m2c2_err_json_key_count = "Invalid number of properties (%s). Unable to execute %s control."
+m2c2_err_json_key_type = "Parameter %s must be %s."
+m2c2_err_json_key_not_found = "Parameter %s not found in job request."
+m2c2_err_json_schema = "Submitted JSON does not meet minimum requirements."
+m2c2_err_json_function = "Unsupported protocol function."
+m2c2_err_json_connectivity = "Unsupported protocol connectivity."
+m2c2_user_deploy_request = "Job successfully created. Deploy the GreenGrass group from the AWS IoT console and use the push control to check connectivity."
+m2c2_err_json_range = "Value %s out of range." 
+m2c2_s3_fail_write = "Unable to write to s3 bucket %s. Job request aborted."
+m2c2_s3_fail_read = "Unable to read from s3 bucket %s. Job request aborted."
+min_iteration = 1
+max_iteration = 30
+min_interval = 0.5
+max_interval = 30
+max_slmp_network = 239
+max_slmp_station = 120
+max_slmp_multidrop = 31
+slmp_ethernet = ["tcp", "udp"]
+slmp_communication_code = ["binary", "ascii"]
+slmp_subheader =  ["with serial", "without serial"]

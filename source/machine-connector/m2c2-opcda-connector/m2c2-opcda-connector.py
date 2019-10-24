@@ -189,12 +189,20 @@ def function_handler(job_data, context):
         job_name = job_data["job"]["properties"][0]["name"]
         if job_data["job"]["control"].lower() == "start":
             event = job_data
-            last_command = "start"
-            start()
+            if last_command == "start":
+                post_to_user(job_name, "", "info", msg.ERR_MSG_FAIL_LAST_COMMAND_START %(job_name))
+                busy = False
+            else:
+                last_command = "start"
+                start()
         elif job_data["job"]["control"].lower() == "stop":
             event = job_data
-            last_command = "stop"
-            stop()
+            if last_command == "stop":
+                post_to_user(job_name, "", "info", msg.ERR_MSG_FAIL_LAST_COMMAND_STOP %(job_name))
+                busy = False
+            else:
+                last_command = "stop"
+                stop()
         elif job_data["job"]["control"].lower() == "push":
             event = job_data
             push()
@@ -206,12 +214,7 @@ def function_handler(job_data, context):
             event = job_data
             pull()
         else:
-            if job_data["job"]["control"].lower() == "stop":
-                post_to_user(job_name, "", "info", msg.ERR_MSG_FAIL_LAST_COMMAND_STOP %(job_name))
-            elif job_data["job"]["control"].lower() == "start":
-                post_to_user(job_name, "", "info", msg.ERR_MSG_FAIL_LAST_COMMAND_START %(job_name))
-            else:
-                post_to_user(job_name, "", "error", msg.ERR_MSG_FAIL_UNKWOWN_CONTROL %(job_data["job"]["control"]))
+            post_to_user(job_name, "", "error", msg.ERR_MSG_FAIL_UNKWOWN_CONTROL %(job_data["job"]["control"]))
             busy = False
 
 def convert_to_json(payload_content):

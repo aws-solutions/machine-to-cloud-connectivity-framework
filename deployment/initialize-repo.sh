@@ -35,6 +35,8 @@ echo "cd aws-greengrass-core-sdk-python/"
 cd aws-greengrass-core-sdk-python/
 echo "cp -R greengrasssdk $deployment_dir/source/machine-connector/m2c2-opcda-connector/"
 cp -R greengrasssdk ../../../source/machine-connector/m2c2-opcda-connector/
+echo "cp -R greengrasssdk $deployment_dir/source/machine-connector/m2c2-slmp-connector/"
+cp -R greengrasssdk ../../../source/machine-connector/m2c2-slmp-connector/
 echo "cd $deployment_dir"
 cd $deployment_dir
 chmod -R 755 temp

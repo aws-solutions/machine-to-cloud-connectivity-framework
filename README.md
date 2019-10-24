@@ -1,6 +1,6 @@
-## Machine To Cloud Connectivity Framework
+## Machine To Cloud Connectivity Solution
 
-AWS offers the Machine to Cloud Connectivity (M2C2) framework to help customers
+AWS offers the Machine to Cloud Connectivity (M2C2) solution to help customers
 connect factory equipment such as PLCs, CNC Machines, OPC DA servers more easily and
 securely. This solution provides a framework to define communication with factory
 equipment from the AWS cloud. This solution is designed to work out-of-the-box to
@@ -16,8 +16,8 @@ data, run machine learning for use cases such as predictive maintenance of facto
 equipment, create notifications and alerts or integrate one of the many other services
 within the IoT Rule engine.
 
- 
-For more information and a detailed deployment guide visit the Machine to Cloud Connectivity Framework at https://aws.amazon.com/solutions/machine-to-cloud-connectivity
+
+For more information and a detailed deployment guide visit the Machine to Cloud Connectivity Framework at https://aws.amazon.com/solutions/machine-to-cloud-connectivity-framework
 
 
 ## Building distributable for customization
@@ -25,14 +25,16 @@ For more information and a detailed deployment guide visit the Machine to Cloud 
 ```
 export DIST_OUTPUT_BUCKET=my-bucket-name # bucket where customized code will reside 
 export VERSION=my-version # version number for the customized code 
+export SOLUTION_NAME = "machine-to-cloud-connectivity-framework"
 ```
 _Note:_ You would have to create an S3 bucket with the prefix 'my-bucket-name-<aws_region>'; aws_region is where you are testing the customized solution. Also, the assets in bucket should be publicly accessible.
 
 * Now build the distributable: 
 ``` 
 cd deployment
-chmod +x ./build-s3-dist.sh \n 
-./build-s3-dist.sh $DIST_OUTPUT_BUCKET $VERSION \n 
+chmod +x ./build-s3-dist.sh \n
+
+./build-s3-dist.sh $DIST_OUTPUT_BUCKET $SOLUTION_NAME $VERSION \n 
 ``` 
 These will add the following dependencies to the project:
 Greengrass SDK - https://github.com/aws/aws-greengrass-core-sdk-python

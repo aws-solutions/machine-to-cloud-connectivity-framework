@@ -67,8 +67,11 @@ sed -i -e $replace $template_dist_dir/machine-to-cloud-connectivity-framework.te
 cd ..
 echo "Building lambda packages"
 pwd
+echo "Building helper function custom resource lambda module"
+cd source/custom-resource
+zip -r $build_dist_dir/m2c2-helper.zip *
 echo "Building job builder lambda module"
-cd source/job-builder/m2c2-job-builder
+cd ../job-builder/m2c2-job-builder
 zip -r $build_dist_dir/m2c2-job-builder.zip *
 echo "Building connector opcda lambda module"
 cd ../../../source/machine-connector/m2c2-opcda-connector

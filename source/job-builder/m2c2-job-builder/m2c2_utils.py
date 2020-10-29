@@ -25,8 +25,16 @@ def get_metadata(metadata, user_job_request, index):
             return user_job_request["job"]["gg-group-id"]
         elif metadata == "machine-details":
             return user_job_request["job"]["machine-details"]
+        elif metadata == "process":
+            return user_job_request["job"]["machine-details"]["process"]
+        elif metadata == "site-name":
+            return user_job_request["job"]["machine-details"]["site-name"]    
+        elif metadata == "area":
+            return user_job_request["job"]["machine-details"]["area"]
         elif metadata == "connectivity-parameters":
             return user_job_request["job"]["machine-details"]["connectivity-parameters"]
+        elif metadata == "machine-name":
+            return user_job_request["job"]["machine-details"]["connectivity-parameters"]["machine-name"]
         elif metadata == "data-parameters":
             return user_job_request["job"]["machine-details"]["data-parameters"]
         elif metadata == "machine-query-iterations":

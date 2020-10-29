@@ -64,6 +64,11 @@ class process_control:
         job_name = utils.get_metadata("name",user_job_request,0)
         job_version = utils.get_metadata("version",user_job_request,0)
         control = utils.get_metadata("control",user_job_request,0)
+        process = utils.get_metadata("process",user_job_request,0)
+        sitename = utils.get_metadata("site-name",user_job_request,0)
+        area = utils.get_metadata("area",user_job_request,0)
+        machinename = utils.get_metadata("machine-name",user_job_request,0)
+
 
         if ddb.valid_job_request(job_name, job_version, control):
             logger.info("Setting greengrass group")

@@ -1,4 +1,4 @@
-## Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+## Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 ## SPDX-License-Identifier: Apache-2.0
 
 import logging
@@ -29,7 +29,7 @@ def get(metadata, user_job_request, index, protocol):
                 return user_job_request["job"]["machine-details"]["data-parameters"]["attributes"][index]["function"]
             elif metadata == "address-list":
                 return user_job_request["job"]["machine-details"]["data-parameters"]["attributes"][index]["address-list"]
-        
+
         elif protocol == "slmp":
             if metadata == "site-name":
                 return str(user_job_request["job"]["machine-details"]["site-name"])

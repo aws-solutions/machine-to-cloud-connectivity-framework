@@ -1,4 +1,4 @@
-## Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+## Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 ## SPDX-License-Identifier: Apache-2.0
 
 import logging
@@ -23,7 +23,7 @@ def get(user_request,aws_metrics):
                 tag_list += len(user_request)
         aws_metrics["Data"]["number-of-lists"] = tag_list
         aws_metrics["Data"]["number-of-tags"] = tag_count
-        return aws_metrics 
+        return aws_metrics
     elif utils.get_metadata("protocol",user_request,0) == "slmp":
         aws_metrics["Data"]["protocol"]= utils.get_metadata("protocol",user_request,0)
         aws_metrics["Data"]["machine-query-time-interval"] = utils.get_metadata("machine-query-time-interval",user_request,0)
@@ -53,6 +53,6 @@ def get(user_request,aws_metrics):
             elif utils.get_metadata("function",user_request,i) == "label_read_random":
                 temp_metrics["label_read_random"] += len(attributes[i]["address-list"]["label-list"])
             aws_metrics["Data"]["details"] = temp_metrics
-        return aws_metrics 
+        return aws_metrics
     # add metrics for new protocol
     return 0

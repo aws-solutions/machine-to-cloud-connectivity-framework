@@ -1,4 +1,4 @@
-## Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+## Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 ## SPDX-License-Identifier: Apache-2.0
 
 import logging
@@ -21,13 +21,13 @@ def prot_keys(metadata, user_job_request, index, protocol):
 
 def connectivity_keys(user_request):
     return ckeys.get(user_request)
-   
+
 def data_keys(user_request, index):
     return dkeys.get(user_request, index)
 
 def check_range(user_request):
     return chkrng.get(user_request)
-    
+
 def job(user_request):
     return jb.get(user_request)
 

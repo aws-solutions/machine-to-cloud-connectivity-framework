@@ -1,0 +1,175 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`M2C2 custom resources test 1`] = `
+Object {
+  "Mappings": Object {
+    "Solution": Object {
+      "Parameters": Object {
+        "Id": "SolutionId",
+        "Version": "SolutionVersion",
+      },
+    },
+    "SourceCode": Object {
+      "General": Object {
+        "KeyPrefix": "Prefix",
+        "S3Bucket": "Bucket",
+      },
+    },
+  },
+  "Resources": Object {
+    "TestCustomResourcesHelperFunctionA2E26C6E": Object {
+      "DependsOn": Array [
+        "TestCustomResourcesHelperFunctionRoleAEC1819B",
+      ],
+      "Metadata": Object {
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "W58",
+              "reason": "Miss alarm, and the function does have permission to write CloudWatch Logs.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                Object {
+                  "Fn::FindInMap": Array [
+                    "SourceCode",
+                    "General",
+                    "S3Bucket",
+                  ],
+                },
+                "-",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+              ],
+            ],
+          },
+          "S3Key": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                Object {
+                  "Fn::FindInMap": Array [
+                    "SourceCode",
+                    "General",
+                    "KeyPrefix",
+                  ],
+                },
+                "/m2c2-helper.zip",
+              ],
+            ],
+          },
+        },
+        "Description": "Machine to Cloud Connectivity custom resource function",
+        "Environment": Object {
+          "Variables": Object {
+            "SOLUTION_ID": Object {
+              "Fn::FindInMap": Array [
+                "Solution",
+                "Parameters",
+                "Id",
+              ],
+            },
+            "SOLUTION_VERSION": Object {
+              "Fn::FindInMap": Array [
+                "Solution",
+                "Parameters",
+                "Version",
+              ],
+            },
+          },
+        },
+        "Handler": "m2c2_helper_custom_resource.handler",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesHelperFunctionRoleAEC1819B",
+            "Arn",
+          ],
+        },
+        "Runtime": "python3.8",
+        "Timeout": 240,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestCustomResourcesHelperFunctionRoleAEC1819B": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Path": "/",
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestCustomResourcesSendAnonymousMetricsF6400FC2": Object {
+      "Condition": "TestCondition",
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "ExistingGreengrassGroup": "",
+        "ExistingKinesisStream": "",
+        "Region": Object {
+          "Ref": "AWS::Region",
+        },
+        "Resource": "SendAnonymousMetrics",
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesHelperFunctionA2E26C6E",
+            "Arn",
+          ],
+        },
+        "SolutionId": Object {
+          "Fn::FindInMap": Array [
+            "Solution",
+            "Parameters",
+            "Id",
+          ],
+        },
+        "UUID": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesUUID15254492",
+            "UUID",
+          ],
+        },
+        "Version": Object {
+          "Fn::FindInMap": Array [
+            "Solution",
+            "Parameters",
+            "Version",
+          ],
+        },
+      },
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "TestCustomResourcesUUID15254492": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Resource": "CreateUUID",
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesHelperFunctionA2E26C6E",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
+    },
+  },
+}
+`;

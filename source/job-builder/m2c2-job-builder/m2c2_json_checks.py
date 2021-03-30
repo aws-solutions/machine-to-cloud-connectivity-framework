@@ -1,4 +1,4 @@
-## Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+## Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 ## SPDX-License-Identifier: Apache-2.0
 
 import json
@@ -43,65 +43,50 @@ def check_schema(submitted_json):
     if not test_fields(test_dict, submitted_json, 0):
         return 0
 
+    control = utils.get_metadata("control", submitted_json, 0)
+
     # json structure checked per control request type
-    if utils.get_metadata("control", submitted_json, 0) in ["pull"]:
+    if control == "pull":
         for i in range(0, len(utils.get_metadata("properties", submitted_json, 0))):
             test_dict = {
                 "name": [str]
-                } 
+                }
             if not test_fields(test_dict, submitted_json, i):
                 abort_flag = True
 
-        if not abort_flag:
-            return submitted_json
-        
-    elif utils.get_metadata("control", submitted_json, 0) in ["start","stop","push"]:
+    elif control in ["start", "stop", "push"]:
         for i in range(0, len(utils.get_metadata("properties", submitted_json, 0))):
             test_dict = {
-                "name": [str],
-                "version": [str]
-                } 
+                "name": [str]
+                }
             if not test_fields(test_dict, submitted_json, i):
-                abort_flag = True       
+                abort_flag = True
 
-        if not abort_flag:
-            return submitted_json
-        
-    # elif utils.get_metadata("control", submitted_json, 0) in ["push"]:
-    #     if len(utils.get_metadata("properties", submitted_json, 0)) != 1:
-    #         post.to_user("", "", "error", var.m2c2_err_json_key_count %(str(len(utils.get_metadata("properties", submitted_json, 0))), submitted_json["job"]["control"]))
-    #         return 0
-        
-    #     test_dict = {
-    #         "name": [str],
-    #         "version": [str]
-    #         } 
-    #     if not test_fields(test_dict, submitted_json, 0):
-    #         abort_flag = True       
-        
-    #     if not abort_flag:
-    #         return submitted_json      
-    
-    elif utils.get_metadata("control", submitted_json, 0) in ["deploy", "update"]:
-        # full json structure is required to proceed. 
+        if control == "start":
+            if "send-data-to-iot-topic" in submitted_json["job"]:
+                abort_flag = type(submitted_json["job"]["send-data-to-iot-topic"]) is not bool
+            if "send-data-to-stream-manager" in submitted_json["job"]:
+                abort_flag = type(submitted_json["job"]["send-data-to-stream-manager"]) is not bool
+
+    elif control in ["deploy", "update"]:
+        # full json structure is required to proceed.
         # A user provided GreenGrass Group Id will be used
         if len(utils.get_metadata("properties", submitted_json, 0)) != 1:
             post.to_user("", "", "error", var.m2c2_err_json_key_count %(str(len(utils.get_metadata("properties", submitted_json, 0))), submitted_json["job"]["control"]))
             return 0
 
         test_dict = {
-            "name": [str],
-            "version": [str]
-            } 
+            "name": [str]
+            }
         if not test_fields(test_dict, submitted_json, 0):
-            abort_flag = True  
+            abort_flag = True
 
         test_dict = {
             "machine-details": [dict]
         }
         if not test_fields(test_dict, submitted_json, 0):
             abort_flag = True
-        
+
         test_dict = {
             "gg-group-id": [str]
         }
@@ -109,7 +94,7 @@ def check_schema(submitted_json):
             abort_flag = False
 
         if utils.get_metadata("gg-group-id", submitted_json, 0) == "":
-            submitted_json["job"]["gg-group-id"] = os.environ["GGG_ID"]
+            submitted_json["job"]["gg-group-id"] = os.environ["GREENGRASS_ID"]
 
         test_dict = {
             "connectivity-parameters": [dict],
@@ -139,13 +124,13 @@ def check_schema(submitted_json):
             "attributes": [list]
         }
         if not test_fields(test_dict, submitted_json, 0):
-            return 0  
+            return 0
 
         # range check
         if not var.min_iteration <= utils.get_metadata("machine-query-iterations", submitted_json, 0) <= var.max_iteration:
             post.to_user("", "", "error", var.m2c2_err_json_range %("machine-query-iterations"))
             abort_flag = True
-        
+
         if not var.min_interval <= utils.get_metadata("machine-query-time-interval", submitted_json, 0) <= var.max_interval:
             post.to_user("", "", "error", var.m2c2_err_json_range %("machine-query-time-interval"))
             abort_flag = True
@@ -163,6 +148,7 @@ def check_schema(submitted_json):
         if not build.check_range(submitted_json):
             abort_flag = True
 
-        if not abort_flag:
-            return submitted_json
+    if not abort_flag:
+        return submitted_json
+
     return 0

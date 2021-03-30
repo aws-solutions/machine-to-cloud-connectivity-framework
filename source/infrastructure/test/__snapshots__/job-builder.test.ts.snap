@@ -1,0 +1,598 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`M2C2 job builder test 1`] = `
+Object {
+  "Mappings": Object {
+    "Solution": Object {
+      "Parameters": Object {
+        "Id": "SolutionId",
+        "JobMetadataPrefix": "job-metadata/",
+        "Version": "SolutionVersion",
+      },
+    },
+    "SourceCode": Object {
+      "General": Object {
+        "KeyPrefix": "Prefix",
+        "S3Bucket": "Bucket",
+      },
+    },
+  },
+  "Resources": Object {
+    "TestJobBuilderConnectorLambdaRole3498718A": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Path": "/",
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestJobBuilderDynamoTable68BFEB1E": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "AttributeDefinitions": Array [
+          Object {
+            "AttributeName": "jobid",
+            "AttributeType": "S",
+          },
+          Object {
+            "AttributeName": "version",
+            "AttributeType": "N",
+          },
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": Array [
+          Object {
+            "AttributeName": "jobid",
+            "KeyType": "HASH",
+          },
+          Object {
+            "AttributeName": "version",
+            "KeyType": "RANGE",
+          },
+        ],
+        "PointInTimeRecoverySpecification": Object {
+          "PointInTimeRecoveryEnabled": true,
+        },
+        "SSESpecification": Object {
+          "SSEEnabled": true,
+        },
+      },
+      "Type": "AWS::DynamoDB::Table",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "TestJobBuilderJobBuilderPolicyD287C026": Object {
+      "Metadata": Object {
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "W12",
+              "reason": "The * resource is needed to control Greengrass resources.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "s3:GetObject",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":s3:::",
+                    Object {
+                      "Fn::FindInMap": Array [
+                        "SourceCode",
+                        "General",
+                        "S3Bucket",
+                      ],
+                    },
+                    "-",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    "/",
+                    Object {
+                      "Fn::FindInMap": Array [
+                        "SourceCode",
+                        "General",
+                        "KeyPrefix",
+                      ],
+                    },
+                    "/*",
+                  ],
+                ],
+              },
+            },
+            Object {
+              "Action": Array [
+                "s3:GetBucketLocation",
+                "s3:GetObject",
+                "s3:ListBucket",
+                "s3:PutObject",
+              ],
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "TestM2C2BucketBCB85E3A",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "TestM2C2BucketBCB85E3A",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            Object {
+              "Action": "iot:Publish",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":iot:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":topic/m2c2/job/*",
+                  ],
+                ],
+              },
+            },
+            Object {
+              "Action": Array [
+                "lambda:CreateFunction",
+                "lambda:DeleteFunction",
+                "lambda:PublishVersion",
+                "lambda:CreateAlias",
+                "lambda:DeleteAlias",
+              ],
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":lambda:",
+                      Object {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      Object {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":function:m2c2-opcda-connector*",
+                    ],
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":lambda:",
+                      Object {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      Object {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":function:m2c2-slmp-connector*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            Object {
+              "Action": "iam:PassRole",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::GetAtt": Array [
+                  "TestJobBuilderConnectorLambdaRole3498718A",
+                  "Arn",
+                ],
+              },
+            },
+            Object {
+              "Action": Array [
+                "greengrass:CreateCoreDefinitionVersion",
+                "greengrass:CreateCoreDefinition",
+                "greengrass:CreateDeployment",
+                "greengrass:CreateDeviceDefinitionVersion",
+                "greengrass:CreateDeviceDefinition",
+                "greengrass:CreateFunctionDefinitionVersion",
+                "greengrass:CreateFunctionDefinition",
+                "greengrass:CreateGroupVersion",
+                "greengrass:CreateLoggerDefinitionVersion",
+                "greengrass:CreateLoggerDefinition",
+                "greengrass:CreateResourceDefinitionVersion",
+                "greengrass:CreateResourceDefinition",
+                "greengrass:CreateSubscriptionDefinitionVersion",
+                "greengrass:CreateSubscriptionDefinition",
+                "greengrass:DeleteCoreDefinition",
+                "greengrass:DeleteDeviceDefinition",
+                "greengrass:DeleteFunctionDefinition",
+                "greengrass:DeleteLoggerDefinition",
+                "greengrass:DeleteResourceDefinition",
+                "greengrass:DeleteSubscriptionDefinition",
+                "greengrass:GetCoreDefinitionVersion",
+                "greengrass:GetDeploymentStatus",
+                "greengrass:GetDeviceDefinitionVersion",
+                "greengrass:GetFunctionDefinitionVersion",
+                "greengrass:GetGroupVersion",
+                "greengrass:GetGroup",
+                "greengrass:GetLoggerDefinitionVersion",
+                "greengrass:GetResourceDefinitionVersion",
+                "greengrass:GetSubscriptionDefinitionVersion",
+                "greengrass:ListCoreDefinitions",
+                "greengrass:ListDeviceDefinitions",
+                "greengrass:ListFunctionDefinitions",
+                "greengrass:ListLoggerDefinitions",
+                "greengrass:ListResourceDefinitions",
+                "greengrass:ListSubscriptionDefinitions",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestJobBuilderJobBuilderPolicyD287C026",
+        "Roles": Array [
+          Object {
+            "Ref": "TestJobBuilderLambdaFunctionServiceRoleD1AEB7EC",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestJobBuilderJobGeneratorRule3CD2931F": Object {
+      "Properties": Object {
+        "TopicRulePayload": Object {
+          "Actions": Array [
+            Object {
+              "Lambda": Object {
+                "FunctionArn": Object {
+                  "Fn::GetAtt": Array [
+                    "TestJobBuilderLambdaFunction199E5076",
+                    "Arn",
+                  ],
+                },
+              },
+            },
+          ],
+          "Description": "Processing of the job submitted and generating the job file to be pushed to Greengrass",
+          "RuleDisabled": false,
+          "Sql": "SELECT * FROM 'm2c2/job/request'",
+        },
+      },
+      "Type": "AWS::IoT::TopicRule",
+    },
+    "TestJobBuilderLambdaFunction199E5076": Object {
+      "DependsOn": Array [
+        "TestJobBuilderLambdaFunctionServiceRoleDefaultPolicyEF1113F8",
+        "TestJobBuilderLambdaFunctionServiceRoleD1AEB7EC",
+      ],
+      "Metadata": Object {
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "W58",
+              "reason": "Lambda functions has the required permission to write CloudWatch Logs. It uses custom policy instead of arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole with more tighter permissions.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                Object {
+                  "Fn::FindInMap": Array [
+                    "SourceCode",
+                    "General",
+                    "S3Bucket",
+                  ],
+                },
+                "-",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+              ],
+            ],
+          },
+          "S3Key": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                Object {
+                  "Fn::FindInMap": Array [
+                    "SourceCode",
+                    "General",
+                    "KeyPrefix",
+                  ],
+                },
+                "/m2c2-job-builder.zip",
+              ],
+            ],
+          },
+        },
+        "Description": "Machine to Cloud Connectivity job builder function",
+        "Environment": Object {
+          "Variables": Object {
+            "CONNECTOR_LAMBDA_ROLE": Object {
+              "Fn::GetAtt": Array [
+                "TestJobBuilderConnectorLambdaRole3498718A",
+                "Arn",
+              ],
+            },
+            "GREENGRASS_ID": "greengrass",
+            "JOB_BUILDER_BUCKET": Object {
+              "Ref": "TestM2C2BucketBCB85E3A",
+            },
+            "JOB_BUILDER_KEY": Object {
+              "Fn::FindInMap": Array [
+                "Solution",
+                "Parameters",
+                "JobMetadataPrefix",
+              ],
+            },
+            "JOB_DYNAMODB_TABLE": Object {
+              "Ref": "TestJobBuilderDynamoTable68BFEB1E",
+            },
+            "KINESIS_STREAM": "kinesis-stream",
+            "SEND_ANONYMOUS_METRIC": "Yes",
+            "SOLUTION_ID": Object {
+              "Fn::FindInMap": Array [
+                "Solution",
+                "Parameters",
+                "Id",
+              ],
+            },
+            "SOLUTION_VERSION": Object {
+              "Fn::FindInMap": Array [
+                "Solution",
+                "Parameters",
+                "Version",
+              ],
+            },
+            "SOURCE_S3_BUCKET": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  Object {
+                    "Fn::FindInMap": Array [
+                      "SourceCode",
+                      "General",
+                      "S3Bucket",
+                    ],
+                  },
+                  "-",
+                  Object {
+                    "Ref": "AWS::Region",
+                  },
+                ],
+              ],
+            },
+            "SOURCE_S3_PREFIX": Object {
+              "Fn::FindInMap": Array [
+                "SourceCode",
+                "General",
+                "KeyPrefix",
+              ],
+            },
+            "UUID": "uuid",
+          },
+        },
+        "Handler": "m2c2_job_builder_main.lambda_handler",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "TestJobBuilderLambdaFunctionServiceRoleD1AEB7EC",
+            "Arn",
+          ],
+        },
+        "Runtime": "python3.8",
+        "Timeout": 300,
+        "TracingConfig": Object {
+          "Mode": "Active",
+        },
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestJobBuilderLambdaFunctionLambdaInvokePermission25B64893": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "TestJobBuilderLambdaFunction199E5076",
+            "Arn",
+          ],
+        },
+        "Principal": "iot.amazonaws.com",
+        "SourceAccount": Object {
+          "Ref": "AWS::AccountId",
+        },
+        "SourceArn": Object {
+          "Fn::GetAtt": Array [
+            "TestJobBuilderJobGeneratorRule3CD2931F",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "TestJobBuilderLambdaFunctionServiceRoleD1AEB7EC": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Policies": Array [
+          Object {
+            "PolicyDocument": Object {
+              "Statement": Array [
+                Object {
+                  "Action": Array [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": Object {
+                    "Fn::Join": Array [
+                      "",
+                      Array [
+                        "arn:",
+                        Object {
+                          "Ref": "AWS::Partition",
+                        },
+                        ":logs:",
+                        Object {
+                          "Ref": "AWS::Region",
+                        },
+                        ":",
+                        Object {
+                          "Ref": "AWS::AccountId",
+                        },
+                        ":log-group:/aws/lambda/*",
+                      ],
+                    ],
+                  },
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "LambdaFunctionServiceRolePolicy",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestJobBuilderLambdaFunctionServiceRoleDefaultPolicyEF1113F8": Object {
+      "Metadata": Object {
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "W12",
+              "reason": "Lambda needs the following minimum required permissions to send trace data to X-Ray and access ENIs in a VPC.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "xray:PutTraceSegments",
+                "xray:PutTelemetryRecords",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            Object {
+              "Action": Array [
+                "dynamodb:BatchGetItem",
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+              ],
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "TestJobBuilderDynamoTable68BFEB1E",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Ref": "AWS::NoValue",
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestJobBuilderLambdaFunctionServiceRoleDefaultPolicyEF1113F8",
+        "Roles": Array [
+          Object {
+            "Ref": "TestJobBuilderLambdaFunctionServiceRoleD1AEB7EC",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestLoggingBucket077C0B0B": Object {
+      "DeletionPolicy": "Retain",
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "TestM2C2BucketBCB85E3A": Object {
+      "DeletionPolicy": "Retain",
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain",
+    },
+  },
+}
+`;

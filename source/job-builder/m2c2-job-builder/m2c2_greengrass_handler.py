@@ -1,11 +1,12 @@
-## Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+## Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 ## SPDX-License-Identifier: Apache-2.0
 
 import boto3
 import logging
 import os
-import boto3
 import json
+import time
+
 
 import m2c2_protocol_converter as builder
 import m2c2_utils as utils
@@ -16,9 +17,13 @@ import m2c2_post_handler as post
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-lambda_client = boto3.client('lambda')
-gg_client = boto3.client('greengrass')
 aws_region = os.environ['AWS_REGION']
+
+# AWS Resource and clients
+
+lambda_client = boto3.client('lambda', config=utils.get_boto_config())
+gg_client = boto3.client('greengrass', config=utils.get_boto_config())
+
 
 class generate_greengrass_resources:
     def __init__(self, user_request):
@@ -29,9 +34,7 @@ class generate_greengrass_resources:
         self.sitename = utils.get_metadata("site-name",user_request,0)
         self.area = utils.get_metadata("area",user_request,0)
         self.machinename = utils.get_metadata("machine-name",user_request,0)
-        self.lambda_path =  os.environ["CON_KEY"]
-        self.lambda_role =  os.environ["CON_ROL"]
-        self.kinesis_arn = os.environ["KINESIS_ARN"]
+        self.lambda_role =  os.environ["CONNECTOR_LAMBDA_ROLE"]
 
         self.m2c2_local_resource_path = var.m2c2_local_resource_path
 
@@ -39,10 +42,10 @@ class generate_greengrass_resources:
         logger.info("GreenGrass Group Id: " + str(self.gg_group_id))
         self.gg_connector_lambda = ""
         self.gg_connector_lambda_alias = ""
-        self.gg_create_definition = ["", "", "", "", "", "", ""]
-        self.gg_list_definitions = ["", "", "", "", "", "", ""]
-        self.gg_get_definition_version = [[],[],[],[],[],[],[]]
-        self.gg_definition_version = ["", "", "", "", "", "", ""]
+        self.gg_create_definition = ["", "", "", "", "", ""]
+        self.gg_list_definitions = ["", "", "", "", "", ""]
+        self.gg_get_definition_version = [[],[],[],[],[],[]]
+        self.gg_definition_version = ["", "", "", "", "", ""]
         self.gg_group = ""
         self.gg_group_version = ""
 
@@ -52,9 +55,8 @@ class generate_greengrass_resources:
             "Device",
             "Function",
             "Logger",
-            "Subscription",
-            "Connector"
-            ]
+            "Subscription"
+        ]
 
 
     def call_list_definitions(self, arg_max, arg_token, idx):
@@ -64,7 +66,6 @@ class generate_greengrass_resources:
         if idx == 3: return gg_client.list_function_definitions(MaxResults = arg_max, NextToken = arg_token)
         if idx == 4: return gg_client.list_logger_definitions(MaxResults = arg_max, NextToken = arg_token)
         if idx == 5: return gg_client.list_subscription_definitions(MaxResults = arg_max, NextToken = arg_token)
-        if idx == 6: return gg_client.list_connector_definitions(MaxResults = arg_max, NextToken = arg_token)
 
     def call_get_definition_version(self, arg_id, arg_versionid, idx):
         if idx == 0: return gg_client.get_resource_definition_version(ResourceDefinitionId = arg_id, ResourceDefinitionVersionId = arg_versionid)
@@ -73,7 +74,6 @@ class generate_greengrass_resources:
         if idx == 3: return gg_client.get_function_definition_version(FunctionDefinitionId = arg_id, FunctionDefinitionVersionId = arg_versionid)
         if idx == 4: return gg_client.get_logger_definition_version(LoggerDefinitionId = arg_id, LoggerDefinitionVersionId = arg_versionid)
         if idx == 5: return gg_client.get_subscription_definition_version(SubscriptionDefinitionId = arg_id, SubscriptionDefinitionVersionId = arg_versionid)
-        if idx == 6: return gg_client.get_connector_definition_version(ConnectorDefinitionId = arg_id, ConnectorDefinitionVersionId = arg_versionid)
 
     def call_create_definition(self, arg_name, idx):
         if idx == 0: return gg_client.create_resource_definition(Name = arg_name)
@@ -82,7 +82,6 @@ class generate_greengrass_resources:
         if idx == 3: return gg_client.create_function_definition(Name = arg_name)
         if idx == 4: return gg_client.create_logger_definition(Name = arg_name)
         if idx == 5: return gg_client.create_subscription_definition(Name = arg_name)
-        if idx == 6: return gg_client.create_connector_definition(Name = arg_name)
 
     def call_create_definition_version(self, arg_id, arg_content, idx):
         if idx == 0: return gg_client.create_resource_definition_version(ResourceDefinitionId = arg_id, Resources = arg_content)
@@ -91,7 +90,6 @@ class generate_greengrass_resources:
         if idx == 3: return gg_client.create_function_definition_version(FunctionDefinitionId = arg_id, Functions = arg_content)
         if idx == 4: return gg_client.create_logger_definition_version(LoggerDefinitionId = arg_id, Loggers = arg_content)
         if idx == 5: return gg_client.create_subscription_definition_version(SubscriptionDefinitionId = arg_id, Subscriptions = arg_content)
-        if idx == 6: return gg_client.create_connector_definition_version(ConnectorDefinitionId = arg_id, Connectors = arg_content)
 
     def call_delete_definition(self, arg_id, idx):
         if idx == 0: return gg_client.delete_resource_definition(ResourceDefinitionId = arg_id)
@@ -100,7 +98,6 @@ class generate_greengrass_resources:
         if idx == 3: return gg_client.delete_function_definition(FunctionDefinitionId = arg_id)
         if idx == 4: return gg_client.delete_logger_definition(LoggerDefinitionId = arg_id)
         if idx == 5: return gg_client.delete_subscription_definition(SubscriptionDefinitionId = arg_id)
-        if idx == 6: return gg_client.delete_connector_definition(ConnectorDefinitionId = arg_id)
 
     def create_gg_definitions(self):
         if not self.get_group_definition():
@@ -153,8 +150,8 @@ class generate_greengrass_resources:
                 Role=self.lambda_role,
                 Handler="m2c2-" + self.protocol + "-connector.function_handler",
                 Code={
-                    "S3Bucket": os.environ["JBM_BCK"],
-                    "S3Key": self.protocol + "-" + self.lambda_path + "/m2c2-" + self.protocol + "-connector.zip",
+                    "S3Bucket": os.environ["SOURCE_S3_BUCKET"],
+                    "S3Key": "{prefix}/m2c2-{protocol}-connector.zip".format(prefix=os.environ["SOURCE_S3_PREFIX"], protocol=self.protocol)
                 },
                 Description="m2c2-" + self.protocol + "-connector-lambda-" + self.job_name,
                 Environment={
@@ -162,7 +159,8 @@ class generate_greengrass_resources:
                         'process': self.process,
                         'sitename': self.sitename,
                         'area': self.area,
-                        'machinename': self.machinename
+                        'machinename': self.machinename,
+                        'kinesisstream': os.environ["KINESIS_STREAM"]
                     }
                 },
                 Timeout=5,
@@ -171,7 +169,7 @@ class generate_greengrass_resources:
             )
         except Exception as err:
             logger.debug("connector lambda traceback:"+ str(err))
-            post.to_user(self.job_name, self.job_version, "error", var.m2c2_gg_add_lambda %(self.protocol, os.environ["JBM_BCK"]))
+            post.to_user(self.job_name, self.job_version, "error", var.m2c2_gg_add_lambda %(self.protocol, os.environ["SOURCE_S3_BUCKET"]))
             return 0
         else:
             try:
@@ -189,7 +187,6 @@ class generate_greengrass_resources:
     def update_group_definitions(self):
         for i in range(0, len(self.mnemo_list)):
             content_to_add = []
-            kinesis_sub = 0
             # fetch existing definitions
             arg_max = "30"
             arg_token = ""
@@ -211,10 +208,7 @@ class generate_greengrass_resources:
                             arg_id = self.gg_list_definitions[i][j]["Id"]
                             arg_versionid = self.gg_list_definitions[i][j]["LatestVersion"]
                             self.gg_temp_definition_version = self.call_get_definition_version(arg_id, arg_versionid, i)
-                            if self.mnemo_list[i] == 'Subscription':
-                                for entry in self.gg_temp_definition_version['Definition']['Subscriptions']:
-                                    if entry['Subject'] == "kinesisfirehose/message/status":
-                                        kinesis_sub = 1
+
                             if k == 1:
                                 self.gg_get_definition_version[i] = self.gg_temp_definition_version["Definition"][self.mnemo_list[i] + "s"]
                             elif k > 1:
@@ -224,17 +218,10 @@ class generate_greengrass_resources:
                             pass
 
             # Retrieve the items specific to the job and check if it already exists within the retrieved definitions
-            content_to_add = self.get_m2c2_gg_content(self.mnemo_list[i], kinesis_sub)
+            content_to_add = self.get_m2c2_gg_content(self.mnemo_list[i])
             if content_to_add:
-                content_already_exists = 0
-                for j in range (0, len(content_to_add)):
-                    if content_already_exists:
-                        break
-                    for k in range (0, len(self.gg_get_definition_version[i])):
-                        if content_to_add[j]["Id"] == self.gg_get_definition_version[i][k]["Id"]:
-                            content_already_exists = 1
-                            break
-                if content_already_exists: content_to_add = []
+                for definition_version in self.gg_get_definition_version[i]:
+                    content_to_add = [content for content in content_to_add if definition_version["Id"] != content["Id"]]
 
             # Add
             if self.gg_get_definition_version[i] or content_to_add:
@@ -260,49 +247,18 @@ class generate_greengrass_resources:
         return 1
 
 
-    def get_m2c2_gg_content(self,type, kinesis_sub):
-        if kinesis_sub == 1:
-            subscription_content = [{
-                    "Id": "from-cloud-" + self.job_name,
-                    "Source": "cloud",
-                    "Subject": "m2c2/job/" + self.job_name + "/submit",
-                    "Target": self.gg_connector_lambda_alias["AliasArn"],
-                },{
-                    "Id": "from-lambda-" + self.job_name,
-                    "Source": self.gg_connector_lambda_alias["AliasArn"],
-                    "Subject": "m2c2/job/#",
-                    "Target": "cloud"
-                },
-                {
-                    "Id": "to-kinesisfirehose-" + self.job_name,
-                    "Source": self.gg_connector_lambda_alias["AliasArn"],
-                    "Subject": "kinesisfirehose/message",
-                    "Target": "arn:aws:greengrass:" + aws_region + "::/connectors/KinesisFirehose/versions/4"
-                }]
-        else:
-            subscription_content = [{
-                    "Id": "from-cloud-" + self.job_name,
-                    "Source": "cloud",
-                    "Subject": "m2c2/job/" + self.job_name + "/submit",
-                    "Target": self.gg_connector_lambda_alias["AliasArn"],
-                },{
-                    "Id": "from-lambda-" + self.job_name,
-                    "Source": self.gg_connector_lambda_alias["AliasArn"],
-                    "Subject": "m2c2/job/#",
-                    "Target": "cloud"
-                },
-                {
-                    "Id": "to-kinesisfirehose-" + self.job_name,
-                    "Source": self.gg_connector_lambda_alias["AliasArn"],
-                    "Subject": "kinesisfirehose/message",
-                    "Target": "arn:aws:greengrass:" + aws_region + "::/connectors/KinesisFirehose/versions/4"
-                },
-                {
-                    "Id": "from-kinesisfirehose-" + self.job_name,
-                    "Source": "arn:aws:greengrass:" + aws_region + "::/connectors/KinesisFirehose/versions/4",
-                    "Subject": "kinesisfirehose/message/status",
-                    "Target": "cloud"
-                }]
+    def get_m2c2_gg_content(self, type):
+        subscription_content = [{
+            "Id": "from-cloud-" + self.job_name,
+            "Source": "cloud",
+            "Subject": "m2c2/job/" + self.job_name + "/submit",
+            "Target": self.gg_connector_lambda_alias["AliasArn"],
+        },{
+            "Id": "from-lambda-" + self.job_name,
+            "Source": self.gg_connector_lambda_alias["AliasArn"],
+            "Subject": "m2c2/job/#",
+            "Target": "cloud"
+        }]
         content = {
             "Resource": [{
                     "Name": "M2C2LocalResource",
@@ -335,7 +291,8 @@ class generate_greengrass_resources:
                             "process": self.process,
                             "sitename": self.sitename,
                             "area": self.area,
-                            "machinename": self.machinename
+                            "machinename": self.machinename,
+                            "kinesisstream": os.environ["KINESIS_STREAM"]
                         }
                     },
                     "Executable": "m2c2_" + self.protocol + "_connector.function_handler",
@@ -344,37 +301,45 @@ class generate_greengrass_resources:
                     "Timeout": 10
                 },
                 "Id": "Function-id-" + self.job_name
+            },
+            {
+                "FunctionArn": "arn:aws:lambda:::function:GGStreamManager:1",
+                "FunctionConfiguration": {
+                    "MemorySize":  4194304,
+                    "Pinned": True,
+                    "Timeout": 3
+                },
+                "Id": "StreamManager"
             }],
             "Logger": [
                 {
-                    'Id': 'M2C2Logger1',
+                    'Id': 'M2C2GreengrassFileSystemLogger',
                     'Type': 'FileSystem',
                     'Component': 'GreengrassSystem',
                     'Level': 'INFO',
                     'Space': 128
-                },{
-                    'Id': 'M2C2Logger2',
+                },
+                {
+                    'Id': 'GreengrasAWSCloudWatchLogger',
+                    'Type': 'AWSCloudWatch',
+                    'Component': 'GreengrassSystem',
+                    'Level': 'WARN'
+                },
+                {
+                    'Id': 'M2C2LambdaFileSystemLogger',
                     'Type': 'FileSystem',
                     'Component': 'Lambda',
                     'Level': 'INFO',
                     'Space': 128
-                },{
-                    'Id': 'M2C2Logger3',
+                },
+                {
+                    'Id': 'M2C2LambdaAWSCloudWatchLogger',
                     'Type': 'AWSCloudWatch',
                     'Component': 'Lambda',
-                    'Level': 'INFO'
-                }],
-            "Subscription": subscription_content,
-            "Connector": [{
-                    "Id": "KinesisFirehoseConnector1",
-                    "ConnectorArn": "arn:aws:greengrass:" + aws_region + "::/connectors/KinesisFirehose/versions/4",
-                    "Parameters": {
-                        "DefaultDeliveryStreamArn": self.kinesis_arn,
-                        "DeliveryStreamQueueSize": "2000",
-                        "MemorySize": "65535",
-                        "PublishInterval": "15"
-                    }
-            }]
+                    'Level': 'WARN'
+                }
+            ],
+            "Subscription": subscription_content
         }
         return content[type]
 
@@ -383,18 +348,42 @@ class generate_greengrass_resources:
         logger.info("Updated definitions: " + str(self.gg_definition_version))
         try:
             self.resource_gg_group_version = gg_client.create_group_version(
-                    GroupId = self.gg_group_id,
-                    ResourceDefinitionVersionArn = self.gg_definition_version[0]["Arn"],
-                    CoreDefinitionVersionArn = self.gg_definition_version[1]["Arn"],
-                    DeviceDefinitionVersionArn = self.gg_definition_version[2]["Arn"],
-                    FunctionDefinitionVersionArn = self.gg_definition_version[3]["Arn"],
-                    LoggerDefinitionVersionArn = self.gg_definition_version[4]["Arn"],
-                    SubscriptionDefinitionVersionArn = self.gg_definition_version[5]["Arn"],
-                    ConnectorDefinitionVersionArn = self.gg_definition_version[6]["Arn"]
-                    )
-
+                GroupId = self.gg_group_id,
+                ResourceDefinitionVersionArn = self.gg_definition_version[0]["Arn"],
+                CoreDefinitionVersionArn = self.gg_definition_version[1]["Arn"],
+                DeviceDefinitionVersionArn = self.gg_definition_version[2]["Arn"],
+                FunctionDefinitionVersionArn = self.gg_definition_version[3]["Arn"],
+                LoggerDefinitionVersionArn = self.gg_definition_version[4]["Arn"],
+                SubscriptionDefinitionVersionArn = self.gg_definition_version[5]["Arn"]
+            )
         except Exception as err:
             logger.info("create group version traceback: "+ str(err))
             post.to_user(self.job_name, self.job_version, "error", var.m2c2_gg_create_group_version)
+            return 0
+        return 1
+
+    def deploy_gg_group(self):
+        logger.info("Deploying Greengrass updates to edge device for Greengrass group {}".format(self.gg_group_id))
+        try:
+            group_version = gg_client.get_group(GroupId=self.gg_group_id)['LatestVersion']
+            deployment = gg_client.create_deployment(GroupId=self.gg_group_id, GroupVersionId=group_version, DeploymentType='NewDeployment')
+            deployment_id = deployment['DeploymentId']
+            logger.info("Deployment Id: {}".format(str(deployment_id)))
+            deployment_info = gg_client.get_deployment_status(GroupId=self.gg_group_id, DeploymentId=deployment_id)
+            deployment_status = deployment_info['DeploymentStatus']
+            logger.info("Greengrass deployment status: {}".format(deployment_status))
+            while not (deployment_status == 'Success'):
+              if deployment_status == 'Failure':
+                  logger.info("The Greengrass group deployment has failed: {}".format(deployment_info['ErrorMessage']))
+                  logger.info(deployment_info['ErrorDetails'])
+                  return 0
+              time.sleep(10)
+              deployment_info = gg_client.get_deployment_status(GroupId=self.gg_group_id, DeploymentId=deployment_id)
+              deployment_status = deployment_info['DeploymentStatus']
+              logger.info("Greengrass deployment status: {}".format(deployment_status))
+            time.sleep(25)
+        except Exception as err:
+            logger.info("Deploying to Greengrass edge device trackback: {}".format(str(err)))
+            post.to_user(self.job_name, self.job_version, "error", var.m2c2_gg_create_deployment % (self.gg_group_id))
             return 0
         return 1

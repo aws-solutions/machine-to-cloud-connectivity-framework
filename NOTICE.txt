@@ -1,11 +1,14 @@
 Machine To Cloud Connectivity Framework
-Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
-********************** 
-THIRD PARTY COMPONENTS 
-********************** 
-This software includes third party software subject to the following copyrights: 
+**********************
+THIRD PARTY COMPONENTS
+**********************
+This software includes third party software subject to the following copyrights:
 
-aws-greengrass-core-sdk-python under Apache License 2.0
-Pyro3 under MIT License
-OpenOPC under GNU GENERAL PUBLIC LICENSE Version 2
+aws-cdk under the Apache License 2.0
+aws-solutions-constructs under the Apache License 2.0
+greengrasssdk under the Apache License 2.0
+jest under the Massachusetts Institute of Technology (MIT) license
+OpenOPC-Python3x under the GNU GENERAL PUBLIC LICENSE Version 2
+Pyro4 underthe the Massachusetts Institute of Technology (MIT) license

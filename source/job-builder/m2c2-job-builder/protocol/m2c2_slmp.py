@@ -1,4 +1,4 @@
-## Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+## Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 ## SPDX-License-Identifier: Apache-2.0
 
 import logging
@@ -43,7 +43,7 @@ def create_job(user_request):
                     "ethernet": utils.get_metadata("ethernet",user_request,0)
                 }
             }
-                
+
         }
     }
     return processed_job
@@ -88,7 +88,7 @@ def get_slmp_label_read_random_frame(user_request,communication_code):
     if communication_code == "binary":
         command = reverse_numbering("0x"+ command)
     subcommand = user_request["subcommand"]
-    
+
     # build abbreviations
     abbreviation = user_request["abbreviation"]
     abb_count = len(abbreviation)
@@ -100,7 +100,7 @@ def get_slmp_label_read_random_frame(user_request,communication_code):
         converted_abb = num_to_hex_str(len(current_abb),"word",communication_code) + converted_abb
 
     # build labels
-    
+
     label_list = user_request["label-list"]
     converted_lbl = ""
     for i in range(0, len(label_list)):
@@ -116,7 +116,7 @@ def get_slmp_label_read_random_frame(user_request,communication_code):
         num_to_hex_str(len(label_list),"word",communication_code) + \
         num_to_hex_str(abb_count,"word",communication_code) + \
         converted_abb + \
-        converted_lbl)       
+        converted_lbl)
 
 def get_slmp_label_read_random_decode(user_request,communication_code):
     label_list = user_request["label-list"]
@@ -132,7 +132,7 @@ def get_slmp_array_label_read_frame(user_request,communication_code):
     if communication_code == "binary":
         command = reverse_numbering("0x"+ command)
     subcommand = user_request["subcommand"]
-    
+
     # build abbreviations
     abbreviation = user_request["abbreviation"]
     abb_count = len(abbreviation)
@@ -152,12 +152,12 @@ def get_slmp_array_label_read_frame(user_request,communication_code):
         working_lbl_frame = ""
         for j in range(0, len(current_lbl)):
             working_lbl_frame += num_to_hex_str(int(binascii.hexlify(bytes(current_lbl[j],encoding="ascii")),16),"word",communication_code)
-        
+
         converted_lbl += num_to_hex_str(len(current_lbl),"word",communication_code) + working_lbl_frame + \
             num_to_hex_str(label_list[i]["read-unit"],"byte",communication_code) + \
             num_to_hex_str(0,"byte",communication_code) + \
-            num_to_hex_str(label_list[i]["data-length"],"word",communication_code)        
-        
+            num_to_hex_str(label_list[i]["data-length"],"word",communication_code)
+
     return (\
         command +\
         subcommand + \
@@ -238,7 +238,7 @@ def get_slmp_device_read_random_frame(user_request,communication_code):
 def get_slmp_device_read_random_decode(user_request,communication_code):
     read_random_word = []
     read_random_dword = []
-    
+
     if "words" in user_request:
         words = user_request["words"]
         words_count = len(words)
@@ -283,7 +283,7 @@ def get_slmp_subheader(subheader_type):
     return subheader
 
 def get_slmp_network(network, communication_code):
-    # default to local if not specified 
+    # default to local if not specified
     if not network: network = 0
     return num_to_hex_str(network,"byte",communication_code)
 

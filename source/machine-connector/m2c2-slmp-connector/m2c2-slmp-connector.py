@@ -1,16 +1,5 @@
-#####################################################################################################################
-# Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.                                           #
-#                                                                                                                   #
-# Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance    #
-# with the License. A copy of the License is located at                                                             #
-#                                                                                                                   #
-#     http://www.apache.org/licenses/LICENSE-2.0                                                                    #
-#                                                                                                                   #
-# or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES #
-# OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing         #
-# permissions and limitations under the License.                                                                    #
-######################################################################################################################
-
+## Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+## SPDX-License-Identifier: Apache-2.0
 
 import socket
 import json
@@ -113,7 +102,7 @@ def update(job_data):
     post.to_user("info", job_data, var.m2c2_job_updated)
 
 def pull(job_data):
-    logger.info("User request: pull")  
+    logger.info("User request: pull")
     job_data = local.read(job_data)
     if job_data != "":
         post.to_user("info", job_data, job_data)
@@ -121,7 +110,7 @@ def pull(job_data):
 def job_execution():
     # runs while execution_control is set to run. Transmissions are time-based only.
     global execution_control, payload_content, connection_handler, loop_count, event, ttl, current_job
-    #logger.info("Job execution thead count: " + str(threading.activeCount()))
+
     if execution_control == "run":
         current_job = event
         start_time = time.time()
@@ -131,7 +120,7 @@ def job_execution():
             execution_control = "stop"
             logger.info("Unable to read from server: " + str(err))
             post.to_user("error", current_job, var.m2c2_lost_communication)
-        
+
         loop_count += 1
         if loop_count >= utils.get_metadata("machine-query-iterations", current_job, 0):
             loop_count = 0

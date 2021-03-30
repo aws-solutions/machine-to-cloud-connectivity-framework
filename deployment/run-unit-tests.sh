@@ -4,5 +4,10 @@
 # cd deployment
 # ./run-unit-tests.sh
 
-# Run unit tests
-# echo "Unit test completed"
+current_dir=$PWD
+source_dir=$current_dir/../source
+
+# CDK unit tests
+cd $source_dir/infrastructure
+npm install
+npm test

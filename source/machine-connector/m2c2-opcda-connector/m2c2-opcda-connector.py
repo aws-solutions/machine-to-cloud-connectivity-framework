@@ -1,329 +1,411 @@
-#####################################################################################################################
-# Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.                                           #
-#                                                                                                                   #
-# Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance    #
-# with the License. A copy of the License is located at                                                             #
-#                                                                                                                   #
-#     http://www.apache.org/licenses/LICENSE-2.0                                                                    #
-#                                                                                                                   #
-# or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES #
-# OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing         #
-# permissions and limitations under the License.                                                                    #
-######################################################################################################################
+# Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
 
-import socket
 import json
 import logging
 import greengrasssdk
-import binascii
-import datetime
-from datetime import date
 import time
-import threading
 import uuid
-from threading import Timer
 import os
-import Pyro
 import OpenOPC
 import messages as msg
 
+from threading import Timer
+from datetime import datetime
+from greengrasssdk.stream_manager import (
+    ExportDefinition,
+    KinesisConfig,
+    MessageStreamDefinition,
+    ResourceNotFoundException,
+    StrategyOnFull,
+    StreamManagerClient
+)
+from connector import ConnectorClient
+
+payload_content = []  # payload array containing responses from the OPCDA server, appended to at each execution of the thread
+control = ""  # job control variables monitored by the thread
+lock = False  # flag used to prevent concurrency
+connection = None  # OPC connection to the server
+job_name = ""  # Job name from the job data
+version = None  # Version from the job data
+ttl = 0.2  # Measured execution time of the thread, used to ensure the thread has completed its execution
+send_data_to_iot_topic = False  # Flag to send data to IoT topic
+send_data_to_stream_manager = True  # Flag to send data to Stream Manager
+
+# Constant variables
+# Site name from Greengrass Lambda Environment variables
+SITE_NAME = os.environ["sitename"]
+# Area from Greengrass Lambda Environment variables
+AREA = os.environ["area"]
+# Process from Greengrass Lambda Environment variables
+PROCESS = os.environ["process"]
+# Machine name from Greengrass Lambda Environment variables
+MACHINE_NAME = os.environ["machinename"]
+# Kinesis Data Stream name
+KINESIS_STREAM_NAME = os.environ["kinesisstream"]
+# Connection retry count
+CONNECTION_RETRY = 10
+# Error retry count
+ERROR_RETRY = 5
+
+# Clients and logging
+opcda_iot_client = greengrasssdk.client("iot-data")
+connector_client = ConnectorClient(
+    kinesis_stream_name=KINESIS_STREAM_NAME, connection_retry=CONNECTION_RETRY
+)
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-connection_handler = ""     # handler for OPC communication
-control = ""                # job control variables monitored by the thread 
 
-kinesisfirehose_topic = 'kinesisfirehose/message'
-config_path =               "/m2c2/job/"  # Path to affiliated resource
-event = ""                  # job description as received or as read from file
-opcda_iot_client = greengrasssdk.client('iot-data')
-payload_content = []        # payload array containing responses from the OPCDA server, appended to at each execution of the thread
-loop_count = 0              # number of job loops used to decide whether the payload is due to be push to data topic
-ttl = 0.2                     # measured execution time of the thread, used to ensure the thread has completed its execution
-last_command = ""           # used to ignore consecutive repeat action on control such as start or stop
-busy = False                # flag used to prevent concurrency
-machine_name = os.environ["machinename"]
-onsite_area = os.environ["area"]
-process = os.environ["process"]
-site_name = os.environ["sitename"]
+def post_to_user(post_type, message):
+    """Post messages to users through the IoT topic and Stream Manager."""
 
+    user_message = {
+        "_id_": str(uuid.uuid4()),
+        "_timestamp_": datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+    }
 
-def post_to_user(name, version, type, message):
-    kinesis_request_data = {}
-    request = {}
-    user_message = {}
+    if version:
+        user_message["version"] = version
+
+    user_message["site-name"] = SITE_NAME
+    user_message["area"] = AREA
+    user_message["process"] = PROCESS
+    user_message["machine-name"] = MACHINE_NAME
+
+    format_map = {
+        "name": job_name,
+        "site_name": SITE_NAME,
+        "area": AREA,
+        "process": PROCESS,
+        "machine_name": MACHINE_NAME
+    }
+
     try:
-        if type == "data":
-            list_of_tags = message.keys()
-            for i in range (0,len(list_of_tags)):
-                topic = "m2c2/job/" + name + "/" +  site_name + "/" + onsite_area + "/" + process + "/" + machine_name + "/" + list_of_tags[i]
-                if version != "": user_message["version"] = str(version)
-                user_message["area"] = os.environ["area"]
-                user_message["machine-name"] = os.environ["machinename"]
-                user_message["process"] = os.environ["process"]
-                user_message["site-name"] = os.environ["sitename"]
-                user_message["message"] = message[list_of_tags[i]]
-                user_message["_id_"] = str(uuid.uuid4())
-                user_message["_timestamp_"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-                request["data"] = str(user_message)
-                kinesis_request_data["request"] = request
-                kinesis_request_data["id"] = str(uuid.uuid4())
-                logger.info("Publishing this data to topic {0}: {1}".format(str(topic), str(user_message)))
-                try:
-                    opcda_iot_client.publish(
-                        topic=topic,
-                        qos=1,
-                        payload=json.dumps(user_message))
-                except Exception as err:
-                    logger.info("Failed to publish telemetry data to the IoT topic. Error: ", str(err))
-                logger.info("Publishing this data to topic {0}: {1}".format(str(kinesisfirehose_topic), str(kinesis_request_data)))
-                try:
-                    opcda_iot_client.publish(
-                        topic=kinesisfirehose_topic,
-                        payload=json.dumps(kinesis_request_data))
-                except Exception as err:
-                    logger.info("Failed to send data to the Kinesis Data Firehose topic. Error: ", str(err))
+        if post_type == "data":
+            if send_data_to_iot_topic or send_data_to_stream_manager:
+                for tag in message.keys():
+                    alias = "{site_name}/{area}/{process}/{machine_name}/{tag}".format(
+                        **format_map, tag=tag
+                    )
+                    user_message["tag"] = tag
+                    user_message["alias"] = alias
+                    user_message["messages"] = [dict(item, name=alias) for item in message[tag]]
+
+                    if send_data_to_iot_topic:
+                        topic = "m2c2/job/{name}/{alias}".format(
+                            name=job_name, alias=alias
+                        )
+                        connector_client.publish_message_to_iot_topic(
+                            topic=topic, payload=user_message
+                        )
+
+                    if send_data_to_stream_manager:
+                        connector_client.append_stream_manager_message(user_message)
+
+                    user_message["_id_"] = str(uuid.uuid4())
+                    user_message["_timestamp_"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
         else:
-            topic = "m2c2/job/" + name + "/" + site_name + "/" + onsite_area + "/" + process + "/" + machine_name + "/" + type
-            if version != "": user_message["version"] = str(version)
-            user_message["area"] = os.environ["area"]
-            user_message["machine-name"] = os.environ["machinename"]
-            user_message["process"] = os.environ["process"]
-            user_message["site-name"] = os.environ["sitename"]
+            topic = "m2c2/job/{name}/{site_name}/{area}/{process}/{machine_name}/{post_type}".format(
+                **format_map, post_type=post_type
+            )
             user_message["message"] = message
-            user_message["_id_"] = str(uuid.uuid4())
-            user_message["_timestamp_"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-            request["data"] = str(user_message)
-            kinesis_request_data["request"] = request
-            kinesis_request_data["id"] = str(uuid.uuid4())
-            logger.info("Publishing this data to topic {0}: {1}".format(str(topic), str(user_message)))
-            try:
-                opcda_iot_client.publish(
-                    topic=topic,
-                    qos=1,
-                    payload=json.dumps(user_message))
-            except Exception as err:
-                    logger.info("Failed to publish telemetry data to the IoT topic. Error: ", str(err))
-            logger.info("Publishing this data to topic {0}: {1}".format(str(kinesisfirehose_topic), str(kinesis_request_data)))
-            try:
-                opcda_iot_client.publish(
-                    topic=kinesisfirehose_topic,
-                    payload=json.dumps(kinesis_request_data))
-            except Exception as err:
-                    logger.info("Failed to send data to the Kinesis Data Firehose topic. Error: ", str(err))
+            connector_client.publish_message_to_iot_topic(topic, user_message)
     except Exception as err:
-        logger.info("Failed to publish data to IoT topic and Kinesis Data Firehose. Error: ", str(err))
+        logger.error("Failed to publish data to IoT topic or Stream Manager. Error: %s", str(err))
 
-def device_connect():
-    global connection_handler, event
-    job_name = event["job"]["properties"][0]["name"]
-    job_version = event["job"]["properties"][0]["version"]
+
+def device_connect(job_data):
+    """Connect the device to OPC server."""
+
     try:
-        connection_handler = OpenOPC.open_client(event["job"]["machine-details"]["connectivity-parameters"]["machine-ip"])
-        connection_handler.connect(event["job"]["machine-details"]["connectivity-parameters"]["opcda-server-name"])
-    except:
-        post_to_user(job_name, job_version, "error", msg.ERR_MSG_FAIL_TO_CONNECT)
-    else:
-        return connection_handler
+        global connection
+
+        if connection:
+            logger.warn("connection exists, closing it...")
+            connection = None
+            logger.warn("connection closed done.")
+
+        # Connection retries
+        for i in range(CONNECTION_RETRY):
+            try:
+                connection = OpenOPC.open_client(
+                    host=job_data["job"]["machine-details"]["connectivity-parameters"]["machine-ip"]
+                )
+                connection.connect(
+                    opc_server=job_data["job"]["machine-details"]["connectivity-parameters"]["opcda-server-name"]
+                )
+                break
+            except:
+                if i == CONNECTION_RETRY - 1:
+                    raise
+
+                logger.error("Connection failed to %s, retry to connect...", job_data["job"]["machine-details"]["connectivity-parameters"]["machine-ip"])
+                time.sleep(i + 1)
+    except Exception as err:
+        logger.error("Connection failed. Error: %s", str(err))
+        raise Exception(msg.ERR_MSG_FAIL_TO_CONNECT)
 
 
-def job_execution():
-    global control, payload_content, connection_handler, event, loop_count, ttl, last_command
+def job_execution(job_data, running_count=0, error_count=0):
+    """Executes the job."""
+
+    global payload_content, control, ttl, connection
+
     if control == "start":
         try:
             start_time = time.time()
-            data = event
-            for i in range(0, len(data["job"]["machine-details"]["data-parameters"]["attributes"])):
-                if data["job"]["machine-details"]["data-parameters"]["attributes"][i]["function"].lower() == "read_tags":
-                    payload_content.append(connection_handler.read(data["job"]["machine-details"]["data-parameters"]["attributes"][i]["address-list"]))
-                elif data["job"]["machine-details"]["data-parameters"]["attributes"][i]["function"].lower() == "read_list":
-                    for j in range(0, len(data["job"]["machine-details"]["data-parameters"]["attributes"][i]["address-list"])):
-                        payload_content.append(connection_handler.read(connection_handler.list(data["job"]["machine-details"]["data-parameters"]["attributes"][i]["address-list"][j])))
-            loop_count += 1
-            if loop_count >= data["job"]["machine-details"]["data-parameters"]["machine-query-iterations"]:
-                loop_count = 0
-                post_to_user(data["job"]["properties"][0]["name"], data["job"]["properties"][0]["version"], "data", convert_to_json(payload_content))
+
+            for attribute in job_data["job"]["machine-details"]["data-parameters"]["attributes"]:
+                if attribute["function"].lower() == "read_tags":
+                    payload_content.append(
+                        connection.read(attribute["address-list"])
+                    )
+                elif attribute["function"].lower() == "read_list":
+                    for address in attribute["address-list"]:
+                        payload_content.append(
+                            connection.read(connection.list(address))
+                        )
+
+            running_count += 1
+            error_count = 0
+
+            # Send the data if the query iterations are done.
+            if running_count >= job_data["job"]["machine-details"]["data-parameters"]["machine-query-iterations"]:
+                running_count = 0
+                post_to_user("data", convert_to_json(payload_content))
                 payload_content = []
+
             ttl = time.time() - start_time
         except Exception as err:
-            control = "stop"
-            last_command = ""
-            logger.info("Unable to read from server: " + str(err))
-            post_to_user(data["job"]["properties"][0]["name"], data["job"]["properties"][0]["version"], "error", msg.ERR_MSG_LOST_COMMS_JOB_STOPPED %(str(err)))
-        Timer(data["job"]["machine-details"]["data-parameters"]["machine-query-time-interval"], job_execution).start()
+            logger.error("Unable to read from server: %s", str(err))
+
+            error_count += 1
+
+            if error_count >= ERROR_RETRY:
+                try:
+                    logger.error("Connection retry to OPC DA server...")
+                    device_connect(job_data)
+                    logger.warn("Connection completed. Job starts again...")
+                except Exception as e:
+                    logger.error("Connection retry failed: %s", str(e))
+                    logger.error("Stopping the job.")
+
+                    control = "stop"
+                    post_to_user("error", msg.ERR_MSG_LOST_COMMS_JOB_STOPPED.format(err))
+
+        Timer(
+            interval=job_data["job"]["machine-details"]["data-parameters"]["machine-query-time-interval"],
+            function=job_execution,
+            args=[job_data, running_count, error_count]
+        ).start()
     elif control == "stop":
-        loop_count = 0
-        if payload_content != []:
-            post_to_user(event["job"]["properties"][0]["name"], event["job"]["properties"][0]["version"], "data", convert_to_json(payload_content))
-        payload_content = []
+        if payload_content:
+            post_to_user("data", convert_to_json(payload_content))
+            payload_content = []
+
+        connector_client.stop_client()
+
         try:
-            connection_handler.close()
+            connection.close()
+            connection = None
         except:
             pass
 
 
-def start():
+def start(job_data):
+    """Start a job based on the job data."""
+
     logger.info("User request: start")
-    global control, event, connection_handler,busy
-    job_name = event["job"]["properties"][0]["name"]
-    job_version = event["job"]["properties"][0]["version"]
-    try:
-        write_to_file(event)
-        connection_handler = device_connect()
-        post_to_user(job_name, job_version, "info", msg.INF_MSG_JOB_STARTED)
-        control = "start"
-        job_execution()
-    except Exception as err:
-        logger.info("Failed to execute the start. Error: ", str(err))
-    busy = False
 
-def stop():
+    try:
+        global control, send_data_to_iot_topic, send_data_to_stream_manager
+        control = "start"
+
+        # By default, the connector does not send data to the IoT Topics
+        try:
+            send_data_to_iot_topic = job_data["job"]["send-data-to-iot-topic"]
+        except:
+            send_data_to_iot_topic = False
+
+        # By default, the connector sends data to the Stream Manager
+        try:
+            send_data_to_stream_manager = job_data["job"]["send-data-to-stream-manager"]
+        except:
+            send_data_to_stream_manager = True
+
+        connector_client.start_client(job_name=job_name, job_configuration=job_data)
+        device_connect(job_data)
+
+        post_to_user("info", msg.INF_MSG_JOB_STARTED)
+        job_execution(job_data=job_data)
+    except Exception as err:
+        logger.error("Failed to execute the start: %s", str(err))
+        raise Exception("Failed to execute the start: {}".format(err)) from err
+
+
+def stop(job_data):
+    """Stop a job based on the job data."""
+
     logger.info("User request: stop")
-    global control, event, ttl,busy
-    job_name = event["job"]["properties"][0]["name"]
-    job_version = event["job"]["properties"][0]["version"]
+
     try:
+        global control
         control = "stop"
+
         time.sleep(min(5 * ttl, 3))
-        event = read_from_file(event)
-        if event != "":
-            event["job"]["control"] = "stop"
-            write_to_file(event)
-            post_to_user(job_name, job_version, "info", msg.INF_MSG_JOB_STOPPED)
-    except Exception as err:
-        logger.info("Failed to execute the update. Error: ",(str(err)))
-    busy = False
+        local_job_data = connector_client.read_local_job_configuration(
+            job_name=job_name
+        )
 
-def update():
+        if local_job_data:
+            local_job_data["job"]["control"] = "stop"
+            connector_client.write_local_job_configuration_file(
+                job_name=job_name, job_configuration=local_job_data
+            )
+            post_to_user("info", msg.INF_MSG_JOB_STOPPED)
+    except Exception as err:
+        logger.error("Failed to execute the stop: %s", str(err))
+        raise Exception("Failed to execute the stop: {}".format(err)) from err
+
+
+def update(job_data):
+    """Update an existing job."""
+
     logger.info("User request: update")
-    global control, event, ttl, connection_handler,busy
-    job_name = event["job"]["properties"][0]["name"]
-    job_version = event["job"]["properties"][0]["version"]
-    try:
-        control = "stop"
-        time.sleep(min(10 * ttl,3))
-        write_to_file(event)
-        connection_handler = device_connect()
-        post_to_user(job_name, job_version, "info", msg.INF_MSG_JOB_UPDATED)
-        control = "start"
-        job_execution()
-    except Exception as err:
-        logger.info("Failed to execute the update. Error: ",(str(err)))
-    busy = False
 
-def push():
-    logger.info("User request: push")
-    global event,busy
-    job_name = event["job"]["properties"][0]["name"]
-    job_version = event["job"]["properties"][0]["version"]   
     try:
-        opc = OpenOPC.open_client(event["job"]["machine-details"]["connectivity-parameters"]["machine-ip"])
+        global control
+        control = "stop"
+
+        time.sleep(min(10 * ttl, 3))
+        connector_client.start_client(job_name=job_name, job_configuration=job_data)
+        device_connect(job_data)
+
+        control = "start"
+        post_to_user("info", msg.INF_MSG_JOB_UPDATED)
+        job_execution(job_data=job_data)
+    except Exception as err:
+        logger.error("Failed to execute the update: %s", str(err))
+        raise Exception("Failed to execute the update: {}".format(err)) from err
+
+
+def push(job_data):
+    """Send the list of servers to users through the IoT topic."""
+
+    logger.info("User request: push")
+
+    try:
+        opc = OpenOPC.open_client(
+            host=job_data["job"]["machine-details"]["connectivity-parameters"]["machine-ip"]
+        )
         server = opc.servers()
         opc.close()
-    except Exception as err:
-        logger.info(msg.ERR_MSG_FAIL_SERVER_NAME %(str(err)))
-        post_to_user(job_name, job_version, "error", msg.ERR_MSG_FAIL_SERVER_NAME %(str(err)))
-    else:
-        post_to_user(job_name, job_version, "info", msg.INF_MSG_SERVER_NAME + str(server))
-    busy = False
 
-def pull():
+        post_to_user("info", msg.INF_MSG_SERVER_NAME.format(server))
+    except Exception as err:
+        logger.info(msg.ERR_MSG_FAIL_SERVER_NAME.format(err))
+        post_to_user("error", msg.ERR_MSG_FAIL_SERVER_NAME.format(err))
+
+
+def pull(job_data):
+    """Send the local job data, if exists, to users through the IoT topic."""
+
     logger.info("User request: pull")
-    global event,busy
-    try:
-        job_name = event["job"]["properties"][0]["name"]
-        event = read_from_file(event)
-        if event != "":
-            post_to_user(job_name, "", "info", event)
-        busy = False
-    except Exception as err:
-        logger.info(msg.ERR_MSG_FAIL_SERVER_NAME %(str(err))) 
 
-def function_handler(job_data, context):
-    global event, last_command, busy
     try:
-        if not busy:
-            busy = True
-            job_name = job_data["job"]["properties"][0]["name"]
-            if job_data["job"]["control"].lower() == "start":
-                event = job_data
-                if last_command == "start":
-                    post_to_user(job_name, "", "info", msg.ERR_MSG_FAIL_LAST_COMMAND_START %(job_name))
-                    busy = False
-                else:
-                    last_command = "start"
-                    start()
-            elif job_data["job"]["control"].lower() == "stop":
-                event = job_data
-                if last_command == "stop":
-                    post_to_user(job_name, "", "info", msg.ERR_MSG_FAIL_LAST_COMMAND_STOP %(job_name))
-                    busy = False
-                else:
-                    last_command = "stop"
-                    stop()
-            elif job_data["job"]["control"].lower() == "push":
-                event = job_data
-                push()
-            elif job_data["job"]["control"].lower() == "update":
-                event = job_data
-                last_command = "start"
-                update()
-            elif job_data["job"]["control"].lower() == "pull":
-                event = job_data
-                pull()
-            else:
-                post_to_user(job_name, "", "error", msg.ERR_MSG_FAIL_UNKWOWN_CONTROL %(job_data["job"]["control"]))
-                busy = False
+        local_job_data = connector_client.read_local_job_configuration(job_name)
+
+        if local_job_data:
+            post_to_user("info", local_job_data)
+        else:
+            post_to_user("error", msg.ERR_MSG_NO_JOB_FILE.format(job_name))
     except Exception as err:
-        logger.info("Failed to convert the data to JSON. Error: ", str(err))
-        raise
+        logger.error(msg.ERR_MSG_FAIL_SERVER_NAME.format(err))
+        post_to_user("error", msg.ERR_MSG_FAIL_SERVER_NAME.format(err))
+
 
 def convert_to_json(payload_content):
-    json_response = {}
+    """Convert the OPC DA array data to JSON (Dict) and return the aggregated JSON data."""
+
     try:
-        for i in range(0, len(payload_content)):
-            for j in range(0, len(payload_content[i])):
-                if len(payload_content[i][j]) == 4:
-                    temp = {}
-                    temp["value"] = payload_content[i][j][1]
-                    temp["quality"] = payload_content[i][j][2]
-                    temp["timestamp"] = payload_content[i][j][3]
+        json_response = {}
+
+        for arr in payload_content:  # array in payload_content
+            for t in arr:  # tuple in arr
+                temp = {}
+                key = t[0].replace(".", "-").replace("/", "_")
+
+                if len(t) == 4:
+                    temp["value"] = t[1]
+                    temp["quality"] = t[2]
+                    temp["timestamp"] = t[3]
                 else:
-                    temp = {}
                     temp["value"] = "Parameters cannot be read from server"
-                if payload_content[i][j][0].replace(".", "-") in json_response:
-                    json_response[payload_content[i][j][0].replace(".", "-")].append(temp)
-                else:
-                    json_response[payload_content[i][j][0].replace(".", "-")] = []
-                    json_response[payload_content[i][j][0].replace(".", "-")].append(temp)
+
+                json_response.setdefault(key, []).append(temp)
+
         return json_response
     except Exception as err:
-        logger.info("Failed to convert the data to JSON. Error: ", str(err))
-        raise
+        logger.error("Failed to convert the data to JSON: %s", str(err))
+        return {"error": "Failed to covert the data to JSON: {}".format(err)}
 
-def write_to_file(data):
-    global config_path
-    data["job"]["_last-update-timestamp_"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+
+def set_job_properties(job_data):
+    """Set the job name and version to the global variables."""
+
     try:
-        with open(config_path + data["job"]["properties"][0]["name"] + ".json", "w+") as file:
-            json.dump(data, file)
-        return 1
-    except Exception as err:
-        logger.info("Failed to write to file. Error: ", str(err))
-        raise
+        global job_name, version
+        job_name = job_data["job"]["properties"][0]["name"]
+
+        try:
+            version = job_data["job"]["properties"][0]["version"]
+        except KeyError:
+            pass
+    except KeyError:
+        raise KeyError("Failed to retrieve the job name from the job data.")
 
 
-def read_from_file(data):
-    global config_path
-    job_name = data["job"]["properties"][0]["name"]
+def function_handler(job_data, context):
+    """OPC DA Connector function handler."""
+
+    global lock
+
     try:
-        if os.path.exists(config_path + job_name + ".json"):
-            with open(config_path + job_name + ".json") as file:
-                data = json.load(file)
-            return data
+        if not lock:
+            lock = True
+            job_control = job_data["job"]["control"].lower()
+            set_job_properties(job_data)
+
+            if job_control == "start":
+                if connector_client.is_running:
+                    post_to_user("info", msg.ERR_MSG_FAIL_LAST_COMMAND_START.format(job_name))
+                else:
+                    start(job_data)
+            elif job_control == "stop":
+                if connector_client.is_running:
+                    stop(job_data)
+                else:
+                    post_to_user("info", msg.ERR_MSG_FAIL_LAST_COMMAND_STOP.format(job_name))
+            elif job_control == "update":
+                update(job_data)
+            elif job_control == "push":
+                push(job_data)
+            elif job_control == "pull":
+                pull(job_data)
+            else:
+                post_to_user("error", msg.ERR_MSG_FAIL_UNKWOWN_CONTROL.format(job_control))
+
+            lock = False
         else:
-            post_to_user(job_name, "", "error", msg.ERR_MSG_NO_JOB_FILE %(job_name))
-            return ""
+            logger.info("The function is still processing.")
     except Exception as err:
-        logger.info("Failed to read the file. Error: ", str(err))
+        logger.error("Failed to run the job on the function: %s", str(err))
+
+        if type(err).__name__ != "KeyError":
+            post_to_user("error", "Failed to run the job: {}".format(str(err)))
+
+        lock = False
+        connector_client.stop_client()
+
         raise

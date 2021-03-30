@@ -1,4 +1,4 @@
-## Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+## Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 ## SPDX-License-Identifier: Apache-2.0
 
 import socket
@@ -21,7 +21,7 @@ class DeviceCommunication:
         self.ethernet = utils.get_metadata("ethernet", current_target_system, 0)
         self.communication_code = utils.get_metadata("communication-code", current_target_system, 0)
         self.scheduled_read = utils.get_metadata("data-frames", current_target_system, 0)
-        
+
         if self.ethernet == "udp":
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         elif self.ethernet == "tcp":

@@ -1,4 +1,4 @@
-## Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+## Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 ## SPDX-License-Identifier: Apache-2.0
 
 import logging
@@ -13,8 +13,6 @@ logger.setLevel(logging.INFO)
 # firstly the payload is decoded and sorted by timestamp as in {"timestamp":"",[{"tag name": "tag value"},...]}
 # secondly the result is organised into {"tag name":[{"timestamp":"", "value": "tag value"},...]}
 def transform(payload, job):
-    #logger.info("payload: " +str(payload))
-    #logger.info("Job: " + str(job))
     formatted_payload = {}
     decoded_responses = []
     for i in range(0, len(payload)):

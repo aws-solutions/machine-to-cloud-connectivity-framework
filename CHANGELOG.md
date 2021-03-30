@@ -4,6 +4,20 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2021-03-31
+### Added
+- AWS Greengrass Stream Manager and Amazon Kinesis Data Stream for OPC DA connector data
+- AWS CDK source code to generate AWS CloudFormation template
+- `ConnectorClient` for the common actions
+
+### Changed
+- Amazon Kinesis Data Firehose gets OPC DA connector data from Amazon Kinesis Data Stream.
+- OPC DA connector Lambda runtime to Python 3.7
+
+### Removed
+- Kinesis Firehose Connector
+- AWS CloudFormation template
+
 ## [2.1.0] - 2020-10-28
 ### Added
 - Creates an S3 bucket to store OPC DA telemetry data

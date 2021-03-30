@@ -1,4 +1,4 @@
-## Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+## Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 ## SPDX-License-Identifier: Apache-2.0
 
 import logging
@@ -11,7 +11,7 @@ logger.setLevel(logging.INFO)
 
 def get(user_request, index):
     if utils.get_metadata("protocol",user_request,0) == "slmp":
-        if utils.get_metadata("function",user_request,index) == "device_read": 
+        if utils.get_metadata("function",user_request,index) == "device_read":
             return {
                 "tag-name": [str],
                 "subcommand": [str],

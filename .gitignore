@@ -1,1 +1,7 @@
 .DS_Store
+global-s3-assets/
+regional-s3-assets/
+open-source/
+package/
+package-lock.json
+coverage/

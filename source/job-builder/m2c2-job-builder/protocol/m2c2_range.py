@@ -1,4 +1,4 @@
-## Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+## Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 ## SPDX-License-Identifier: Apache-2.0
 
 import logging
@@ -16,7 +16,7 @@ def get(user_request):
         if  utils.get_metadata("network",user_request,0) > var.max_slmp_network:
             post.to_user("","","error", var.m2c2_err_json_range %("network"))
             return 0
-        
+
         if (utils.get_metadata("station",user_request,0) > var.max_slmp_station) and (utils.get_metadata("station",user_request,0) != 255) and (utils.get_metadata("station",user_request,0) != 0):
             post.to_user("","","error", var.m2c2_err_json_range %("station"))
             return 0
@@ -28,7 +28,7 @@ def get(user_request):
         if  utils.get_metadata("subheader",user_request,0) not in var.slmp_subheader:
             post.to_user("","","error", var.m2c2_err_json_range %("subheader"))
             return 0
-        
+
         if  utils.get_metadata("communication-code",user_request,0) not in var.slmp_communication_code:
             post.to_user("","","error", var.m2c2_err_json_range %("communication-code"))
             return 0

@@ -31,7 +31,7 @@ For more information and a detailed deployment guide visit the Machine to Cloud 
 In addition to the AWS Solutions Constructs, the solution uses AWS CDK directly to create infrastructure resources.
 # Customizing the Solution
 ## Prerequisites for Customization
-- [AWS Commnad Line Interface](https://aws.amazon.com/cli/)
+- [AWS Command Line Interface](https://aws.amazon.com/cli/)
 - Node.js 10.x or later
 - Python 3.7 or later
 

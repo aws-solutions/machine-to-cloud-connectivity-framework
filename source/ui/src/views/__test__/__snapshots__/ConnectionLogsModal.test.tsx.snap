@@ -1,0 +1,569 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`renders the connection message modal component when connection logs are empty 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    class="modal-backdrop show"
+  />
+  <div
+    aria-modal="true"
+    class="modal"
+    role="dialog"
+    style="display: block;"
+    tabindex="-1"
+  >
+    <div
+      class="modal-dialog modal-xl"
+      id="connection-log-modal"
+    >
+      <div
+        class="modal-content"
+      >
+        <div
+          class="modal-header"
+        >
+          <strong>
+            connection.logs
+          </strong>
+          : 
+          mock-connection-id
+          <button
+            class="close"
+            type="button"
+          >
+            <span
+              aria-hidden="true"
+            >
+              ×
+            </span>
+            <span
+              class="sr-only"
+            >
+              Close
+            </span>
+          </button>
+        </div>
+        <div
+          class="modal-body"
+        >
+          <div
+            class="text-align-center jumbotron"
+            id="empty-logs-jumbotron"
+          >
+            <p
+              class="empty-p"
+            >
+              info.message.no.logs
+            </p>
+          </div>
+        </div>
+        <div
+          class="modal-footer"
+        >
+          <button
+            class="uppercase-text btn btn-primary btn-sm"
+            id="connection-logs-modal-close-button"
+            type="button"
+          >
+            close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`renders the connection message modal component when getting connection logs fails 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    aria-hidden="true"
+    class="modal-backdrop show"
+  />
+  <div
+    aria-hidden="true"
+    aria-modal="true"
+    class="modal"
+    role="dialog"
+    style="display: block;"
+    tabindex="-1"
+  >
+    <div
+      class="modal-dialog modal-xl"
+      id="connection-log-modal"
+    >
+      <div
+        class="modal-content"
+      >
+        <div
+          class="modal-header"
+        >
+          <strong>
+            connection.logs
+          </strong>
+          : 
+          mock-connection-id
+          <button
+            class="close"
+            type="button"
+          >
+            <span
+              aria-hidden="true"
+            >
+              ×
+            </span>
+            <span
+              class="sr-only"
+            >
+              Close
+            </span>
+          </button>
+        </div>
+        <div
+          class="modal-body"
+        >
+          <div
+            class="text-align-center jumbotron"
+            id="empty-logs-jumbotron"
+          >
+            <p
+              class="empty-p"
+            >
+              info.message.no.logs
+            </p>
+          </div>
+        </div>
+        <div
+          class="modal-footer"
+        >
+          <button
+            class="uppercase-text btn btn-primary btn-sm"
+            id="connection-logs-modal-close-button"
+            type="button"
+          >
+            close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="modal-backdrop show"
+  />
+  <div
+    aria-modal="true"
+    class="modal"
+    role="dialog"
+    style="display: block;"
+    tabindex="-1"
+  >
+    <div
+      class="modal-dialog modal-dialog-centered"
+      id="message-modal"
+    >
+      <div
+        class="modal-content"
+      >
+        <div
+          class="modal-body"
+        >
+          <div
+            class="fade alert alert-danger show"
+            role="alert"
+          >
+            error.message.get.logs
+            <br />
+            error
+            : 
+            <code>
+              "Error"
+            </code>
+          </div>
+        </div>
+        <div
+          class="modal-footer"
+        >
+          <button
+            class="uppercase-text btn btn-primary btn-sm"
+            id="message-modal-close-button"
+            type="button"
+          >
+            ok
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`renders the connection message modal component when there are connection logs 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    class="modal-backdrop show"
+  />
+  <div
+    aria-modal="true"
+    class="modal"
+    role="dialog"
+    style="display: block;"
+    tabindex="-1"
+  >
+    <div
+      class="modal-dialog modal-xl"
+      id="connection-log-modal"
+    >
+      <div
+        class="modal-content"
+      >
+        <div
+          class="modal-header"
+        >
+          <strong>
+            connection.logs
+          </strong>
+          : 
+          mock-connection-id
+          <button
+            class="close"
+            type="button"
+          >
+            <span
+              aria-hidden="true"
+            >
+              ×
+            </span>
+            <span
+              class="sr-only"
+            >
+              Close
+            </span>
+          </button>
+        </div>
+        <div
+          class="modal-body"
+        >
+          <table
+            class="table table-md"
+            id="connection-logs-table"
+          >
+            <thead>
+              <tr>
+                <th>
+                  message
+                </th>
+                <th>
+                  log.type
+                </th>
+                <th>
+                  date
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <form
+                    class=""
+                  >
+                    <div
+                      class="form-group"
+                    >
+                      <textarea
+                        class="form-control"
+                        readonly=""
+                        rows="5"
+                      >
+                        {"message":"info message"}
+                      </textarea>
+                    </div>
+                  </form>
+                </td>
+                <td
+                  class="uppercase-text"
+                >
+                  info
+                </td>
+                <td>
+                  1970-01-01T00:00:00.000Z
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <form
+                    class=""
+                  >
+                    <div
+                      class="form-group"
+                    >
+                      <textarea
+                        class="form-control"
+                        readonly=""
+                        rows="5"
+                      >
+                        {"message":"error message"}
+                      </textarea>
+                    </div>
+                  </form>
+                </td>
+                <td
+                  class="uppercase-text"
+                >
+                  error
+                </td>
+                <td>
+                  1970-01-01T00:00:00.000Z
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div
+            class="row"
+          >
+            <div
+              class="col"
+            >
+              <button
+                class="uppercase-text btn btn-primary btn-sm"
+                disabled=""
+                id="prev-logs-page-button"
+                type="button"
+              >
+                <i
+                  class="bi bi-chevron-double-left"
+                />
+                 
+                prev.page
+              </button>
+            </div>
+            <div
+              class="justify-content-end grid col"
+            >
+              <button
+                class="uppercase-text btn btn-primary btn-sm"
+                disabled=""
+                id="next-logs-page-button"
+                type="button"
+              >
+                next.page
+                 
+                <i
+                  class="bi bi-chevron-double-right"
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+        <div
+          class="modal-footer"
+        >
+          <button
+            class="uppercase-text btn btn-primary btn-sm"
+            id="connection-logs-modal-close-button"
+            type="button"
+          >
+            close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`renders the connection message modal component when there are connection logs and the next token 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    class="modal-backdrop show"
+  />
+  <div
+    aria-modal="true"
+    class="modal"
+    role="dialog"
+    style="display: block;"
+    tabindex="-1"
+  >
+    <div
+      class="modal-dialog modal-xl"
+      id="connection-log-modal"
+    >
+      <div
+        class="modal-content"
+      >
+        <div
+          class="modal-header"
+        >
+          <strong>
+            connection.logs
+          </strong>
+          : 
+          mock-connection-id
+          <button
+            class="close"
+            type="button"
+          >
+            <span
+              aria-hidden="true"
+            >
+              ×
+            </span>
+            <span
+              class="sr-only"
+            >
+              Close
+            </span>
+          </button>
+        </div>
+        <div
+          class="modal-body"
+        >
+          <table
+            class="table table-md"
+            id="connection-logs-table"
+          >
+            <thead>
+              <tr>
+                <th>
+                  message
+                </th>
+                <th>
+                  log.type
+                </th>
+                <th>
+                  date
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <form
+                    class=""
+                  >
+                    <div
+                      class="form-group"
+                    >
+                      <textarea
+                        class="form-control"
+                        readonly=""
+                        rows="5"
+                      >
+                        {"message":"info message"}
+                      </textarea>
+                    </div>
+                  </form>
+                </td>
+                <td
+                  class="uppercase-text"
+                >
+                  info
+                </td>
+                <td>
+                  1970-01-01T00:00:00.000Z
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <form
+                    class=""
+                  >
+                    <div
+                      class="form-group"
+                    >
+                      <textarea
+                        class="form-control"
+                        readonly=""
+                        rows="5"
+                      >
+                        {"message":"error message"}
+                      </textarea>
+                    </div>
+                  </form>
+                </td>
+                <td
+                  class="uppercase-text"
+                >
+                  error
+                </td>
+                <td>
+                  1970-01-01T00:00:00.000Z
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div
+            class="row"
+          >
+            <div
+              class="col"
+            >
+              <button
+                class="uppercase-text btn btn-primary btn-sm"
+                disabled=""
+                id="prev-logs-page-button"
+                type="button"
+              >
+                <i
+                  class="bi bi-chevron-double-left"
+                />
+                 
+                prev.page
+              </button>
+            </div>
+            <div
+              class="justify-content-end grid col"
+            >
+              <button
+                class="uppercase-text btn btn-primary btn-sm"
+                id="next-logs-page-button"
+                type="button"
+              >
+                next.page
+                 
+                <i
+                  class="bi bi-chevron-double-right"
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+        <div
+          class="modal-footer"
+        >
+          <button
+            class="uppercase-text btn btn-primary btn-sm"
+            id="connection-logs-modal-close-button"
+            type="button"
+          >
+            close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;

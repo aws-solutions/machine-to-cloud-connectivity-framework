@@ -1,0 +1,536 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`renders the OpcDaFrom errors 1`] = `
+<div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      iterations
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.iterations
+    </small>
+    <input
+      class="form-control is-invalid"
+      id="iterations"
+      placeholder="placeholder.iterations"
+      required=""
+      type="text"
+      value=""
+    />
+    <div
+      class="invalid-feedback"
+    >
+      iterations invalid
+    </div>
+  </div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      time.interval
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.interval
+    </small>
+    <input
+      class="form-control"
+      id="interval"
+      placeholder="placeholder.time.interval"
+      required=""
+      type="text"
+      value=""
+    />
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      server.name
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.server.name
+    </small>
+    <input
+      class="form-control"
+      id="serverName"
+      placeholder="placeholder.opcda.server.name"
+      required=""
+      type="text"
+      value=""
+    />
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      machine.ip
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.machine.ip
+    </small>
+    <input
+      class="form-control"
+      id="machineIp"
+      placeholder="placeholder.machine.ip"
+      required=""
+      type="text"
+      value=""
+    />
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+  <div
+    class="card"
+  >
+    <div
+      class="card-body"
+    >
+      <div
+        class="card-subtitle h6"
+      >
+        tags
+         
+        tags.explanation
+      </div>
+      <div
+        class="form-group"
+      >
+        <label
+          class="form-label"
+        >
+          read.list.tags
+        </label>
+        <textarea
+          class="form-control is-invalid"
+          id="listTags"
+          placeholder="placeholder.list.tags"
+        />
+      </div>
+      <div
+        class="form-group"
+      >
+        <label
+          class="form-label"
+        >
+          read.tags
+        </label>
+        <textarea
+          class="form-control is-invalid"
+          id="tags"
+          placeholder="placeholder.tags"
+        />
+        <div
+          class="invalid-feedback"
+        >
+          tags invalid
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`renders the OpcDaFrom with the existing connection 1`] = `
+<div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      iterations
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.iterations
+    </small>
+    <input
+      class="form-control"
+      id="iterations"
+      placeholder="placeholder.iterations"
+      required=""
+      type="text"
+      value="3"
+    />
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      time.interval
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.interval
+    </small>
+    <input
+      class="form-control"
+      id="interval"
+      placeholder="placeholder.time.interval"
+      required=""
+      type="text"
+      value="3"
+    />
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      server.name
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.server.name
+    </small>
+    <input
+      class="form-control"
+      id="serverName"
+      placeholder="placeholder.opcda.server.name"
+      required=""
+      type="text"
+      value="mock-opcda-server-name"
+    />
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      machine.ip
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.machine.ip
+    </small>
+    <input
+      class="form-control"
+      id="machineIp"
+      placeholder="placeholder.machine.ip"
+      required=""
+      type="text"
+      value="1.2.3.4"
+    />
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+  <div
+    class="card"
+  >
+    <div
+      class="card-body"
+    >
+      <div
+        class="card-subtitle h6"
+      >
+        tags
+         
+        tags.explanation
+      </div>
+      <div
+        class="form-group"
+      >
+        <label
+          class="form-label"
+        >
+          read.list.tags
+        </label>
+        <textarea
+          class="form-control"
+          id="listTags"
+          placeholder="placeholder.list.tags"
+        >
+          listTag1.*
+listTag2.*
+        </textarea>
+      </div>
+      <div
+        class="form-group"
+      >
+        <label
+          class="form-label"
+        >
+          read.tags
+        </label>
+        <textarea
+          class="form-control"
+          id="tags"
+          placeholder="placeholder.tags"
+        >
+          tag1
+tag2
+        </textarea>
+        <div
+          class="invalid-feedback"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`renders the default OpcDaForm 1`] = `
+<div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      iterations
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.iterations
+    </small>
+    <input
+      class="form-control"
+      id="iterations"
+      placeholder="placeholder.iterations"
+      required=""
+      type="text"
+      value=""
+    />
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      time.interval
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.interval
+    </small>
+    <input
+      class="form-control"
+      id="interval"
+      placeholder="placeholder.time.interval"
+      required=""
+      type="text"
+      value=""
+    />
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      server.name
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.server.name
+    </small>
+    <input
+      class="form-control"
+      id="serverName"
+      placeholder="placeholder.opcda.server.name"
+      required=""
+      type="text"
+      value=""
+    />
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      machine.ip
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.machine.ip
+    </small>
+    <input
+      class="form-control"
+      id="machineIp"
+      placeholder="placeholder.machine.ip"
+      required=""
+      type="text"
+      value=""
+    />
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+  <div
+    class="card"
+  >
+    <div
+      class="card-body"
+    >
+      <div
+        class="card-subtitle h6"
+      >
+        tags
+         
+        tags.explanation
+      </div>
+      <div
+        class="form-group"
+      >
+        <label
+          class="form-label"
+        >
+          read.list.tags
+        </label>
+        <textarea
+          class="form-control"
+          id="listTags"
+          placeholder="placeholder.list.tags"
+        />
+      </div>
+      <div
+        class="form-group"
+      >
+        <label
+          class="form-label"
+        >
+          read.tags
+        </label>
+        <textarea
+          class="form-control"
+          id="tags"
+          placeholder="placeholder.tags"
+        />
+        <div
+          class="invalid-feedback"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;

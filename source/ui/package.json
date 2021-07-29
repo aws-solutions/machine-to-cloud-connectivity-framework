@@ -1,0 +1,64 @@
+{
+  "name": "machine-to-cloud-connectivity-framework-ui",
+  "license": "Apache-2.0",
+  "description": "Machine to Cloud Connectivity Framework UI",
+  "version": "3.0.0",
+  "private": true,
+  "dependencies": {
+    "@aws-amplify/api": "4.0.6",
+    "@aws-amplify/auth": "4.1.2",
+    "@aws-amplify/core": "4.2.0",
+    "@aws-amplify/interactions": "4.0.6",
+    "@aws-amplify/storage": "4.3.1",
+    "@aws-amplify/ui-react": "1.2.6",
+    "@testing-library/jest-dom": "^5.14.1",
+    "@testing-library/react": "^12.0.0",
+    "@testing-library/user-event": "^13.2.0",
+    "@types/jest": "~26.0.24",
+    "@types/react-dom": "~17.0.9",
+    "@types/react-router-bootstrap": "~0.24.5",
+    "@types/react-router-dom": "~5.1.8",
+    "bootstrap": "~4.5.0",
+    "bootstrap-icons": "~1.5.0",
+    "node-sass": "~6.0.1",
+    "react": "~17.0.2",
+    "react-bootstrap": "~1.6.1",
+    "react-dom": "~17.0.2",
+    "react-router-bootstrap": "~0.25.0",
+    "react-router-dom": "~5.2.0",
+    "react-scripts": "~4.0.3",
+    "typescript": "~4.3.5",
+    "yarn": "^1.22.11"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "clean": "rm -rf yarn.lock packgage-lock.json && rm -rf node_modules && rm -rf build",
+    "build:react": "INLINE_RUNTIME_CHUNK=false GENERATE_SOURCEMAP=false react-scripts build",
+    "install:yarn": "npm install yarn",
+    "build": "npm run clean && npm run install:yarn && node_modules/yarn/bin/yarn install && yarn build:react",
+    "test": "react-scripts test --coverage --passWithNoTests --watchAll=false --silent",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "src/**/*.{ts,tsx}",
+      "!src/react-app-env.d.ts",
+      "!src/index.tsx"
+    ]
+  }
+}

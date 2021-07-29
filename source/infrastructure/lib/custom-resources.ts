@@ -1,89 +1,124 @@
 // Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { CfnCondition, CfnCustomResource, Construct, CustomResource, Duration } from '@aws-cdk/core';
 import {
-  Aws,
-  CfnCondition,
-  CfnCustomResource,
-  CfnMapping,
-  Construct,
-  CustomResource,
-  Duration
-} from '@aws-cdk/core';
-import { Policy, Role, ServicePrincipal } from '@aws-cdk/aws-iam';
-import { CfnFunction, Code, Function, Runtime } from '@aws-cdk/aws-lambda';
-import { Bucket } from '@aws-cdk/aws-s3';
+  CfnPolicy,
+  Effect,
+  Policy,
+  PolicyDocument,
+  PolicyStatement,
+  Role,
+  ServicePrincipal
+} from '@aws-cdk/aws-iam';
+import { CfnFunction, Code, Function as LambdaFunction, Runtime } from '@aws-cdk/aws-lambda';
+import { IBucket } from '@aws-cdk/aws-s3';
+import { addCfnSuppressRules } from '../utils/utils';
 
 /**
  * CustomResourcesConstruct props
+ * @interface CustomResourcesConstructProps
  */
 export interface CustomResourcesConstructProps {
-  /**
-   * Policy for CloudWatch Logs
-   */
+  // Policy for CloudWatch Logs
   readonly cloudWatchLogsPolicy: Policy;
-  /**
-   * Existing Greengrass group ID
-   */
+  // Existing Greengrass group ID
   readonly existingGreengrassGroup: string;
-  /**
-   * Existing Kinesis Data Stream name
-   */
+  // Existing Kinesis Data Stream name
   readonly existingKinesisStream: string;
-  /**
-   * Condition for sending anonymous usage
-   */
+  // Condition for sending anonymous usage
   readonly sendAnonymousUsageCondition: CfnCondition;
-  /**
-   * Mapping for the source code
-   */
-  readonly sourceCodeMapping: CfnMapping;
-  /**
-   * Mapping for the solution information
-   */
-  readonly solutionMapping: CfnMapping;
+  // Solution config properties: Logging level, solution ID, version, source code bucket, and source code prefix
+  readonly solutionConfig: {
+    loggingLevel: string;
+    solutionId: string;
+    solutionVersion: string;
+    sourceCodeBucket: IBucket;
+    sourceCodePrefix: string;
+  };
 }
 
 /**
- * Machine to Cloud Connectivity Framework Custom Resources
+ * Custom resource setup UI props
+ * @interface CustomResourceSetupUiProps
+ */
+interface CustomResourceSetupUiProps {
+  // API endpoint
+  apiEndpoint: string;
+  // Cognito identity pool ID
+  identityPoolId: string;
+  // UI logging level
+  loggingLevel: string;
+  // UI bucket
+  uiBucket: IBucket;
+  // Cognito user pool ID
+  userPoolId: string;
+  // Cognito user pool web client ID
+  webClientId: string;
+}
+
+/**
+ * @class
+ * Machine to Cloud Connectivity Framework Custom Resources Construct.
+ * It creates a custom resource Lambda function, a solution UUID, and a custom resource to send anonymous usage.
  */
 export class CustomResourcesConstruct extends Construct {
+  // Custom resource helper function
+  public helperFunction: LambdaFunction;
+  // Custom resource helper function role
+  public helperFunctionRole: Role;
+  // IoT endpoint address
+  public iotEndpointAddress: string;
+  // Source code bucket
+  private sourceCodeBucket: IBucket;
+  // Source code prefix
+  private sourceCodePrefix: string;
   // Solution UUID
-  private uuid: string;
+  public uuid: string;
 
   constructor(scope: Construct, id: string, props: CustomResourcesConstructProps) {
     super(scope, id);
 
-    const helperFunctionRole = new Role(this, 'HelperFunctionRole', {
-      assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
-      path: '/'
-    });
-    helperFunctionRole.attachInlinePolicy(props.cloudWatchLogsPolicy);
+    this.sourceCodeBucket = props.solutionConfig.sourceCodeBucket;
+    this.sourceCodePrefix = props.solutionConfig.sourceCodePrefix;
 
-    const helperFunction = new Function(this, 'HelperFunction', {
-      description: 'Machine to Cloud Connectivity custom resource function',
-      handler: 'm2c2_helper_custom_resource.handler',
-      runtime: Runtime.PYTHON_3_8,
-      code: Code.fromBucket(
-        Bucket.fromBucketName(this, 'SourceCodeBucket', `${props.sourceCodeMapping.findInMap('General', 'S3Bucket')}-${Aws.REGION}`),
-        `${props.sourceCodeMapping.findInMap('General', 'KeyPrefix')}/m2c2-helper.zip`
-      ),
-      timeout: Duration.seconds(240),
-      role: helperFunctionRole,
-      environment: {
-        SOLUTION_ID: props.solutionMapping.findInMap('Parameters', 'Id'),
-        SOLUTION_VERSION: props.solutionMapping.findInMap('Parameters', 'Version'),
+    this.helperFunctionRole = new Role(this, 'HelperFunctionRole', {
+      assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
+      path: '/',
+      inlinePolicies: {
+        'GreengrassIoTPolicy': new PolicyDocument({
+          statements: [
+            new PolicyStatement({
+              effect: Effect.ALLOW,
+              actions: ['iot:DescribeEndpoint'],
+              resources: ['*']
+            })
+          ]
+        })
       }
     });
-    const cfnFunction = helperFunction.node.defaultChild as CfnFunction;
-    cfnFunction.addMetadata('cfn_nag', {
-      rules_to_suppress: [
-        { id: 'W58', reason: 'Miss alarm, and the function does have permission to write CloudWatch Logs.' }
-      ]
+    this.helperFunctionRole.attachInlinePolicy(props.cloudWatchLogsPolicy);
+    addCfnSuppressRules(this.helperFunctionRole, [
+      { id: 'W11', reason: 'iot:DescribeEndpoint cannot specify the resource.' }
+    ]);
+
+    this.helperFunction = new LambdaFunction(this, 'HelperFunction', {
+      description: 'Machine to Cloud Connectivity custom resource function',
+      handler: 'custom-resource/index.handler',
+      runtime: Runtime.NODEJS_14_X,
+      code: Code.fromBucket(this.sourceCodeBucket, `${this.sourceCodePrefix}/custom-resource.zip`),
+      timeout: Duration.seconds(240),
+      role: this.helperFunctionRole,
+      environment: {
+        LOGGING_LEVEL: props.solutionConfig.loggingLevel,
+        SOLUTION_ID: props.solutionConfig.solutionId,
+        SOLUTION_VERSION: props.solutionConfig.solutionVersion
+      }
     });
+    (this.helperFunction.node.defaultChild as CfnFunction).addDependsOn(props.cloudWatchLogsPolicy.node.defaultChild as CfnPolicy);
 
     const customUuid = new CustomResource(this, 'UUID', {
-      serviceToken: helperFunction.functionArn,
+      serviceToken: this.helperFunction.functionArn,
       properties: {
         Resource: 'CreateUUID'
       }
@@ -91,26 +126,57 @@ export class CustomResourcesConstruct extends Construct {
     this.uuid = customUuid.getAtt('UUID').toString();
 
     const sendAnonymousMetrics = new CustomResource(this, 'SendAnonymousMetrics', {
-      serviceToken: helperFunction.functionArn,
+      serviceToken: this.helperFunction.functionArn,
       properties: {
         Resource: 'SendAnonymousMetrics',
-        SolutionId: props.solutionMapping.findInMap('Parameters', 'Id'),
-        UUID: this.uuid,
-        Version: props.solutionMapping.findInMap('Parameters', 'Version'),
-        Region: Aws.REGION,
         ExistingGreengrassGroup: props.existingGreengrassGroup,
-        ExistingKinesisStream: props.existingGreengrassGroup
+        ExistingKinesisStream: props.existingKinesisStream,
+        SolutionUUID: this.uuid
       }
     });
     const cfnSendAnonymousMetrics = sendAnonymousMetrics.node.defaultChild as CfnCustomResource;
     cfnSendAnonymousMetrics.cfnOptions.condition = props.sendAnonymousUsageCondition;
+
+    const describeIoTEndpoint = new CustomResource(this, 'DescribeIoTEndpoint', {
+      serviceToken: this.helperFunction.functionArn,
+      properties: {
+        Resource: 'DescribeIoTEndpoint'
+      }
+    });
+    this.iotEndpointAddress = describeIoTEndpoint.getAtt('IOT_ENDPOINT').toString();
   }
 
   /**
-   * Get solution UUID.
-   * @return {string} UUID
+   * Sets up the UI assets and UI configuration.
+   * @param props Custom resource setup UI props
    */
-  getUuid(): string {
-    return this.uuid;
+  public setupUi(props: CustomResourceSetupUiProps) {
+    this.sourceCodeBucket.grantRead(this.helperFunction, `${this.sourceCodePrefix}/*`);
+    props.uiBucket.grantPut(this.helperFunction);
+
+    new CustomResource(this, 'CopyUiAssets', { // NOSONAR: typescript:S1848
+      serviceToken: this.helperFunction.functionArn,
+      properties: {
+        Resource: 'CopyUIAssets',
+        DestinationBucket: props.uiBucket.bucketName,
+        ManifestFile: 'manifest.json',
+        SourceBucket: this.sourceCodeBucket.bucketName,
+        SourcePrefix: this.sourceCodePrefix
+      }
+    });
+
+    new CustomResource(this, 'CreateUiConfig', { // NOSONAR: typescript:S1848
+      serviceToken: this.helperFunction.functionArn,
+      properties: {
+        Resource: 'CreateUIConfig',
+        ApiEndpoint: props.apiEndpoint,
+        ConfigFileName: 'aws-exports.js',
+        DestinationBucket: props.uiBucket.bucketName,
+        IdentityPoolId: props.identityPoolId,
+        LoggingLevel: props.loggingLevel,
+        UserPoolId: props.userPoolId,
+        WebClientId: props.webClientId
+      }
+    });
   }
 }

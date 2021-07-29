@@ -1,0 +1,5 @@
+greengrasssdk>=1.6.0
+Pyro4>=4.80
+OpenOPC-Python3x
+python-dateutil==2.8.1
+backoff==1.10.0

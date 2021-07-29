@@ -1,14 +1,68 @@
 Machine To Cloud Connectivity Framework
-Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+Copyright 2019-2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
 **********************
 THIRD PARTY COMPONENTS
 **********************
 This software includes third party software subject to the following copyrights:
 
+1. Node.js
+@aws-amplify/api under the Apache License 2.0
+@aws-amplify/auth under the Apache License 2.0
+@aws-amplify/core under the Apache License 2.0
+@aws-amplify/interactions under the Apache License 2.0
+@aws-amplify/storage under the Apache License 2.0
+@aws-amplify/ui-react under the Apache License 2.0
+@aws-cdk/assert under the Apache License 2.0
+@aws-cdk/aws-apigateway under the Apache License 2.0
+@aws-cdk/aws-cognito under the Apache License 2.0
+@aws-cdk/aws-dynamodb under the Apache License 2.0
+@aws-cdk/aws-greengrass under the Apache License 2.0
+@aws-cdk/aws-iam under the Apache License 2.0
+@aws-cdk/aws-iot under the Apache License 2.0
+@aws-cdk/aws-iotsitewise under the Apache License 2.0
+@aws-cdk/aws-lambda under the Apache License 2.0
+@aws-cdk/aws-logs under the Apache License 2.0
+@aws-cdk/aws-s3 under the Apache License 2.0
+@aws-cdk/core under the Apache License 2.0
+@aws-solutions-constructs/aws-cloudfront-s3 under the Apache License 2.0
+@aws-solutions-constructs/aws-kinesisstreams-kinesisfirehose-s3 under the Apache License 2.0
+@aws-solutions-constructs/aws-lambda-dynamodb under the Apache License 2.0
+@aws-solutions-constructs/aws-sqs-lambda under the Apache License 2.0
+@testing-library/jest-dom under the Massachusetts Institute of Technology (MIT) License
+@testing-library/react under the Massachusetts Institute of Technology (MIT) License
+@testing-library/user-event under the Massachusetts Institute of Technology (MIT) License
+@types/jest under the Massachusetts Institute of Technology (MIT) License
+@types/node under the Massachusetts Institute of Technology (MIT) License
+@types/react-dom under the Massachusetts Institute of Technology (MIT) License
+@types/react-router-bootstrap under the Massachusetts Institute of Technology (MIT) License
+@types/react-router-dom under the Massachusetts Institute of Technology (MIT) License
+@types/tar under the Massachusetts Institute of Technology (MIT) License
+@types/uuid under the Massachusetts Institute of Technology (MIT) License
 aws-cdk under the Apache License 2.0
-aws-solutions-constructs under the Apache License 2.0
+aws-sdk under the Apache License 2.0
+axios under the Massachusetts Institute of Technology (MIT) License
+bootstrap under the Massachusetts Institute of Technology (MIT) License
+bootstrap-icons under the Massachusetts Institute of Technology (MIT) License
+jest under the Massachusetts Institute of Technology (MIT) License
+nanoid under the Massachusetts Institute of Technology (MIT) License
+node-sass under the Massachusetts Institute of Technology (MIT) License
+react under the Massachusetts Institute of Technology (MIT) License
+react-bootstrap under the Massachusetts Institute of Technology (MIT) License
+react-dom under the Massachusetts Institute of Technology (MIT) License
+react-router-bootstrap under the Massachusetts Institute of Technology (MIT) License
+react-router-dom under the Massachusetts Institute of Technology (MIT) License
+react-scripts under the Massachusetts Institute of Technology (MIT) License
+tar under the ISC License
+ts-jest under the Massachusetts Institute of Technology (MIT) License
+ts-node under the Massachusetts Institute of Technology (MIT) License
+typescript under the Apache License 2.0
+uuid under the Massachusetts Institute of Technology (MIT) License
+yarn The 2-Clause BSD License
+
+2. Python
+backoff under the Massachusetts Institute of Technology (MIT) License
 greengrasssdk under the Apache License 2.0
-jest under the Massachusetts Institute of Technology (MIT) license
-OpenOPC-Python3x under the GNU GENERAL PUBLIC LICENSE Version 2
-Pyro4 underthe the Massachusetts Institute of Technology (MIT) license
+OpenOPC-Python3x under the GNU GENERAL PUBLIC License Version 2
+Pyro4 under the Massachusetts Institute of Technology (MIT) License
+python-dateutil under the Apache 2.0 License and the 3-Clause BSD License

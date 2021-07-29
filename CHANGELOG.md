@@ -4,7 +4,38 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.2.0] - 2021-03-31
+## [3.0.0] - 2021-07-29
+⚠ BREAKING CHANGES
+Generally, v3.0.0 does not support to upgrade from the previous version.
+- `job` has been changed to `connection`.
+- **Job DynamoDB table**: the table has been replaced to `Connection DynamoDB table` with the new primary key
+- **Job definition**: the job definition has been replaced to the new connection definition
+- **Job builder Lambda function**: the job builder Lambda function has been replaced to the connection builder Lambda function and the Greengrass deployer Lambda function
+
+### Added
+- API and UI to control connections for the better user experience
+- OPC UA support
+- AWS IoT SiteWise as a data destination
+- AWS IoT SiteWise connector on Greengrass
+- IoT topic messages consumer for informational and error logs
+  - The IoT rule routes messages to Amazon Simple Queue Service queue.
+  - An AWS Lambda function, `sqs-message-consumer`, consumes the messages in the queue.
+  - Amazon DynamoDB logs table stores the processed logs.
+
+### Changed
+- All Lambda functions excluding machine connector Lambda functions are migrated to TypeScript.
+- Replaces the Python package and file name with `-` to `_`
+- A machine connector Lambda function has been split into a collector Lambda function and a publisher Lambda function.
+- MQTT topics:
+  - Informational logs: `m2c2/info/{connectionName}`
+  - Error logs:`m2c2/error/{connectionName}`
+  - Connection control: `m2c2/job/{connectionName}`
+  - Data: `m2c2/data/{connectionName}`
+
+### Removed
+- Seamless Message Protocol (SLMP) is deprecated.
+
+## [2.2.0] - 2021-03-30
 ### Added
 - AWS Greengrass Stream Manager and Amazon Kinesis Data Stream for OPC DA connector data
 - AWS CDK source code to generate AWS CloudFormation template

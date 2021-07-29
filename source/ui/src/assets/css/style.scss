@@ -1,0 +1,77 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
+/**
+ * General CSS
+ */
+html * {
+  font-family: "Amazon Ember", "Helvetica Neue", Arial, Helvetica, sans-serif !important;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+}
+
+.container {
+  max-width: 95% !important;
+  padding: 15px 0 0 0 ;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.btn-primary {
+  background-color: #FF9900 !important;
+  border-color: #FF9900 !important;
+}
+
+.btn-link {
+  color: #007EB9 !important;
+}
+
+.btn-small {
+  font-size: 14px !important;
+}
+
+.uppercase-text {
+  text-transform: uppercase;
+}
+
+.red-text {
+  color: red;
+}
+
+.empty-p {
+  margin: auto;
+}
+
+.grid {
+  display: grid;
+}
+
+/**
+ * Dashboard CSS
+ */
+.btn-manage-connection {
+  padding-top: 0px;
+  padding-left: 0px;
+  padding-bottom: 0px;
+  padding-right: 0px;
+}
+
+.btn-manage-connection-icon {
+  font-size: 20px !important;
+  color: #212529;
+}
+
+.dropdown-button {
+  height: 31px;
+  align-items: center;
+}
+
+.dropdown-toggle::after {
+  content: none !important;
+}
+
+.text-align-center {
+  text-align: center;
+}

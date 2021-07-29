@@ -1,0 +1,726 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`renders the Dashboard component when connections and the next token exist  1`] = `
+<div>
+  <div
+    class="container"
+  >
+    <nav
+      aria-label="breadcrumb"
+    >
+      <ol
+        class="breadcrumb"
+      >
+        <li
+          aria-current="page"
+          class="breadcrumb-item active"
+        >
+          manage.connections
+        </li>
+      </ol>
+    </nav>
+    <div
+      class="card"
+    >
+      <div
+        class="card-body"
+      >
+        <div
+          class="card-title h5"
+        >
+          <div
+            class="row"
+          >
+            <div
+              class="col"
+            >
+              manage.connections
+            </div>
+            <div
+              class="justify-content-end grid col"
+            >
+              <div
+                class="btn-group"
+                role="group"
+              >
+                <button
+                  class="uppercase-text btn btn-primary btn-sm"
+                  type="button"
+                >
+                  refresh
+                </button>
+                <span>
+                   
+                </span>
+                <button
+                  class="uppercase-text btn btn-primary btn-sm"
+                  type="button"
+                >
+                  create.connection
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="row"
+        >
+          <div
+            class="col"
+          >
+            <span>
+               
+            </span>
+          </div>
+        </div>
+        <table
+          class="table table-md"
+          id="connections-table"
+        >
+          <thead>
+            <tr>
+              <th>
+                connection.name
+              </th>
+              <th>
+                machine.name
+              </th>
+              <th>
+                protocol
+              </th>
+              <th>
+                status
+              </th>
+              <th>
+                connection.actions
+              </th>
+              <th>
+                manage.connection
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                mock-connection-1
+              </td>
+              <td>
+                mock-machine-1
+              </td>
+              <td>
+                OPC DA
+              </td>
+              <td>
+                status.start
+              </td>
+              <td>
+                <button
+                  class="uppercase-text btn btn-outline-success btn-sm"
+                  disabled=""
+                  id="start-connection-mock-connection-1"
+                  type="button"
+                >
+                  start
+                </button>
+                <span>
+                   
+                </span>
+                <button
+                  class="uppercase-text btn btn-outline-danger btn-sm"
+                  id="stop-connection-mock-connection-1"
+                  type="button"
+                >
+                  stop
+                </button>
+              </td>
+              <td>
+                <div
+                  class="dropdown-button dropright btn-group"
+                  role="group"
+                >
+                  <button
+                    aria-expanded="false"
+                    aria-haspopup="true"
+                    class="dropdown-toggle btn btn-link"
+                    id="manage-connection-mock-connection-1"
+                    type="button"
+                  >
+                    <i
+                      class="bi-tools btn-manage-connection-icon"
+                    />
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                mock-connection-2
+              </td>
+              <td>
+                mock-machine-2
+              </td>
+              <td>
+                OPC UA
+              </td>
+              <td>
+                status.stop
+              </td>
+              <td>
+                <button
+                  class="uppercase-text btn btn-outline-success btn-sm"
+                  id="start-connection-mock-connection-2"
+                  type="button"
+                >
+                  start
+                </button>
+                <span>
+                   
+                </span>
+                <button
+                  class="uppercase-text btn btn-outline-danger btn-sm"
+                  disabled=""
+                  id="stop-connection-mock-connection-2"
+                  type="button"
+                >
+                  stop
+                </button>
+              </td>
+              <td>
+                <div
+                  class="dropdown-button dropright btn-group"
+                  role="group"
+                >
+                  <button
+                    aria-expanded="false"
+                    aria-haspopup="true"
+                    class="dropdown-toggle btn btn-link"
+                    id="manage-connection-mock-connection-2"
+                    type="button"
+                  >
+                    <i
+                      class="bi-tools btn-manage-connection-icon"
+                    />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div
+          class="row"
+        >
+          <div
+            class="col"
+          >
+            <button
+              class="uppercase-text btn btn-primary btn-sm"
+              disabled=""
+              id="prev-connection-page-button"
+              type="button"
+            >
+              <i
+                class="bi bi-chevron-double-left"
+              />
+               
+              prev.page
+            </button>
+          </div>
+          <div
+            class="justify-content-end grid col"
+          >
+            <button
+              class="uppercase-text btn btn-primary btn-sm"
+              id="next-connection-page-button"
+              type="button"
+            >
+              next.page
+               
+              <i
+                class="bi bi-chevron-double-right"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="row"
+        >
+          <div
+            class="col"
+          >
+            <span>
+               
+            </span>
+          </div>
+        </div>
+        <div
+          class="fade alert alert-warning show"
+          role="alert"
+        >
+          info.message.create.opc.ua
+          : 
+          <a
+            href="https://console.aws.amazon.com/iotsitewise/home?region=mock-region#/gateway"
+            rel="noreferrer"
+            target="_blank"
+          >
+            iot.sitewise.console.link
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`renders the Dashboard component when connections are empty 1`] = `
+<div>
+  <div
+    class="container"
+  >
+    <nav
+      aria-label="breadcrumb"
+    >
+      <ol
+        class="breadcrumb"
+      >
+        <li
+          aria-current="page"
+          class="breadcrumb-item active"
+        >
+          manage.connections
+        </li>
+      </ol>
+    </nav>
+    <div
+      class="card"
+    >
+      <div
+        class="card-body"
+      >
+        <div
+          class="card-title h5"
+        >
+          <div
+            class="row"
+          >
+            <div
+              class="col"
+            >
+              manage.connections
+            </div>
+            <div
+              class="justify-content-end grid col"
+            >
+              <div
+                class="btn-group"
+                role="group"
+              >
+                <button
+                  class="uppercase-text btn btn-primary btn-sm"
+                  type="button"
+                >
+                  refresh
+                </button>
+                <span>
+                   
+                </span>
+                <button
+                  class="uppercase-text btn btn-primary btn-sm"
+                  type="button"
+                >
+                  create.connection
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="row"
+        >
+          <div
+            class="col"
+          >
+            <span>
+               
+            </span>
+          </div>
+        </div>
+        <div
+          class="text-align-center jumbotron"
+          id="empty-connection-jumbotron"
+        >
+          <p
+            class="empty-p"
+          >
+            info.message.no.connection
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`renders the Dashboard component when connections exist 1`] = `
+<div>
+  <div
+    class="container"
+  >
+    <nav
+      aria-label="breadcrumb"
+    >
+      <ol
+        class="breadcrumb"
+      >
+        <li
+          aria-current="page"
+          class="breadcrumb-item active"
+        >
+          manage.connections
+        </li>
+      </ol>
+    </nav>
+    <div
+      class="card"
+    >
+      <div
+        class="card-body"
+      >
+        <div
+          class="card-title h5"
+        >
+          <div
+            class="row"
+          >
+            <div
+              class="col"
+            >
+              manage.connections
+            </div>
+            <div
+              class="justify-content-end grid col"
+            >
+              <div
+                class="btn-group"
+                role="group"
+              >
+                <button
+                  class="uppercase-text btn btn-primary btn-sm"
+                  type="button"
+                >
+                  refresh
+                </button>
+                <span>
+                   
+                </span>
+                <button
+                  class="uppercase-text btn btn-primary btn-sm"
+                  type="button"
+                >
+                  create.connection
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="row"
+        >
+          <div
+            class="col"
+          >
+            <span>
+               
+            </span>
+          </div>
+        </div>
+        <table
+          class="table table-md"
+          id="connections-table"
+        >
+          <thead>
+            <tr>
+              <th>
+                connection.name
+              </th>
+              <th>
+                machine.name
+              </th>
+              <th>
+                protocol
+              </th>
+              <th>
+                status
+              </th>
+              <th>
+                connection.actions
+              </th>
+              <th>
+                manage.connection
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                mock-connection-1
+              </td>
+              <td>
+                mock-machine-1
+              </td>
+              <td>
+                OPC DA
+              </td>
+              <td>
+                status.start
+              </td>
+              <td>
+                <button
+                  class="uppercase-text btn btn-outline-success btn-sm"
+                  disabled=""
+                  id="start-connection-mock-connection-1"
+                  type="button"
+                >
+                  start
+                </button>
+                <span>
+                   
+                </span>
+                <button
+                  class="uppercase-text btn btn-outline-danger btn-sm"
+                  id="stop-connection-mock-connection-1"
+                  type="button"
+                >
+                  stop
+                </button>
+              </td>
+              <td>
+                <div
+                  class="dropdown-button dropright btn-group"
+                  role="group"
+                >
+                  <button
+                    aria-expanded="false"
+                    aria-haspopup="true"
+                    class="dropdown-toggle btn btn-link"
+                    id="manage-connection-mock-connection-1"
+                    type="button"
+                  >
+                    <i
+                      class="bi-tools btn-manage-connection-icon"
+                    />
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                mock-connection-2
+              </td>
+              <td>
+                mock-machine-2
+              </td>
+              <td>
+                OPC UA
+              </td>
+              <td>
+                status.stop
+              </td>
+              <td>
+                <button
+                  class="uppercase-text btn btn-outline-success btn-sm"
+                  id="start-connection-mock-connection-2"
+                  type="button"
+                >
+                  start
+                </button>
+                <span>
+                   
+                </span>
+                <button
+                  class="uppercase-text btn btn-outline-danger btn-sm"
+                  disabled=""
+                  id="stop-connection-mock-connection-2"
+                  type="button"
+                >
+                  stop
+                </button>
+              </td>
+              <td>
+                <div
+                  class="dropdown-button dropright btn-group"
+                  role="group"
+                >
+                  <button
+                    aria-expanded="false"
+                    aria-haspopup="true"
+                    class="dropdown-toggle btn btn-link"
+                    id="manage-connection-mock-connection-2"
+                    type="button"
+                  >
+                    <i
+                      class="bi-tools btn-manage-connection-icon"
+                    />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div
+          class="row"
+        >
+          <div
+            class="col"
+          >
+            <button
+              class="uppercase-text btn btn-primary btn-sm"
+              disabled=""
+              id="prev-connection-page-button"
+              type="button"
+            >
+              <i
+                class="bi bi-chevron-double-left"
+              />
+               
+              prev.page
+            </button>
+          </div>
+          <div
+            class="justify-content-end grid col"
+          >
+            <button
+              class="uppercase-text btn btn-primary btn-sm"
+              disabled=""
+              id="next-connection-page-button"
+              type="button"
+            >
+              next.page
+               
+              <i
+                class="bi bi-chevron-double-right"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="row"
+        >
+          <div
+            class="col"
+          >
+            <span>
+               
+            </span>
+          </div>
+        </div>
+        <div
+          class="fade alert alert-warning show"
+          role="alert"
+        >
+          info.message.create.opc.ua
+          : 
+          <a
+            href="https://console.aws.amazon.com/iotsitewise/home?region=mock-region#/gateway"
+            rel="noreferrer"
+            target="_blank"
+          >
+            iot.sitewise.console.link
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`renders the Dashboard component when getting connections fails 1`] = `
+<div
+  aria-hidden="true"
+>
+  <div
+    class="container"
+  >
+    <nav
+      aria-label="breadcrumb"
+    >
+      <ol
+        class="breadcrumb"
+      >
+        <li
+          aria-current="page"
+          class="breadcrumb-item active"
+        >
+          manage.connections
+        </li>
+      </ol>
+    </nav>
+    <div
+      class="card"
+    >
+      <div
+        class="card-body"
+      >
+        <div
+          class="card-title h5"
+        >
+          <div
+            class="row"
+          >
+            <div
+              class="col"
+            >
+              manage.connections
+            </div>
+            <div
+              class="justify-content-end grid col"
+            >
+              <div
+                class="btn-group"
+                role="group"
+              >
+                <button
+                  class="uppercase-text btn btn-primary btn-sm"
+                  type="button"
+                >
+                  refresh
+                </button>
+                <span>
+                   
+                </span>
+                <button
+                  class="uppercase-text btn btn-primary btn-sm"
+                  type="button"
+                >
+                  create.connection
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="row"
+        >
+          <div
+            class="col"
+          >
+            <span>
+               
+            </span>
+          </div>
+        </div>
+        <div
+          class="text-align-center jumbotron"
+          id="empty-connection-jumbotron"
+        >
+          <p
+            class="empty-p"
+          >
+            info.message.no.connection
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

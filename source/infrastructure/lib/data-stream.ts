@@ -7,22 +7,23 @@ import { KinesisStreamsToKinesisFirehoseToS3 } from '@aws-solutions-constructs/a
 
 /**
  * DataStreamConstruct props
+ * @interface DataStreamConstructProps
  */
 export interface DataStreamConstructProps {
-  /**
-   * Logging S3 Bucket
-   */
+  // Logging S3 Bucket
   readonly s3LoggingBucket: Bucket;
 }
 
 /**
- * Machine to Cloud Connectivity Framework Kinesis Streams, Kinesis Firehose, and S3
+ * @class
+ * Machine to Cloud Connectivity Framework Data Stream Construct.
+ * It creates a Kinesis data stream, a Kinesis data firehose, and a data S3 bucket.
  */
 export class DataStreamConstruct extends Construct {
   // Kinesis Data Stream name
-  private kinesisStreamName: string;
+  public kinesisStreamName: string;
   // Data S3 Bucket name
-  private s3BucketName: string;
+  public dataBucketName: string;
 
   constructor(scope: Construct, id: string, props: DataStreamConstructProps) {
     super(scope, id);
@@ -34,22 +35,6 @@ export class DataStreamConstruct extends Construct {
       }
     });
     this.kinesisStreamName = kinesisStreamsToKinesisFirehoseToS3.kinesisStream.streamName;
-    this.s3BucketName = kinesisStreamsToKinesisFirehoseToS3.s3Bucket!.bucketName;
-  }
-
-  /**
-   * Get Kinesis Data Stream name.
-   * @return {string} Kinesis Data Stream name
-   */
-  getKinesisStreamName(): string {
-    return this.kinesisStreamName;
-  }
-
-  /**
-   * Get data S3 Bucket name.
-   * @return {string} S3 Bucket name
-   */
-  getS3BucketName(): string {
-    return this.s3BucketName;
+    this.dataBucketName = kinesisStreamsToKinesisFirehoseToS3.s3Bucket!.bucketName;
   }
 }

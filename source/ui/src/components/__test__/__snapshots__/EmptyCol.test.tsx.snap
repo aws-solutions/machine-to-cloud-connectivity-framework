@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`renders the EmptyCol component 1`] = `
+<div>
+  <span>
+     
+  </span>
+</div>
+`;

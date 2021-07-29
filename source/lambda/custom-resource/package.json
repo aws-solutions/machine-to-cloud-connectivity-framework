@@ -1,0 +1,33 @@
+{
+  "name": "custom-resource",
+  "version": "3.0.0",
+  "description": "The solution's custom resource function",
+  "main": "index.js",
+  "scripts": {
+    "clean": "rm -rf node_modules dist coverage package-lock.json",
+    "compile": "node_modules/typescript/bin/tsc --project tsconfig.json",
+    "build": "npm run clean && npm install && npm run compile",
+    "copy-modules": "npm prune --production && rsync -avrq ./node_modules ./dist",
+    "package": "npm run build && npm run copy-modules && cd dist && zip -q -r9 package.zip * -x '**/test/*' && cd ..",
+    "test": "jest --config jestconfig.json --coverage --silent"
+  },
+  "devDependencies": {
+    "@types/jest": "^26.0.23",
+    "@types/node": "^15.12.5",
+    "@types/tar": "^4.0.4",
+    "@types/uuid": "^8.3.0",
+    "aws-sdk": "2.880.0",
+    "jest": "^27.0.6",
+    "ts-jest": "^27.0.3",
+    "ts-node": "^10.0.0",
+    "typescript": "^4.3.4"
+  },
+  "dependencies": {
+    "axios": "~0.21.1",
+    "nanoid": "~3.1.23",
+    "tar": "~6.1.0",
+    "uuid": "~8.3.2"
+  },
+  "author": "AWS Solutions Builders",
+  "license": "Apache-2.0"
+}

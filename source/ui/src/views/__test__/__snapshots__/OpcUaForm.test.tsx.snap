@@ -1,0 +1,274 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`renders the OpcUaForm errors 1`] = `
+<div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      server.name
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.server.name
+    </small>
+    <input
+      class="form-control"
+      id="opcUa-serverName"
+      placeholder="placeholder.opcua.server.name"
+      required=""
+      type="text"
+      value=""
+    />
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      machine.ip
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.machine.ip
+    </small>
+    <input
+      class="form-control"
+      id="opcUa-machineIp"
+      placeholder="placeholder.machine.ip"
+      required=""
+      type="text"
+      value=""
+    />
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      port
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.port
+    </small>
+    <input
+      class="form-control"
+      id="port"
+      placeholder="placeholder.port"
+      type="text"
+      value=""
+    />
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+</div>
+`;
+
+exports[`renders the OpcUaForm with the existing connection 1`] = `
+<div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      server.name
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.server.name
+    </small>
+    <input
+      class="form-control"
+      id="opcUa-serverName"
+      placeholder="placeholder.opcua.server.name"
+      required=""
+      type="text"
+      value="mock-opcua-server-name"
+    />
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      machine.ip
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.machine.ip
+    </small>
+    <input
+      class="form-control"
+      id="opcUa-machineIp"
+      placeholder="placeholder.machine.ip"
+      required=""
+      type="text"
+      value="1.2.3.4"
+    />
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      port
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.port
+    </small>
+    <input
+      class="form-control"
+      id="port"
+      placeholder="placeholder.port"
+      type="text"
+      value="1234"
+    />
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+</div>
+`;
+
+exports[`renders the default OpcUaForm 1`] = `
+<div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      server.name
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.server.name
+    </small>
+    <input
+      class="form-control"
+      id="opcUa-serverName"
+      placeholder="placeholder.opcua.server.name"
+      required=""
+      type="text"
+      value=""
+    />
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      machine.ip
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.machine.ip
+    </small>
+    <input
+      class="form-control"
+      id="opcUa-machineIp"
+      placeholder="placeholder.machine.ip"
+      required=""
+      type="text"
+      value=""
+    />
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      port
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.port
+    </small>
+    <input
+      class="form-control"
+      id="port"
+      placeholder="placeholder.port"
+      type="text"
+      value=""
+    />
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+</div>
+`;

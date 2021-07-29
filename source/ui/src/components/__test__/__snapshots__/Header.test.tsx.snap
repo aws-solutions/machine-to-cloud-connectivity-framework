@@ -1,0 +1,37 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`renders the Header component 1`] = `
+<div>
+  <header>
+    <nav
+      class="navbar navbar-expand-sm navbar-light bg-light"
+    >
+      <a
+        class="navbar-brand"
+        href="/"
+      >
+        application
+      </a>
+      <button
+        aria-label="Toggle navigation"
+        class="navbar-toggler collapsed"
+        type="button"
+      >
+        <span
+          class="navbar-toggler-icon"
+        />
+      </button>
+      <div
+        class="justify-content-end navbar-collapse collapse"
+      >
+        <button
+          class="btn btn-link"
+          type="button"
+        >
+          sign.out
+        </button>
+      </div>
+    </nav>
+  </header>
+</div>
+`;

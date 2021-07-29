@@ -1,0 +1,29 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`renders the PageNotFound component 1`] = `
+<div>
+  <div
+    class="container"
+  >
+    <div
+      class="row"
+    >
+      <div
+        class="col"
+      >
+        <div
+          class="jumbotron"
+        >
+          <h3>
+            page.not.found
+            : 
+            <code>
+              /
+            </code>
+          </h3>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

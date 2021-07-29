@@ -4,4 +4,14 @@ regional-s3-assets/
 open-source/
 package/
 package-lock.json
+yarn.lock
+source/test/
+.venv/
+__pycache__
+.pytest_cache
+.coverage
+node_modules/
+dist/
 coverage/
+aws-exports.js
+build/

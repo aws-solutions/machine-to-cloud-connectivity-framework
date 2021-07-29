@@ -1,0 +1,149 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`renders the confirm type MessageModal component 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    class="modal-backdrop show"
+  />
+  <div
+    aria-modal="true"
+    class="modal"
+    role="dialog"
+    style="display: block;"
+    tabindex="-1"
+  >
+    <div
+      class="modal-dialog modal-dialog-centered"
+      id="message-modal"
+    >
+      <div
+        class="modal-content"
+      >
+        <div
+          class="modal-body"
+        >
+          Test message
+        </div>
+        <div
+          class="modal-footer"
+        >
+          <button
+            class="uppercase-text btn btn-primary btn-sm"
+            id="message-modal-confirm-button"
+            type="button"
+          >
+            confirm
+          </button>
+          <button
+            class="uppercase-text btn btn-secondary btn-sm"
+            id="message-modal-cancel-button"
+            type="button"
+          >
+            cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`renders the message type MessageModal component 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    class="modal-backdrop show"
+  />
+  <div
+    aria-modal="true"
+    class="modal"
+    role="dialog"
+    style="display: block;"
+    tabindex="-1"
+  >
+    <div
+      class="modal-dialog modal-dialog-centered"
+      id="message-modal"
+    >
+      <div
+        class="modal-content"
+      >
+        <div
+          class="modal-body"
+        >
+          Test message
+        </div>
+        <div
+          class="modal-footer"
+        >
+          <button
+            class="uppercase-text btn btn-primary btn-sm"
+            id="message-modal-close-button"
+            type="button"
+          >
+            ok
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`renders the message type MessageModal component with confirm action 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    class="modal-backdrop show"
+  />
+  <div
+    aria-modal="true"
+    class="modal"
+    role="dialog"
+    style="display: block;"
+    tabindex="-1"
+  >
+    <div
+      class="modal-dialog modal-dialog-centered"
+      id="message-modal"
+    >
+      <div
+        class="modal-content"
+      >
+        <div
+          class="modal-body"
+        >
+          Test message
+        </div>
+        <div
+          class="modal-footer"
+        >
+          <button
+            class="uppercase-text btn btn-primary btn-sm"
+            id="message-modal-close-button"
+            type="button"
+          >
+            ok
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;

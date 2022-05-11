@@ -2,45 +2,78 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { LambdaError } from './errors';
-import { ConnectionBuilderTypes, ValidationsTypes } from './types';
+import { GreengrassCoreDeviceControl, PostGreengrassRequestBodyInput } from './types/connection-builder-types';
+import { CreatedBy } from './types/dynamodb-handler-types';
+import {
+  ConnectionControl,
+  ConnectionDefinition,
+  MachineProtocol,
+  OpcDaDefinition,
+  OpcUaDefinition
+} from './types/solution-common-types';
 
 const EMPTY_TYPES = [undefined, null];
+export const ValidationsLimit = {
+  MAX_CHARACTERS: 30,
+  MAX_GREENGRASS_CORE_NAME_CHARACTERS: 128,
+  MAX_INTERVAL: 30,
+  MIN_INTERVAL: 0.5,
+  MIN_ITERATION: 1,
+  MAX_ITERATION: 30,
+  MIN_PORT: 1,
+  MAX_PORT: 65535,
+  MAX_OPCUA_SERVER_NAME_CHARACTERS: 256
+};
 
 /**
  * Validates the connection definition.
  * The function calls `validateDetailedConnectionDefinition` for `deploy` and `update` connections.
- * For more information about the connection definition, see `ConnectionBuilderTypes.ConnectionDefinition`.
+ * For more information about the connection definition, see `ConnectionDefinition`.
  * @param connectionDefinition The connection definition
  * @throws `ValidationError` when the connection definition is invalid
  */
-export function validateConnectionDefinition(connectionDefinition: ConnectionBuilderTypes.ConnectionDefinition): void {
-  const { connectionName, control, protocol } = connectionDefinition;
+export function validateConnectionDefinition(connectionDefinition: ConnectionDefinition): void {
+  const { connectionName, control, greengrassCoreDeviceName, protocol } = connectionDefinition;
+  const controlValues = Object.values(ConnectionControl);
+  const protocolValues = Object.values(MachineProtocol);
 
   /**
-   * Due to the constraints of the Lambda function name, the connection name only allows alphanumeric characters, hypens, and underscores.
+   * Due to the constraints of the Lambda function name, the connection name only allows alphanumeric characters, hyphens, and underscores.
    * In addition, the solution preserve about 25 characters for the Lambda function name, it only allows 30 characters for a safety purpose
    * although the Lambda function name allows 64 characters.
    */
-  validateAlphaNumericHyphenUnderscoreString(connectionName, 'connectionName', ValidationsTypes.MAX_CHARACTERS);
+  validateAlphaNumericHyphenUnderscoreString(connectionName, 'connectionName', ValidationsLimit.MAX_CHARACTERS);
 
-  if (typeof control !== 'string' || !Object.values(ConnectionBuilderTypes.ConnectionControl).includes(control)) {
+  if (typeof control !== 'string' || !controlValues.includes(control)) {
     throw new LambdaError({
-      message: `"control" is missing or invalid from the connection definition. It should be one of these: ${Object.values(ConnectionBuilderTypes.ConnectionControl)}.`,
+      message: `"control" is missing or invalid from the connection definition. It should be one of these: ${controlValues}.`,
       name: 'ValidationError',
       statusCode: 400
     });
   }
 
-  if (!Object.values(ConnectionBuilderTypes.MachineProtocol).includes(protocol)) {
+  if (!protocolValues.includes(protocol)) {
     throw new LambdaError({
-      message: `"protocol" is invalid from the connection definition. It should be one of these: ${Object.values(ConnectionBuilderTypes.MachineProtocol)}.`,
+      message: `"protocol" is invalid from the connection definition. It should be one of these: ${protocolValues}.`,
+      name: 'ValidationError',
+      statusCode: 400
+    });
+  }
+
+  // Only `deploy` connection requires to check Greengrass core device name.
+  if (
+    control === ConnectionControl.DEPLOY &&
+    (typeof greengrassCoreDeviceName !== 'string' || !/^[a-zA-Z0-9-_:]{1,128}$/.test(greengrassCoreDeviceName))
+  ) {
+    throw new LambdaError({
+      message: `"greengrassCoreDeviceName" is invalid from the connection definition. Please provide existing Greengrass core device in the system.`,
       name: 'ValidationError',
       statusCode: 400
     });
   }
 
   // Only `deploy` and `update` connections require to check more values.
-  if (control === ConnectionBuilderTypes.ConnectionControl.DEPLOY || control === ConnectionBuilderTypes.ConnectionControl.UPDATE) {
+  if ([ConnectionControl.DEPLOY, ConnectionControl.UPDATE].includes(control)) {
     validateDetailedConnectionDefinition(connectionDefinition);
   }
 }
@@ -50,31 +83,42 @@ export function validateConnectionDefinition(connectionDefinition: ConnectionBui
  * @param connectionDefinition The connection definition
  * @throws `ValidationError` when the connection definition is invalid
  */
-function validateDetailedConnectionDefinition(connectionDefinition: ConnectionBuilderTypes.ConnectionDefinition) {
+function validateDetailedConnectionDefinition(connectionDefinition: ConnectionDefinition) {
+  const {
+    siteName,
+    area,
+    process,
+    machineName,
+    protocol,
+    sendDataToIoTSiteWise,
+    sendDataToIoTTopic,
+    sendDataToKinesisDataStreams,
+    sendDataToTimestream
+  } = connectionDefinition;
+
   // Validates if sending data to at least one destination
-  const { sendDataToIoTSitewise, sendDataToIoTTopic, sendDataToKinesisDataStreams } = connectionDefinition;
-  validateDestinationValue(sendDataToIoTSitewise, 'sendDataToIoTSitewise');
+  validateDestinationValue(sendDataToIoTSiteWise, 'sendDataToIoTSiteWise');
   validateDestinationValue(sendDataToIoTTopic, 'sendDataToIoTTopic');
   validateDestinationValue(sendDataToKinesisDataStreams, 'sendDataToKinesisDataStreams');
+  validateDestinationValue(sendDataToTimestream, 'sendDataToTimestream');
 
-  if (!sendDataToIoTSitewise && !sendDataToIoTTopic && !sendDataToKinesisDataStreams) {
+  if (!sendDataToIoTSiteWise && !sendDataToIoTTopic && !sendDataToKinesisDataStreams && !sendDataToTimestream) {
     throw new LambdaError({
-      message: 'At least one data destination should be set: sendDataToIoTSitewise, sendDataToIoTTopic, sendDataToKinesisDataStreams.',
+      message:
+        'At least one data destination should be set: sendDataToIoTSiteWise, sendDataToIoTTopic, sendDataToKinesisDataStreams, sendDataToTimestream.',
       name: 'ValidationError',
       statusCode: 400
     });
   }
 
   // Validates asset hierarchy values. All values are required and string.
-  const { siteName, area, process, machineName } = connectionDefinition;
-  validateAlphaNumericHyphenUnderscoreString(siteName, 'siteName', ValidationsTypes.MAX_CHARACTERS);
-  validateAlphaNumericHyphenUnderscoreString(area, 'area', ValidationsTypes.MAX_CHARACTERS);
-  validateAlphaNumericHyphenUnderscoreString(process, 'process', ValidationsTypes.MAX_CHARACTERS);
-  validateAlphaNumericHyphenUnderscoreString(machineName, 'machineName', ValidationsTypes.MAX_CHARACTERS);
+  validateAlphaNumericHyphenUnderscoreString(siteName, 'siteName', ValidationsLimit.MAX_CHARACTERS);
+  validateAlphaNumericHyphenUnderscoreString(area, 'area', ValidationsLimit.MAX_CHARACTERS);
+  validateAlphaNumericHyphenUnderscoreString(process, 'process', ValidationsLimit.MAX_CHARACTERS);
+  validateAlphaNumericHyphenUnderscoreString(machineName, 'machineName', ValidationsLimit.MAX_CHARACTERS);
 
   // Since protocol validation is done previously, it simple checks with if/else.
-  const { protocol } = connectionDefinition;
-  if (protocol === ConnectionBuilderTypes.MachineProtocol.OPCDA) {
+  if (protocol === MachineProtocol.OPCDA) {
     // OPC DA
     validateOpcDaConnectionDefinition(connectionDefinition.opcDa);
   } else {
@@ -87,16 +131,14 @@ function validateDetailedConnectionDefinition(connectionDefinition: ConnectionBu
  * Validates if the value only contains alphanumeric characters, hyphens, and underscores.
  * In addition, it validates the maximum length of the string.
  * @param value The string value
- * @param name The strinv value name
+ * @param name The string value name
  * @param maxLength The maximum length for the string value
  * @throws `ValidationError` when the string value is invalid
  */
 function validateAlphaNumericHyphenUnderscoreString(value: string, name: string, maxLength: number) {
-  if (typeof value !== 'string'
-    || value.trim().length > maxLength
-    || !/^[a-zA-Z0-9-_]+$/.test(value)) {
+  if (typeof value !== 'string' || value.trim().length > maxLength || !/^[a-zA-Z0-9-_]+$/.test(value)) {
     throw new LambdaError({
-      message: `"${name}" is missing or invalid from the connection definition. It should contain only alphanumeric characters, hypens, and underscores. The maximum length is ${maxLength} characters.`,
+      message: `"${name}" is missing or invalid from the connection definition. It should contain only alphanumeric characters, hyphens, and underscores. The maximum length is ${maxLength} characters.`,
       name: 'ValidationError',
       statusCode: 400
     });
@@ -124,7 +166,7 @@ function validateDestinationValue(value: boolean, name: string) {
  * @param opcDa The OPC DA connection definition
  * @throws `ValidationError` when the OPC DA connection definition is invalid
  */
-function validateOpcDaConnectionDefinition(opcDa: ConnectionBuilderTypes.OpcDaDefinition) {
+function validateOpcDaConnectionDefinition(opcDa: OpcDaDefinition) {
   // Since the type of array is also `object`, it checks if the value is an array.
   if (typeof opcDa !== 'object' || Array.isArray(opcDa) || Object.keys(opcDa).length === 0) {
     throw new LambdaError({
@@ -147,7 +189,7 @@ function validateOpcDaConnectionDefinition(opcDa: ConnectionBuilderTypes.OpcDaDe
  * @throws `ValidationError` when the IP address is invalid
  */
 function validateIpAddress(ipAddress: string) {
-  const ipRegExp = /^(?!0)(?!.*\.$)((?!0\d)(1?\d?\d|25[0-5]|2[0-4]\d)(\.|$)){4}$/;  // NOSONAR: typescript:S4784 - For the IP Address check
+  const ipRegExp = /^(?!0)(?!.*\.$)((?!0\d)(1?\d?\d|25[0-5]|2[0-4]\d)(\.|$)){4}$/;
   if (typeof ipAddress !== 'string' || !ipRegExp.test(ipAddress)) {
     throw new LambdaError({
       message: '"machineIp" is missing or invalid from the connection definition. It should be a valid IP.',
@@ -164,17 +206,25 @@ function validateIpAddress(ipAddress: string) {
  * @throws `ValidationError` when the machine query iterations or time interval is invalid
  */
 function validateMachineQueryValues(iterations: number, interval: number) {
-  if (!Number.isInteger(iterations) || iterations < ValidationsTypes.MIN_ITERATION || iterations > ValidationsTypes.MAX_ITERATION) {
+  if (
+    !Number.isInteger(iterations) ||
+    iterations < ValidationsLimit.MIN_ITERATION ||
+    iterations > ValidationsLimit.MAX_ITERATION
+  ) {
     throw new LambdaError({
-      message: `"iterations" is missing or invalid from the connection definition. It should be an integer number between ${ValidationsTypes.MIN_ITERATION} and ${ValidationsTypes.MAX_ITERATION}.`,
+      message: `"iterations" is missing or invalid from the connection definition. It should be an integer number between ${ValidationsLimit.MIN_ITERATION} and ${ValidationsLimit.MAX_ITERATION}.`,
       name: 'ValidationError',
       statusCode: 400
     });
   }
 
-  if (typeof interval !== 'number' || interval < ValidationsTypes.MIN_INTERVAL || interval > ValidationsTypes.MAX_INTERVAL) {
+  if (
+    typeof interval !== 'number' ||
+    interval < ValidationsLimit.MIN_INTERVAL ||
+    interval > ValidationsLimit.MAX_INTERVAL
+  ) {
     throw new LambdaError({
-      message: `"interval" is missing or invalid from the connection definition. It should be a float number between ${ValidationsTypes.MIN_INTERVAL} and ${ValidationsTypes.MAX_INTERVAL}.`,
+      message: `"interval" is missing or invalid from the connection definition. It should be a float number between ${ValidationsLimit.MIN_INTERVAL} and ${ValidationsLimit.MAX_INTERVAL}.`,
       name: 'ValidationError',
       statusCode: 400
     });
@@ -251,7 +301,7 @@ function validateAllTags(listTags: string[], tags: string[]) {
  * @throws `ValidationError` when any item in tags is invalid
  */
 function validateTags(tags: string[], name: string) {
-  for (let tag of tags) {
+  for (const tag of tags) {
     validateStringValue(tag, `Tag in ${name}`);
   }
 }
@@ -261,7 +311,7 @@ function validateTags(tags: string[], name: string) {
  * @param opcUa The OPC UA connection definition
  * @throws `ValidationError` when the OPC UA connection definition is invalid
  */
-function validateOpcUaConnectionDefinition(opcUa: ConnectionBuilderTypes.OpcUaDefinition) {
+function validateOpcUaConnectionDefinition(opcUa: OpcUaDefinition) {
   // Since the type of array is also `object`, it checks if the value is an array.
   if (typeof opcUa !== 'object' || Array.isArray(opcUa) || Object.keys(opcUa).length === 0) {
     throw new LambdaError({
@@ -274,21 +324,61 @@ function validateOpcUaConnectionDefinition(opcUa: ConnectionBuilderTypes.OpcUaDe
   const { machineIp, serverName, port } = opcUa;
   validateIpAddress(machineIp);
 
-  if (typeof serverName !== 'string' || serverName.trim() === '' || serverName.trim().length > ValidationsTypes.MAX_OPCUA_SERVER_NAME_CHARACTERS) {
+  if (
+    typeof serverName !== 'string' ||
+    serverName.trim() === '' ||
+    serverName.trim().length > ValidationsLimit.MAX_OPCUA_SERVER_NAME_CHARACTERS
+  ) {
     throw new LambdaError({
-      message: `"serverName" is missing or invalid from the connection definition. It should be a non-empty string up to ${ValidationsTypes.MAX_OPCUA_SERVER_NAME_CHARACTERS} characters.`,
+      message: `"serverName" is missing or invalid from the connection definition. It should be a non-empty string up to ${ValidationsLimit.MAX_OPCUA_SERVER_NAME_CHARACTERS} characters.`,
       name: 'ValidationError',
       statusCode: 400
     });
   }
 
   if (!EMPTY_TYPES.includes(port)) {
-    if (!Number.isInteger(port) || port < ValidationsTypes.MIN_PORT || port > ValidationsTypes.MAX_PORT) {
+    if (!Number.isInteger(port) || port < ValidationsLimit.MIN_PORT || port > ValidationsLimit.MAX_PORT) {
       throw new LambdaError({
-        message: `"port" is invalid from the connection definition. It should be an integer number between ${ValidationsTypes.MIN_PORT} and ${ValidationsTypes.MAX_PORT}.`,
+        message: `"port" is invalid from the connection definition. It should be an integer number between ${ValidationsLimit.MIN_PORT} and ${ValidationsLimit.MAX_PORT}.`,
         name: 'ValidationError',
         statusCode: 400
       });
     }
+  }
+}
+
+/**
+ * Validates if Greengrass core device POST request input is valid.
+ * @param input The Greengrass core device POST request input
+ * @throws `ValidationError` when the input is invalid
+ */
+export function validateGreengrassCoreDeviceRequest(input: PostGreengrassRequestBodyInput): void {
+  const { name, control, createdBy } = input;
+
+  // The name can be up to 128 characters. Valid characters: a-z, A-Z, 0-9, colon (:), underscore (_), and hyphen (-).
+  if (typeof name !== 'string' || !/^[a-zA-Z0-9-_:]{1,128}$/.test(name)) {
+    throw new LambdaError({
+      message: `"name" can be up to 128 characters. Valid characters: a-z, A-Z, 0-9, colon (:), underscore (_), and hyphen (-).`,
+      name: 'ValidationError',
+      statusCode: 400
+    });
+  }
+
+  const controlValues = Object.values(GreengrassCoreDeviceControl);
+  if (!controlValues.includes(control)) {
+    throw new LambdaError({
+      message: `Only "create" and "delete" controls are valid.`,
+      name: 'ValidationError',
+      statusCode: 400
+    });
+  }
+
+  const createdByValues = Object.values(CreatedBy);
+  if (!createdByValues.includes(createdBy)) {
+    throw new LambdaError({
+      message: `Only "System" and "User" are valid for "createdBy".`,
+      name: 'ValidationError',
+      statusCode: 400
+    });
   }
 }

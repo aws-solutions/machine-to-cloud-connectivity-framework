@@ -9,7 +9,7 @@ import Jumbotron from 'react-bootstrap/Jumbotron';
 
 /**
  * PageNotFound returns an error when path does not match.
-* @returns Page not found error message
+ * @returns Page not found error message
  */
 export default function PageNotFound(): JSX.Element {
   return (
@@ -17,7 +17,9 @@ export default function PageNotFound(): JSX.Element {
       <Row>
         <Col>
           <Jumbotron>
-            <h3>{I18n.get('page.not.found')}: <code>{window.location.pathname}</code></h3>
+            <h3>
+              {I18n.get('page.not.found')}: <code>{window.location.pathname}</code>
+            </h3>
           </Jumbotron>
         </Col>
       </Row>

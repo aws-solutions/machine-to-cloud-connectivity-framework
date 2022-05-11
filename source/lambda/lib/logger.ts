@@ -1,9 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-/**
- * @enum The supported logging level
- */
 export enum LoggingLevel {
   ERROR = 1,
   WARN = 2,
@@ -13,7 +10,7 @@ export enum LoggingLevel {
 }
 
 /**
- * @class Logger class
+ * Logger class
  */
 export default class Logger {
   private readonly name: string;
@@ -39,7 +36,7 @@ export default class Logger {
    * @param loggingLevel The logging level of the log
    * @param messages The log messages
    */
-  public log(loggingLevel: LoggingLevel, ...messages: any[]): void {
+  public log(loggingLevel: LoggingLevel, ...messages: unknown[]): void {
     if (loggingLevel <= this.loggingLevel) {
       this._log(loggingLevel, ...messages);
     }
@@ -50,7 +47,7 @@ export default class Logger {
    * @param loggingLevel The logging level of the log
    * @param messages The log messages
    */
-  private _log(loggingLevel: LoggingLevel, ...messages: any[]): void {
+  private _log(loggingLevel: LoggingLevel, ...messages: unknown[]): void {
     switch (loggingLevel) {
       case LoggingLevel.VERBOSE:
       case LoggingLevel.DEBUG:

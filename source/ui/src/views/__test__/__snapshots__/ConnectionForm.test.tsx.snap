@@ -28,430 +28,46 @@ exports[`renders the connection form component for the new connection 1`] = `
         </li>
       </ol>
     </nav>
-    <form
-      class=""
+    <div
+      class="card"
     >
       <div
-        class="form-group"
+        class="card-body"
       >
-        <label
-          class="form-label"
+        <form
+          class=""
         >
-          connection.name
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.connection.name
-        </small>
-        <input
-          class="form-control"
-          id="connectionName"
-          placeholder="placeholder.connection.name"
-          required=""
-          type="text"
-          value=""
-        />
-        <div
-          class="invalid-feedback"
-        />
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          site.name
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.site.name
-        </small>
-        <input
-          class="form-control"
-          id="siteName"
-          placeholder="placeholder.site.name"
-          required=""
-          type="text"
-          value=""
-        />
-        <div
-          class="invalid-feedback"
-        />
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          area
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.area
-        </small>
-        <input
-          class="form-control"
-          id="area"
-          placeholder="placeholder.area"
-          required=""
-          type="text"
-          value=""
-        />
-        <div
-          class="invalid-feedback"
-        />
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          process
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.process
-        </small>
-        <input
-          class="form-control"
-          id="process"
-          placeholder="placeholder.process"
-          required=""
-          type="text"
-          value=""
-        />
-        <div
-          class="invalid-feedback"
-        />
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          machine.name
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.machine.name
-        </small>
-        <input
-          class="form-control"
-          id="machineName"
-          placeholder="placeholder.machine.name"
-          required=""
-          type="text"
-          value=""
-        />
-        <div
-          class="invalid-feedback"
-        />
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          send.data.to
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.send.data.to
-        </small>
-        <div
-          class="form-group"
-        >
-          <div
-            class="form-check form-check-inline"
-          >
-            <input
-              class="form-check-input"
-              id="sendDataToIoTSitewise"
-              type="checkbox"
-            />
-            <label
-              class="form-check-label"
-              for="sendDataToIoTSitewise"
-              title=""
-            >
-              iot.sitewise
-            </label>
-          </div>
-          <span>
-             
-          </span>
-          <div
-            class="form-check form-check-inline"
-          >
-            <input
-              class="form-check-input"
-              id="sendDataToIoTTopic"
-              type="checkbox"
-            />
-            <label
-              class="form-check-label"
-              for="sendDataToIoTTopic"
-              title=""
-            >
-              iot.topic
-            </label>
-          </div>
-          <span>
-             
-          </span>
-          <div
-            class="form-check form-check-inline"
-          >
-            <input
-              checked=""
-              class="form-check-input"
-              id="sendDataToKinesisDataStreams"
-              type="checkbox"
-            />
-            <label
-              class="form-check-label"
-              for="sendDataToKinesisDataStreams"
-              title=""
-            >
-              kinesis.data.streams
-            </label>
-          </div>
-          <div
-            class="invalid-feedback"
-          />
-        </div>
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          protocol
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.protocol
-        </small>
-        <select
-          class="form-control"
-          id="protocol"
-        >
-          <option
-            value="opcda"
-          >
-            OPC DA
-          </option>
-          <option
-            value="opcua"
-          >
-            OPC UA
-          </option>
-        </select>
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          iterations
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.iterations
-        </small>
-        <input
-          class="form-control"
-          id="iterations"
-          placeholder="placeholder.iterations"
-          required=""
-          type="text"
-          value=""
-        />
-        <div
-          class="invalid-feedback"
-        />
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          time.interval
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.interval
-        </small>
-        <input
-          class="form-control"
-          id="interval"
-          placeholder="placeholder.time.interval"
-          required=""
-          type="text"
-          value=""
-        />
-        <div
-          class="invalid-feedback"
-        />
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          server.name
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.server.name
-        </small>
-        <input
-          class="form-control"
-          id="serverName"
-          placeholder="placeholder.opcda.server.name"
-          required=""
-          type="text"
-          value=""
-        />
-        <div
-          class="invalid-feedback"
-        />
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          machine.ip
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.machine.ip
-        </small>
-        <input
-          class="form-control"
-          id="machineIp"
-          placeholder="placeholder.machine.ip"
-          required=""
-          type="text"
-          value=""
-        />
-        <div
-          class="invalid-feedback"
-        />
-      </div>
-      <div
-        class="card"
-      >
-        <div
-          class="card-body"
-        >
-          <div
-            class="card-subtitle h6"
-          >
-            tags
-             
-            tags.explanation
-          </div>
           <div
             class="form-group"
           >
             <label
               class="form-label"
             >
-              read.list.tags
+              greengrass.core.device.name
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
             </label>
-            <textarea
+            <small
+              class="form-text text-muted"
+            >
+              description.existing.greengrass.core.device.name
+            </small>
+            <select
               class="form-control"
-              id="listTags"
-              placeholder="placeholder.list.tags"
+              id="greengrassCoreDeviceName"
+            >
+              <option
+                value=""
+              >
+                select
+              </option>
+            </select>
+            <div
+              class="invalid-feedback"
             />
           </div>
           <div
@@ -460,61 +76,505 @@ exports[`renders the connection form component for the new connection 1`] = `
             <label
               class="form-label"
             >
-              read.tags
+              connection.name
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
             </label>
-            <textarea
+            <small
+              class="form-text text-muted"
+            >
+              description.connection.name
+            </small>
+            <input
               class="form-control"
-              id="tags"
-              placeholder="placeholder.tags"
+              id="connectionName"
+              placeholder="placeholder.connection.name"
+              required=""
+              type="text"
+              value=""
             />
             <div
               class="invalid-feedback"
             />
           </div>
-        </div>
-      </div>
-      <div
-        class="row"
-      >
-        <div
-          class="col"
-        >
-          <span>
-             
-          </span>
-        </div>
-      </div>
-      <div
-        class="row"
-      >
-        <div
-          class="justify-content-center grid col"
-        >
           <div
-            class="btn-group"
-            role="group"
+            class="form-group"
           >
-            <button
-              class="uppercase-text btn btn-primary btn-sm"
-              id="connection-form-submit-button"
-              type="submit"
+            <label
+              class="form-label"
             >
-              create
-            </button>
-            <span>
-               
-            </span>
-            <button
-              class="uppercase-text btn btn-secondary btn-sm"
-              id="connection-form-cancel-button"
-              type="button"
+              site.name
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
             >
-              cancel
-            </button>
+              description.site.name
+            </small>
+            <input
+              class="form-control"
+              id="siteName"
+              placeholder="placeholder.site.name"
+              required=""
+              type="text"
+              value=""
+            />
+            <div
+              class="invalid-feedback"
+            />
           </div>
-        </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              area
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.area
+            </small>
+            <input
+              class="form-control"
+              id="area"
+              placeholder="placeholder.area"
+              required=""
+              type="text"
+              value=""
+            />
+            <div
+              class="invalid-feedback"
+            />
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              process
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.process
+            </small>
+            <input
+              class="form-control"
+              id="process"
+              placeholder="placeholder.process"
+              required=""
+              type="text"
+              value=""
+            />
+            <div
+              class="invalid-feedback"
+            />
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              machine.name
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.machine.name
+            </small>
+            <input
+              class="form-control"
+              id="machineName"
+              placeholder="placeholder.machine.name"
+              required=""
+              type="text"
+              value=""
+            />
+            <div
+              class="invalid-feedback"
+            />
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              send.data.to
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.send.data.to
+            </small>
+            <div
+              class="form-group"
+            >
+              <div
+                class="form-check form-check-inline"
+              >
+                <input
+                  class="form-check-input"
+                  id="sendDataToIoTSiteWise"
+                  type="checkbox"
+                />
+                <label
+                  class="form-check-label"
+                  for="sendDataToIoTSiteWise"
+                  title=""
+                >
+                  iot.sitewise
+                </label>
+              </div>
+              <span>
+                 
+              </span>
+              <div
+                class="form-check form-check-inline"
+              >
+                <input
+                  class="form-check-input"
+                  id="sendDataToIoTTopic"
+                  type="checkbox"
+                />
+                <label
+                  class="form-check-label"
+                  for="sendDataToIoTTopic"
+                  title=""
+                >
+                  iot.topic
+                </label>
+              </div>
+              <span>
+                 
+              </span>
+              <div
+                class="form-check form-check-inline"
+              >
+                <input
+                  checked=""
+                  class="form-check-input"
+                  id="sendDataToKinesisDataStreams"
+                  type="checkbox"
+                />
+                <label
+                  class="form-check-label"
+                  for="sendDataToKinesisDataStreams"
+                  title=""
+                >
+                  kinesis.data.streams
+                </label>
+              </div>
+              <span>
+                 
+              </span>
+              <div
+                class="form-check form-check-inline"
+              >
+                <input
+                  class="form-check-input"
+                  id="sendDataToTimestream"
+                  type="checkbox"
+                />
+                <label
+                  class="form-check-label"
+                  for="sendDataToTimestream"
+                  title=""
+                >
+                  timestream
+                </label>
+              </div>
+              <div
+                class="invalid-feedback"
+              />
+            </div>
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              protocol
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.protocol
+            </small>
+            <select
+              class="form-control"
+              id="protocol"
+            >
+              <option
+                value="opcda"
+              >
+                OPC DA
+              </option>
+              <option
+                value="opcua"
+              >
+                OPC UA
+              </option>
+            </select>
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              iterations
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.iterations
+            </small>
+            <input
+              class="form-control"
+              id="iterations"
+              placeholder="placeholder.iterations"
+              required=""
+              type="text"
+              value=""
+            />
+            <div
+              class="invalid-feedback"
+            />
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              time.interval
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.interval
+            </small>
+            <input
+              class="form-control"
+              id="interval"
+              placeholder="placeholder.time.interval"
+              required=""
+              type="text"
+              value=""
+            />
+            <div
+              class="invalid-feedback"
+            />
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              server.name
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.server.name
+            </small>
+            <input
+              class="form-control"
+              id="serverName"
+              placeholder="placeholder.opcda.server.name"
+              required=""
+              type="text"
+              value=""
+            />
+            <div
+              class="invalid-feedback"
+            />
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              machine.ip
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.machine.ip
+            </small>
+            <input
+              class="form-control"
+              id="machineIp"
+              placeholder="placeholder.machine.ip"
+              required=""
+              type="text"
+              value=""
+            />
+            <div
+              class="invalid-feedback"
+            />
+          </div>
+          <div
+            class="card"
+          >
+            <div
+              class="card-body"
+            >
+              <div
+                class="card-subtitle h6"
+              >
+                tags
+                 
+                tags.explanation
+              </div>
+              <div
+                class="form-group"
+              >
+                <label
+                  class="form-label"
+                >
+                  read.list.tags
+                </label>
+                <textarea
+                  class="form-control"
+                  id="listTags"
+                  placeholder="placeholder.list.tags"
+                />
+              </div>
+              <div
+                class="form-group"
+              >
+                <label
+                  class="form-label"
+                >
+                  read.tags
+                </label>
+                <textarea
+                  class="form-control"
+                  id="tags"
+                  placeholder="placeholder.tags"
+                />
+                <div
+                  class="invalid-feedback"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="row"
+          >
+            <div
+              class="col"
+            >
+              <span>
+                 
+              </span>
+            </div>
+          </div>
+          <div
+            class="row"
+          >
+            <div
+              class="justify-content-center grid col"
+            >
+              <div
+                class="btn-group"
+                role="group"
+              >
+                <button
+                  class="uppercase-text btn btn-primary btn-sm"
+                  id="connection-form-submit-button"
+                  type="submit"
+                >
+                  create
+                </button>
+                <span>
+                   
+                </span>
+                <button
+                  class="uppercase-text btn btn-secondary btn-sm"
+                  id="connection-form-cancel-button"
+                  type="button"
+                >
+                  cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
       </div>
-    </form>
+    </div>
     <div
       class="row"
     >
@@ -530,7 +590,7 @@ exports[`renders the connection form component for the new connection 1`] = `
 </div>
 `;
 
-exports[`renders the connection modal component for the update connection 1`] = `
+exports[`renders the connection form component for the update OPC DA connection 1`] = `
 <div>
   <div
     class="container"
@@ -558,501 +618,562 @@ exports[`renders the connection modal component for the update connection 1`] = 
         </li>
       </ol>
     </nav>
-    <form
-      class=""
+    <div
+      class="card"
     >
       <div
-        class="form-group"
+        class="card-body"
       >
-        <label
-          class="form-label"
+        <form
+          class=""
         >
-          connection.name
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.connection.name
-        </small>
-        <input
-          class="form-control"
-          disabled=""
-          id="connectionName"
-          placeholder="placeholder.connection.name"
-          required=""
-          type="text"
-          value="mock-connection-id"
-        />
-        <div
-          class="invalid-feedback"
-        />
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          site.name
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.site.name
-        </small>
-        <input
-          class="form-control"
-          id="siteName"
-          placeholder="placeholder.site.name"
-          required=""
-          type="text"
-          value=""
-        />
-        <div
-          class="invalid-feedback"
-        />
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          area
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.area
-        </small>
-        <input
-          class="form-control"
-          id="area"
-          placeholder="placeholder.area"
-          required=""
-          type="text"
-          value="mock-area"
-        />
-        <div
-          class="invalid-feedback"
-        />
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          process
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.process
-        </small>
-        <input
-          class="form-control"
-          id="process"
-          placeholder="placeholder.process"
-          required=""
-          type="text"
-          value=""
-        />
-        <div
-          class="invalid-feedback"
-        />
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          machine.name
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.machine.name
-        </small>
-        <input
-          class="form-control"
-          id="machineName"
-          placeholder="placeholder.machine.name"
-          required=""
-          type="text"
-          value="mock-machine"
-        />
-        <div
-          class="invalid-feedback"
-        />
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          send.data.to
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.send.data.to
-        </small>
-        <div
-          class="form-group"
-        >
-          <div
-            class="form-check form-check-inline"
-          >
-            <input
-              class="form-check-input"
-              id="sendDataToIoTSitewise"
-              type="checkbox"
-            />
-            <label
-              class="form-check-label"
-              for="sendDataToIoTSitewise"
-              title=""
-            >
-              iot.sitewise
-            </label>
-          </div>
-          <span>
-             
-          </span>
-          <div
-            class="form-check form-check-inline"
-          >
-            <input
-              class="form-check-input"
-              id="sendDataToIoTTopic"
-              type="checkbox"
-            />
-            <label
-              class="form-check-label"
-              for="sendDataToIoTTopic"
-              title=""
-            >
-              iot.topic
-            </label>
-          </div>
-          <span>
-             
-          </span>
-          <div
-            class="form-check form-check-inline"
-          >
-            <input
-              checked=""
-              class="form-check-input"
-              id="sendDataToKinesisDataStreams"
-              type="checkbox"
-            />
-            <label
-              class="form-check-label"
-              for="sendDataToKinesisDataStreams"
-              title=""
-            >
-              kinesis.data.streams
-            </label>
-          </div>
-          <div
-            class="invalid-feedback"
-          />
-        </div>
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          protocol
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.protocol
-        </small>
-        <select
-          class="form-control"
-          disabled=""
-          id="protocol"
-        >
-          <option
-            value="opcda"
-          >
-            OPC DA
-          </option>
-          <option
-            value="opcua"
-          >
-            OPC UA
-          </option>
-        </select>
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          iterations
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.iterations
-        </small>
-        <input
-          class="form-control"
-          id="iterations"
-          placeholder="placeholder.iterations"
-          required=""
-          type="text"
-          value="3"
-        />
-        <div
-          class="invalid-feedback"
-        />
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          time.interval
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.interval
-        </small>
-        <input
-          class="form-control"
-          id="interval"
-          placeholder="placeholder.time.interval"
-          required=""
-          type="text"
-          value="3"
-        />
-        <div
-          class="invalid-feedback"
-        />
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          server.name
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.server.name
-        </small>
-        <input
-          class="form-control"
-          id="serverName"
-          placeholder="placeholder.opcda.server.name"
-          required=""
-          type="text"
-          value="mock-opcda-server-name"
-        />
-        <div
-          class="invalid-feedback"
-        />
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          machine.ip
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.machine.ip
-        </small>
-        <input
-          class="form-control"
-          id="machineIp"
-          placeholder="placeholder.machine.ip"
-          required=""
-          type="text"
-          value="1.2.3.4"
-        />
-        <div
-          class="invalid-feedback"
-        />
-      </div>
-      <div
-        class="card"
-      >
-        <div
-          class="card-body"
-        >
-          <div
-            class="card-subtitle h6"
-          >
-            tags
-             
-            tags.explanation
-          </div>
           <div
             class="form-group"
           >
             <label
               class="form-label"
             >
-              read.list.tags
+              greengrass.core.device.name
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
             </label>
-            <textarea
+            <small
+              class="form-text text-muted"
+            >
+              description.existing.greengrass.core.device.name
+            </small>
+            <select
               class="form-control"
-              id="listTags"
-              placeholder="placeholder.list.tags"
+              disabled=""
+              id="greengrassCoreDeviceName"
             >
-              listTag1.*
-listTag2.*
-            </textarea>
-          </div>
-          <div
-            class="form-group"
-          >
-            <label
-              class="form-label"
-            >
-              read.tags
-            </label>
-            <textarea
-              class="form-control"
-              id="tags"
-              placeholder="placeholder.tags"
-            >
-              tag1
-tag2
-            </textarea>
+              <option
+                value=""
+              >
+                select
+              </option>
+            </select>
             <div
               class="invalid-feedback"
             />
           </div>
-        </div>
-      </div>
-      <div
-        class="row"
-      >
-        <div
-          class="col"
-        >
-          <span>
-             
-          </span>
-        </div>
-      </div>
-      <div
-        class="row"
-      >
-        <div
-          class="justify-content-center grid col"
-        >
           <div
-            class="btn-group"
-            role="group"
+            class="form-group"
           >
-            <button
-              class="uppercase-text btn btn-primary btn-sm"
-              id="connection-form-submit-button"
-              type="submit"
+            <label
+              class="form-label"
             >
-              update
-            </button>
-            <span>
-               
-            </span>
-            <button
-              class="uppercase-text btn btn-secondary btn-sm"
-              id="connection-form-cancel-button"
-              type="button"
+              connection.name
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
             >
-              cancel
-            </button>
+              description.connection.name
+            </small>
+            <input
+              class="form-control"
+              disabled=""
+              id="connectionName"
+              placeholder="placeholder.connection.name"
+              required=""
+              type="text"
+              value="mock-connection-id"
+            />
+            <div
+              class="invalid-feedback"
+            />
           </div>
-        </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              site.name
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.site.name
+            </small>
+            <input
+              class="form-control"
+              id="siteName"
+              placeholder="placeholder.site.name"
+              required=""
+              type="text"
+              value="mock-site"
+            />
+            <div
+              class="invalid-feedback"
+            />
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              area
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.area
+            </small>
+            <input
+              class="form-control"
+              id="area"
+              placeholder="placeholder.area"
+              required=""
+              type="text"
+              value="mock-area"
+            />
+            <div
+              class="invalid-feedback"
+            />
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              process
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.process
+            </small>
+            <input
+              class="form-control"
+              id="process"
+              placeholder="placeholder.process"
+              required=""
+              type="text"
+              value="mock-process"
+            />
+            <div
+              class="invalid-feedback"
+            />
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              machine.name
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.machine.name
+            </small>
+            <input
+              class="form-control"
+              id="machineName"
+              placeholder="placeholder.machine.name"
+              required=""
+              type="text"
+              value="mock-machine"
+            />
+            <div
+              class="invalid-feedback"
+            />
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              send.data.to
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.send.data.to
+            </small>
+            <div
+              class="form-group"
+            >
+              <div
+                class="form-check form-check-inline"
+              >
+                <input
+                  class="form-check-input"
+                  id="sendDataToIoTSiteWise"
+                  type="checkbox"
+                />
+                <label
+                  class="form-check-label"
+                  for="sendDataToIoTSiteWise"
+                  title=""
+                >
+                  iot.sitewise
+                </label>
+              </div>
+              <span>
+                 
+              </span>
+              <div
+                class="form-check form-check-inline"
+              >
+                <input
+                  class="form-check-input"
+                  id="sendDataToIoTTopic"
+                  type="checkbox"
+                />
+                <label
+                  class="form-check-label"
+                  for="sendDataToIoTTopic"
+                  title=""
+                >
+                  iot.topic
+                </label>
+              </div>
+              <span>
+                 
+              </span>
+              <div
+                class="form-check form-check-inline"
+              >
+                <input
+                  checked=""
+                  class="form-check-input"
+                  id="sendDataToKinesisDataStreams"
+                  type="checkbox"
+                />
+                <label
+                  class="form-check-label"
+                  for="sendDataToKinesisDataStreams"
+                  title=""
+                >
+                  kinesis.data.streams
+                </label>
+              </div>
+              <span>
+                 
+              </span>
+              <div
+                class="form-check form-check-inline"
+              >
+                <input
+                  class="form-check-input"
+                  id="sendDataToTimestream"
+                  type="checkbox"
+                />
+                <label
+                  class="form-check-label"
+                  for="sendDataToTimestream"
+                  title=""
+                >
+                  timestream
+                </label>
+              </div>
+              <div
+                class="invalid-feedback"
+              />
+            </div>
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              protocol
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.protocol
+            </small>
+            <select
+              class="form-control"
+              disabled=""
+              id="protocol"
+            >
+              <option
+                value="opcda"
+              >
+                OPC DA
+              </option>
+              <option
+                value="opcua"
+              >
+                OPC UA
+              </option>
+            </select>
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              iterations
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.iterations
+            </small>
+            <input
+              class="form-control"
+              id="iterations"
+              placeholder="placeholder.iterations"
+              required=""
+              type="text"
+              value="3"
+            />
+            <div
+              class="invalid-feedback"
+            />
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              time.interval
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.interval
+            </small>
+            <input
+              class="form-control"
+              id="interval"
+              placeholder="placeholder.time.interval"
+              required=""
+              type="text"
+              value="3"
+            />
+            <div
+              class="invalid-feedback"
+            />
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              server.name
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.server.name
+            </small>
+            <input
+              class="form-control"
+              id="serverName"
+              placeholder="placeholder.opcda.server.name"
+              required=""
+              type="text"
+              value="mock-opcda-server-name"
+            />
+            <div
+              class="invalid-feedback"
+            />
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              machine.ip
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.machine.ip
+            </small>
+            <input
+              class="form-control"
+              id="machineIp"
+              placeholder="placeholder.machine.ip"
+              required=""
+              type="text"
+              value="1.2.3.4"
+            />
+            <div
+              class="invalid-feedback"
+            />
+          </div>
+          <div
+            class="card"
+          >
+            <div
+              class="card-body"
+            >
+              <div
+                class="card-subtitle h6"
+              >
+                tags
+                 
+                tags.explanation
+              </div>
+              <div
+                class="form-group"
+              >
+                <label
+                  class="form-label"
+                >
+                  read.list.tags
+                </label>
+                <textarea
+                  class="form-control"
+                  id="listTags"
+                  placeholder="placeholder.list.tags"
+                >
+                  listTag1.*
+listTag2.*
+                </textarea>
+              </div>
+              <div
+                class="form-group"
+              >
+                <label
+                  class="form-label"
+                >
+                  read.tags
+                </label>
+                <textarea
+                  class="form-control"
+                  id="tags"
+                  placeholder="placeholder.tags"
+                >
+                  tag1
+tag2
+                </textarea>
+                <div
+                  class="invalid-feedback"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="row"
+          >
+            <div
+              class="col"
+            >
+              <span>
+                 
+              </span>
+            </div>
+          </div>
+          <div
+            class="row"
+          >
+            <div
+              class="justify-content-center grid col"
+            >
+              <div
+                class="btn-group"
+                role="group"
+              >
+                <button
+                  class="uppercase-text btn btn-primary btn-sm"
+                  id="connection-form-submit-button"
+                  type="submit"
+                >
+                  update
+                </button>
+                <span>
+                   
+                </span>
+                <button
+                  class="uppercase-text btn btn-secondary btn-sm"
+                  id="connection-form-cancel-button"
+                  type="button"
+                >
+                  cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
       </div>
-    </form>
+    </div>
     <div
       class="row"
     >
@@ -1068,10 +1189,8 @@ tag2
 </div>
 `;
 
-exports[`renders the connection modal component for the update connection when getting a connection fails 1`] = `
-<div
-  aria-hidden="true"
->
+exports[`renders the connection form component for the update OPC UA connection 1`] = `
+<div>
   <div
     class="container"
   >
@@ -1098,432 +1217,47 @@ exports[`renders the connection modal component for the update connection when g
         </li>
       </ol>
     </nav>
-    <form
-      class=""
+    <div
+      class="card"
     >
       <div
-        class="form-group"
+        class="card-body"
       >
-        <label
-          class="form-label"
+        <form
+          class=""
         >
-          connection.name
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.connection.name
-        </small>
-        <input
-          class="form-control"
-          disabled=""
-          id="connectionName"
-          placeholder="placeholder.connection.name"
-          required=""
-          type="text"
-          value=""
-        />
-        <div
-          class="invalid-feedback"
-        />
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          site.name
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.site.name
-        </small>
-        <input
-          class="form-control"
-          id="siteName"
-          placeholder="placeholder.site.name"
-          required=""
-          type="text"
-          value=""
-        />
-        <div
-          class="invalid-feedback"
-        />
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          area
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.area
-        </small>
-        <input
-          class="form-control"
-          id="area"
-          placeholder="placeholder.area"
-          required=""
-          type="text"
-          value=""
-        />
-        <div
-          class="invalid-feedback"
-        />
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          process
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.process
-        </small>
-        <input
-          class="form-control"
-          id="process"
-          placeholder="placeholder.process"
-          required=""
-          type="text"
-          value=""
-        />
-        <div
-          class="invalid-feedback"
-        />
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          machine.name
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.machine.name
-        </small>
-        <input
-          class="form-control"
-          id="machineName"
-          placeholder="placeholder.machine.name"
-          required=""
-          type="text"
-          value=""
-        />
-        <div
-          class="invalid-feedback"
-        />
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          send.data.to
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.send.data.to
-        </small>
-        <div
-          class="form-group"
-        >
-          <div
-            class="form-check form-check-inline"
-          >
-            <input
-              class="form-check-input"
-              id="sendDataToIoTSitewise"
-              type="checkbox"
-            />
-            <label
-              class="form-check-label"
-              for="sendDataToIoTSitewise"
-              title=""
-            >
-              iot.sitewise
-            </label>
-          </div>
-          <span>
-             
-          </span>
-          <div
-            class="form-check form-check-inline"
-          >
-            <input
-              class="form-check-input"
-              id="sendDataToIoTTopic"
-              type="checkbox"
-            />
-            <label
-              class="form-check-label"
-              for="sendDataToIoTTopic"
-              title=""
-            >
-              iot.topic
-            </label>
-          </div>
-          <span>
-             
-          </span>
-          <div
-            class="form-check form-check-inline"
-          >
-            <input
-              checked=""
-              class="form-check-input"
-              id="sendDataToKinesisDataStreams"
-              type="checkbox"
-            />
-            <label
-              class="form-check-label"
-              for="sendDataToKinesisDataStreams"
-              title=""
-            >
-              kinesis.data.streams
-            </label>
-          </div>
-          <div
-            class="invalid-feedback"
-          />
-        </div>
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          protocol
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.protocol
-        </small>
-        <select
-          class="form-control"
-          disabled=""
-          id="protocol"
-        >
-          <option
-            value="opcda"
-          >
-            OPC DA
-          </option>
-          <option
-            value="opcua"
-          >
-            OPC UA
-          </option>
-        </select>
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          iterations
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.iterations
-        </small>
-        <input
-          class="form-control"
-          id="iterations"
-          placeholder="placeholder.iterations"
-          required=""
-          type="text"
-          value=""
-        />
-        <div
-          class="invalid-feedback"
-        />
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          time.interval
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.interval
-        </small>
-        <input
-          class="form-control"
-          id="interval"
-          placeholder="placeholder.time.interval"
-          required=""
-          type="text"
-          value=""
-        />
-        <div
-          class="invalid-feedback"
-        />
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          server.name
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.server.name
-        </small>
-        <input
-          class="form-control"
-          id="serverName"
-          placeholder="placeholder.opcda.server.name"
-          required=""
-          type="text"
-          value=""
-        />
-        <div
-          class="invalid-feedback"
-        />
-      </div>
-      <div
-        class="form-group"
-      >
-        <label
-          class="form-label"
-        >
-          machine.ip
-           
-          <span
-            class="red-text"
-          >
-            *
-          </span>
-        </label>
-        <small
-          class="form-text text-muted"
-        >
-          description.machine.ip
-        </small>
-        <input
-          class="form-control"
-          id="machineIp"
-          placeholder="placeholder.machine.ip"
-          required=""
-          type="text"
-          value=""
-        />
-        <div
-          class="invalid-feedback"
-        />
-      </div>
-      <div
-        class="card"
-      >
-        <div
-          class="card-body"
-        >
-          <div
-            class="card-subtitle h6"
-          >
-            tags
-             
-            tags.explanation
-          </div>
           <div
             class="form-group"
           >
             <label
               class="form-label"
             >
-              read.list.tags
+              greengrass.core.device.name
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
             </label>
-            <textarea
+            <small
+              class="form-text text-muted"
+            >
+              description.existing.greengrass.core.device.name
+            </small>
+            <select
               class="form-control"
-              id="listTags"
-              placeholder="placeholder.list.tags"
+              disabled=""
+              id="greengrassCoreDeviceName"
+            >
+              <option
+                value=""
+              >
+                select
+              </option>
+            </select>
+            <div
+              class="invalid-feedback"
             />
           </div>
           <div
@@ -1532,61 +1266,423 @@ exports[`renders the connection modal component for the update connection when g
             <label
               class="form-label"
             >
-              read.tags
+              connection.name
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
             </label>
-            <textarea
+            <small
+              class="form-text text-muted"
+            >
+              description.connection.name
+            </small>
+            <input
               class="form-control"
-              id="tags"
-              placeholder="placeholder.tags"
+              disabled=""
+              id="connectionName"
+              placeholder="placeholder.connection.name"
+              required=""
+              type="text"
+              value="mock-connection-id"
             />
             <div
               class="invalid-feedback"
             />
           </div>
-        </div>
-      </div>
-      <div
-        class="row"
-      >
-        <div
-          class="col"
-        >
-          <span>
-             
-          </span>
-        </div>
-      </div>
-      <div
-        class="row"
-      >
-        <div
-          class="justify-content-center grid col"
-        >
           <div
-            class="btn-group"
-            role="group"
+            class="form-group"
           >
-            <button
-              class="uppercase-text btn btn-primary btn-sm"
-              id="connection-form-submit-button"
-              type="submit"
+            <label
+              class="form-label"
             >
-              update
-            </button>
-            <span>
-               
-            </span>
-            <button
-              class="uppercase-text btn btn-secondary btn-sm"
-              id="connection-form-cancel-button"
-              type="button"
+              site.name
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
             >
-              cancel
-            </button>
+              description.site.name
+            </small>
+            <input
+              class="form-control"
+              id="siteName"
+              placeholder="placeholder.site.name"
+              required=""
+              type="text"
+              value="mock-site"
+            />
+            <div
+              class="invalid-feedback"
+            />
           </div>
-        </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              area
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.area
+            </small>
+            <input
+              class="form-control"
+              id="area"
+              placeholder="placeholder.area"
+              required=""
+              type="text"
+              value="mock-area"
+            />
+            <div
+              class="invalid-feedback"
+            />
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              process
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.process
+            </small>
+            <input
+              class="form-control"
+              id="process"
+              placeholder="placeholder.process"
+              required=""
+              type="text"
+              value="mock-process"
+            />
+            <div
+              class="invalid-feedback"
+            />
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              machine.name
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.machine.name
+            </small>
+            <input
+              class="form-control"
+              id="machineName"
+              placeholder="placeholder.machine.name"
+              required=""
+              type="text"
+              value="mock-machine"
+            />
+            <div
+              class="invalid-feedback"
+            />
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              send.data.to
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.send.data.to
+            </small>
+            <div
+              class="form-group"
+            >
+              <div
+                class="form-check form-check-inline"
+              >
+                <input
+                  class="form-check-input"
+                  id="sendDataToIoTSiteWise"
+                  type="checkbox"
+                />
+                <label
+                  class="form-check-label"
+                  for="sendDataToIoTSiteWise"
+                  title=""
+                >
+                  iot.sitewise
+                </label>
+              </div>
+              <span>
+                 
+              </span>
+              <div
+                class="form-check form-check-inline"
+              >
+                <input
+                  class="form-check-input"
+                  id="sendDataToIoTTopic"
+                  type="checkbox"
+                />
+                <label
+                  class="form-check-label"
+                  for="sendDataToIoTTopic"
+                  title=""
+                >
+                  iot.topic
+                </label>
+              </div>
+              <span>
+                 
+              </span>
+              <div
+                class="form-check form-check-inline"
+              >
+                <input
+                  checked=""
+                  class="form-check-input"
+                  id="sendDataToKinesisDataStreams"
+                  type="checkbox"
+                />
+                <label
+                  class="form-check-label"
+                  for="sendDataToKinesisDataStreams"
+                  title=""
+                >
+                  kinesis.data.streams
+                </label>
+              </div>
+              <span>
+                 
+              </span>
+              <div
+                class="form-check form-check-inline"
+              >
+                <input
+                  class="form-check-input"
+                  id="sendDataToTimestream"
+                  type="checkbox"
+                />
+                <label
+                  class="form-check-label"
+                  for="sendDataToTimestream"
+                  title=""
+                >
+                  timestream
+                </label>
+              </div>
+              <div
+                class="invalid-feedback"
+              />
+            </div>
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              protocol
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.protocol
+            </small>
+            <select
+              class="form-control"
+              disabled=""
+              id="protocol"
+            >
+              <option
+                value="opcda"
+              >
+                OPC DA
+              </option>
+              <option
+                value="opcua"
+              >
+                OPC UA
+              </option>
+            </select>
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              server.name
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.server.name
+            </small>
+            <input
+              class="form-control"
+              id="opcUa-serverName"
+              placeholder="placeholder.opcua.server.name"
+              required=""
+              type="text"
+              value="mock-opcua-server-name"
+            />
+            <div
+              class="invalid-feedback"
+            />
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              machine.ip
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.machine.ip
+            </small>
+            <input
+              class="form-control"
+              id="opcUa-machineIp"
+              placeholder="placeholder.machine.ip"
+              required=""
+              type="text"
+              value="1.2.3.4"
+            />
+            <div
+              class="invalid-feedback"
+            />
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              port
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.port
+            </small>
+            <input
+              class="form-control"
+              id="port"
+              placeholder="placeholder.port"
+              type="text"
+              value=""
+            />
+            <div
+              class="invalid-feedback"
+            />
+          </div>
+          <div
+            class="row"
+          >
+            <div
+              class="col"
+            >
+              <span>
+                 
+              </span>
+            </div>
+          </div>
+          <div
+            class="row"
+          >
+            <div
+              class="justify-content-center grid col"
+            >
+              <div
+                class="btn-group"
+                role="group"
+              >
+                <button
+                  class="uppercase-text btn btn-primary btn-sm"
+                  id="connection-form-submit-button"
+                  type="submit"
+                >
+                  update
+                </button>
+                <span>
+                   
+                </span>
+                <button
+                  class="uppercase-text btn btn-secondary btn-sm"
+                  id="connection-form-cancel-button"
+                  type="button"
+                >
+                  cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
       </div>
-    </form>
+    </div>
     <div
       class="row"
     >

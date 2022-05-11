@@ -1,0 +1,1024 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`M2C2 custom resources test 1`] = `
+Object {
+  "Resources": Object {
+    "TestCustomResourcesCustomResourceFunctionCFD154D8": Object {
+      "DependsOn": Array [
+        "TestCustomResourcesCustomResourceFunctionRoleDefaultPolicy6353EA09",
+        "TestCustomResourcesCustomResourceFunctionRole173D7934",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": "test-bucket-region",
+          "S3Key": "v0.0.1-test/machine-to-cloud-connectivity-framework/custom-resource.zip",
+        },
+        "Description": "Machine to Cloud Connectivity custom resource function",
+        "Environment": Object {
+          "Variables": Object {
+            "LOGGING_LEVEL": "ERROR",
+            "SOLUTION_ID": "SO0070-Test",
+            "SOLUTION_VERSION": "v0.0.1-test",
+          },
+        },
+        "Handler": "custom-resource/index.handler",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesCustomResourceFunctionRole173D7934",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs14.x",
+        "Timeout": 240,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestCustomResourcesCustomResourceFunctionRole173D7934": Object {
+      "Metadata": Object {
+        "cdk_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "AwsSolutions-IAM5",
+              "reason": "IoT actions cannot specify the resource. It does not allow wildcard permissions either.",
+            },
+          ],
+        },
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "W11",
+              "reason": "IoT actions cannot specify the resource.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Path": "/",
+        "Policies": Array [
+          Object {
+            "PolicyDocument": Object {
+              "Statement": Array [
+                Object {
+                  "Action": "*",
+                  "Effect": "Allow",
+                  "Resource": "logs:*",
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "CloudWatchPolicy",
+          },
+          Object {
+            "PolicyDocument": Object {
+              "Statement": Array [
+                Object {
+                  "Action": Array [
+                    "iot:CreateKeysAndCertificate",
+                    "iot:DescribeEndpoint",
+                    "iot:UpdateCertificate",
+                    "iot:UpdateThingShadow",
+                    "iot:DeleteCertificate",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "*",
+                },
+                Object {
+                  "Action": Array [
+                    "iot:CreateRoleAlias",
+                    "iot:DeleteRoleAlias",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": Object {
+                    "Fn::Join": Array [
+                      "",
+                      Array [
+                        "arn:",
+                        Object {
+                          "Ref": "AWS::Partition",
+                        },
+                        ":iot:",
+                        Object {
+                          "Ref": "AWS::Region",
+                        },
+                        ":",
+                        Object {
+                          "Ref": "AWS::AccountId",
+                        },
+                        ":rolealias/*",
+                      ],
+                    ],
+                  },
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "GreengrassIoTPolicy",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestCustomResourcesCustomResourceFunctionRoleDefaultPolicy6353EA09": Object {
+      "Metadata": Object {
+        "cdk_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "AwsSolutions-IAM5",
+              "reason": "IoT actions cannot specify the resource. It does not allow wildcard permissions either.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+              ],
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-bucket-region",
+                    ],
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-bucket-region/v0.0.1-test/machine-to-cloud-connectivity-framework/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestCustomResourcesCustomResourceFunctionRoleDefaultPolicy6353EA09",
+        "Roles": Array [
+          Object {
+            "Ref": "TestCustomResourcesCustomResourceFunctionRole173D7934",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestCustomResourcesDescribeIoTEndpoint8E27194B": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Resource": "DescribeIoTEndpoint",
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesCustomResourceFunctionCFD154D8",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "TestCustomResourcesSendAnonymousMetricsF6400FC2": Object {
+      "Condition": "TestCondition",
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "ExistingKinesisStream": "",
+        "ExistingTimestreamDatabase": "",
+        "Resource": "SendAnonymousMetrics",
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesCustomResourceFunctionCFD154D8",
+            "Arn",
+          ],
+        },
+        "SolutionUUID": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesUUID15254492",
+            "UUID",
+          ],
+        },
+      },
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "TestCustomResourcesUUID15254492": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Resource": "CreateUUID",
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesCustomResourceFunctionCFD154D8",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
+    },
+  },
+}
+`;
+
+exports[`M2C2 setup Greengrass v2 custom resource test 1`] = `
+Object {
+  "Resources": Object {
+    "TestCustomResourcesCopyGreengrassComponentsArtifact635CD361": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Artifacts": Object {
+          "OpcDaConnectorArtifact": "m2c2_opcda_connector.zip",
+          "PublisherArtifact": "m2c2_publisher.zip",
+        },
+        "DestinationBucket": "test-greengrass-v2-resource-bucket",
+        "Resource": "CopyGreengrassComponentsArtifact",
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesCustomResourceFunctionCFD154D8",
+            "Arn",
+          ],
+        },
+        "SourceBucket": "test-bucket-region",
+        "SourcePrefix": "v0.0.1-test/machine-to-cloud-connectivity-framework",
+      },
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "TestCustomResourcesCreateGreengrassInstallationScriptsB272BC9A": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "CredentialProviderEndpoint": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesDescribeIoTEndpoint8E27194B",
+            "CredentialProviderEndpoint",
+          ],
+        },
+        "DataAtsEndpoint": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesDescribeIoTEndpoint8E27194B",
+            "DataAtsEndpoint",
+          ],
+        },
+        "DestinationBucket": "test-greengrass-v2-resource-bucket",
+        "IoTRoleAlias": "mock-iot-role-alias-name",
+        "Resource": "CreateGreengrassInstallationScripts",
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesCustomResourceFunctionCFD154D8",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "TestCustomResourcesCustomResourceFunctionCFD154D8": Object {
+      "DependsOn": Array [
+        "TestCustomResourcesCustomResourceFunctionRoleDefaultPolicy6353EA09",
+        "TestCustomResourcesCustomResourceFunctionRole173D7934",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": "test-bucket-region",
+          "S3Key": "v0.0.1-test/machine-to-cloud-connectivity-framework/custom-resource.zip",
+        },
+        "Description": "Machine to Cloud Connectivity custom resource function",
+        "Environment": Object {
+          "Variables": Object {
+            "LOGGING_LEVEL": "ERROR",
+            "SOLUTION_ID": "SO0070-Test",
+            "SOLUTION_VERSION": "v0.0.1-test",
+          },
+        },
+        "Handler": "custom-resource/index.handler",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesCustomResourceFunctionRole173D7934",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs14.x",
+        "Timeout": 240,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestCustomResourcesCustomResourceFunctionRole173D7934": Object {
+      "Metadata": Object {
+        "cdk_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "AwsSolutions-IAM5",
+              "reason": "IoT actions cannot specify the resource. It does not allow wildcard permissions either.",
+            },
+          ],
+        },
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "W11",
+              "reason": "IoT actions cannot specify the resource.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Path": "/",
+        "Policies": Array [
+          Object {
+            "PolicyDocument": Object {
+              "Statement": Array [
+                Object {
+                  "Action": "*",
+                  "Effect": "Allow",
+                  "Resource": "logs:*",
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "CloudWatchPolicy",
+          },
+          Object {
+            "PolicyDocument": Object {
+              "Statement": Array [
+                Object {
+                  "Action": Array [
+                    "iot:CreateKeysAndCertificate",
+                    "iot:DescribeEndpoint",
+                    "iot:UpdateCertificate",
+                    "iot:UpdateThingShadow",
+                    "iot:DeleteCertificate",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "*",
+                },
+                Object {
+                  "Action": Array [
+                    "iot:CreateRoleAlias",
+                    "iot:DeleteRoleAlias",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": Object {
+                    "Fn::Join": Array [
+                      "",
+                      Array [
+                        "arn:",
+                        Object {
+                          "Ref": "AWS::Partition",
+                        },
+                        ":iot:",
+                        Object {
+                          "Ref": "AWS::Region",
+                        },
+                        ":",
+                        Object {
+                          "Ref": "AWS::AccountId",
+                        },
+                        ":rolealias/*",
+                      ],
+                    ],
+                  },
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "GreengrassIoTPolicy",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestCustomResourcesCustomResourceFunctionRoleDefaultPolicy6353EA09": Object {
+      "Metadata": Object {
+        "cdk_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "AwsSolutions-IAM5",
+              "reason": "IoT actions cannot specify the resource. It does not allow wildcard permissions either.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+              ],
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-bucket-region",
+                    ],
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-bucket-region/v0.0.1-test/machine-to-cloud-connectivity-framework/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            Object {
+              "Action": Array [
+                "s3:PutObject",
+                "s3:PutObjectLegalHold",
+                "s3:PutObjectRetention",
+                "s3:PutObjectTagging",
+                "s3:PutObjectVersionTagging",
+                "s3:Abort*",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":s3:::test-greengrass-v2-resource-bucket/*",
+                  ],
+                ],
+              },
+            },
+            Object {
+              "Action": Array [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+              ],
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-greengrass-v2-resource-bucket",
+                    ],
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-greengrass-v2-resource-bucket/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestCustomResourcesCustomResourceFunctionRoleDefaultPolicy6353EA09",
+        "Roles": Array [
+          Object {
+            "Ref": "TestCustomResourcesCustomResourceFunctionRole173D7934",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestCustomResourcesDeleteIoTCertificate1F6EC2F7": Object {
+      "DeletionPolicy": "Delete",
+      "DependsOn": Array [
+        "TestCustomResourcesGreengrassV2DeletePolicy326F4C0D",
+      ],
+      "Properties": Object {
+        "CertificateArn": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesCreateGreengrassInstallationScriptsB272BC9A",
+            "CertificateArn",
+          ],
+        },
+        "CertificateId": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesCreateGreengrassInstallationScriptsB272BC9A",
+            "CertificateId",
+          ],
+        },
+        "Resource": "DeleteIoTCertificate",
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesCustomResourceFunctionCFD154D8",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "TestCustomResourcesDescribeIoTEndpoint8E27194B": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Resource": "DescribeIoTEndpoint",
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesCustomResourceFunctionCFD154D8",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "TestCustomResourcesGreengrassPolicyPrincipalAttachmentC3678051": Object {
+      "Properties": Object {
+        "PolicyName": "mock-greengrass-iot-policy-name",
+        "Principal": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesCreateGreengrassInstallationScriptsB272BC9A",
+            "CertificateArn",
+          ],
+        },
+      },
+      "Type": "AWS::IoT::PolicyPrincipalAttachment",
+    },
+    "TestCustomResourcesGreengrassV2CustomResourcePolicy9760B37E": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "iam:PassRole",
+              "Effect": "Allow",
+              "Resource": "arn:of:iot:credentials:role",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestCustomResourcesGreengrassV2CustomResourcePolicy9760B37E",
+        "Roles": Array [
+          Object {
+            "Ref": "TestCustomResourcesCustomResourceFunctionRole173D7934",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestCustomResourcesGreengrassV2DeletePolicy326F4C0D": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "iot:DetachThingPrincipal",
+                "iot:ListPrincipalThings",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::GetAtt": Array [
+                  "TestCustomResourcesCreateGreengrassInstallationScriptsB272BC9A",
+                  "CertificateArn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestCustomResourcesGreengrassV2DeletePolicy326F4C0D",
+        "Roles": Array [
+          Object {
+            "Ref": "TestCustomResourcesCustomResourceFunctionRole173D7934",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestCustomResourcesManageIoTRoleAlias2A7EDE79": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Resource": "ManageIoTRoleAlias",
+        "RoleAliasName": "mock-iot-role-alias-name",
+        "RoleArn": "arn:of:iot:credentials:role",
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesCustomResourceFunctionCFD154D8",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "TestCustomResourcesPolicyPrincipalAttachmentA1D6F59A": Object {
+      "Properties": Object {
+        "PolicyName": "mock-iot-policy-name",
+        "Principal": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesCreateGreengrassInstallationScriptsB272BC9A",
+            "CertificateArn",
+          ],
+        },
+      },
+      "Type": "AWS::IoT::PolicyPrincipalAttachment",
+    },
+    "TestCustomResourcesSendAnonymousMetricsF6400FC2": Object {
+      "Condition": "TestCondition",
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "ExistingKinesisStream": "",
+        "ExistingTimestreamDatabase": "Existing",
+        "Resource": "SendAnonymousMetrics",
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesCustomResourceFunctionCFD154D8",
+            "Arn",
+          ],
+        },
+        "SolutionUUID": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesUUID15254492",
+            "UUID",
+          ],
+        },
+      },
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "TestCustomResourcesUUID15254492": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Resource": "CreateUUID",
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesCustomResourceFunctionCFD154D8",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
+    },
+  },
+}
+`;
+
+exports[`M2C2 setup UI custom resource test 1`] = `
+Object {
+  "Resources": Object {
+    "TestCustomResourcesCopyUiAssets99691241": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "DestinationBucket": "test-ui-bucket",
+        "ManifestFile": "manifest.json",
+        "Resource": "CopyUIAssets",
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesCustomResourceFunctionCFD154D8",
+            "Arn",
+          ],
+        },
+        "SourceBucket": "test-bucket-region",
+        "SourcePrefix": "v0.0.1-test/machine-to-cloud-connectivity-framework",
+      },
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "TestCustomResourcesCreateUiConfigE2FF7D36": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "ApiEndpoint": "https://mock-api.com",
+        "ConfigFileName": "aws-exports.js",
+        "DestinationBucket": "test-ui-bucket",
+        "IdentityPoolId": "mock-identity-pool-id",
+        "LoggingLevel": "ERROR",
+        "Resource": "CreateUIConfig",
+        "S3Bucket": "test-greengrass-bucket",
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesCustomResourceFunctionCFD154D8",
+            "Arn",
+          ],
+        },
+        "UserPoolId": "mock-user-pool-id",
+        "WebClientId": "mock-user-pool-web-client-id",
+      },
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "TestCustomResourcesCustomResourceFunctionCFD154D8": Object {
+      "DependsOn": Array [
+        "TestCustomResourcesCustomResourceFunctionRoleDefaultPolicy6353EA09",
+        "TestCustomResourcesCustomResourceFunctionRole173D7934",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": "test-bucket-region",
+          "S3Key": "v0.0.1-test/machine-to-cloud-connectivity-framework/custom-resource.zip",
+        },
+        "Description": "Machine to Cloud Connectivity custom resource function",
+        "Environment": Object {
+          "Variables": Object {
+            "LOGGING_LEVEL": "ERROR",
+            "SOLUTION_ID": "SO0070-Test",
+            "SOLUTION_VERSION": "v0.0.1-test",
+          },
+        },
+        "Handler": "custom-resource/index.handler",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesCustomResourceFunctionRole173D7934",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs14.x",
+        "Timeout": 240,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestCustomResourcesCustomResourceFunctionRole173D7934": Object {
+      "Metadata": Object {
+        "cdk_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "AwsSolutions-IAM5",
+              "reason": "IoT actions cannot specify the resource. It does not allow wildcard permissions either.",
+            },
+          ],
+        },
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "W11",
+              "reason": "IoT actions cannot specify the resource.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Path": "/",
+        "Policies": Array [
+          Object {
+            "PolicyDocument": Object {
+              "Statement": Array [
+                Object {
+                  "Action": "*",
+                  "Effect": "Allow",
+                  "Resource": "logs:*",
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "CloudWatchPolicy",
+          },
+          Object {
+            "PolicyDocument": Object {
+              "Statement": Array [
+                Object {
+                  "Action": Array [
+                    "iot:CreateKeysAndCertificate",
+                    "iot:DescribeEndpoint",
+                    "iot:UpdateCertificate",
+                    "iot:UpdateThingShadow",
+                    "iot:DeleteCertificate",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "*",
+                },
+                Object {
+                  "Action": Array [
+                    "iot:CreateRoleAlias",
+                    "iot:DeleteRoleAlias",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": Object {
+                    "Fn::Join": Array [
+                      "",
+                      Array [
+                        "arn:",
+                        Object {
+                          "Ref": "AWS::Partition",
+                        },
+                        ":iot:",
+                        Object {
+                          "Ref": "AWS::Region",
+                        },
+                        ":",
+                        Object {
+                          "Ref": "AWS::AccountId",
+                        },
+                        ":rolealias/*",
+                      ],
+                    ],
+                  },
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "GreengrassIoTPolicy",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestCustomResourcesCustomResourceFunctionRoleDefaultPolicy6353EA09": Object {
+      "Metadata": Object {
+        "cdk_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "AwsSolutions-IAM5",
+              "reason": "IoT actions cannot specify the resource. It does not allow wildcard permissions either.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+              ],
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-bucket-region",
+                    ],
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-bucket-region/v0.0.1-test/machine-to-cloud-connectivity-framework/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            Object {
+              "Action": Array [
+                "s3:PutObject",
+                "s3:PutObjectLegalHold",
+                "s3:PutObjectRetention",
+                "s3:PutObjectTagging",
+                "s3:PutObjectVersionTagging",
+                "s3:Abort*",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":s3:::test-ui-bucket/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestCustomResourcesCustomResourceFunctionRoleDefaultPolicy6353EA09",
+        "Roles": Array [
+          Object {
+            "Ref": "TestCustomResourcesCustomResourceFunctionRole173D7934",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestCustomResourcesDescribeIoTEndpoint8E27194B": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Resource": "DescribeIoTEndpoint",
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesCustomResourceFunctionCFD154D8",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "TestCustomResourcesSendAnonymousMetricsF6400FC2": Object {
+      "Condition": "TestCondition",
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "ExistingKinesisStream": "Existing",
+        "ExistingTimestreamDatabase": "",
+        "Resource": "SendAnonymousMetrics",
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesCustomResourceFunctionCFD154D8",
+            "Arn",
+          ],
+        },
+        "SolutionUUID": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesUUID15254492",
+            "UUID",
+          ],
+        },
+      },
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "TestCustomResourcesUUID15254492": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Resource": "CreateUUID",
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "TestCustomResourcesCustomResourceFunctionCFD154D8",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
+    },
+  },
+}
+`;

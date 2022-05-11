@@ -1,4 +1,9 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 import logging
+
+from utils.custom_exception import ConverterException
 
 
 class IoTTopicConverter:
@@ -7,8 +12,7 @@ class IoTTopicConverter:
         self.connection_name = connection_name
         self.protocol = protocol
 
-        # Logging
-        self.logger = logging.getLogger()
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.setLevel(logging.INFO)
 
     def topic_converter(self, payload):
@@ -23,4 +27,4 @@ class IoTTopicConverter:
                 err
             )
             self.logger.error(error_msg)
-            raise Exception(error_msg)
+            raise ConverterException(error_msg)

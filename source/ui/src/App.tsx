@@ -3,17 +3,19 @@
 
 import Amplify from '@aws-amplify/core';
 import { withAuthenticator } from '@aws-amplify/ui-react';
-import { BrowserRouter, Route, Switch } from 'react-router-dom';
-
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Header from './components/Header';
-import { AmplifyConfigurationInput } from './util/Types';
-import { getAmplifyConfiguration } from './util/Utils';
-import Dashboard from './views/Dashboard';
-import ConnectionForm from './views/ConnectionForm';
 import PageNotFound from './components/PageNotFound';
+import { AmplifyConfigurationInput } from './util/types';
+import { getAmplifyConfiguration } from './util/utils';
+import Dashboard from './views/connection/Dashboard';
+import ConnectionForm from './views/connection/ConnectionForm';
+import GreengrassCoreDevicesDashboard from './views/greengrass/GreengrassCoreDevicesDashboard';
+import GreengrassCoreDeviceForm from './views/greengrass/GreengrassCoreDeviceForm';
 
 // Amplify configuration
-declare var config: AmplifyConfigurationInput;
+type UiWindow = Window & typeof globalThis & { config: AmplifyConfigurationInput };
+const config: AmplifyConfigurationInput = (window as UiWindow).config;
 Amplify.Logger.LOG_LEVEL = config.loggingLevel;
 Amplify.configure(getAmplifyConfiguration(config));
 
@@ -24,14 +26,16 @@ Amplify.configure(getAmplifyConfiguration(config));
 function App(): JSX.Element {
   return (
     <div>
-      <Header />
       <BrowserRouter>
-        <Switch>
-          <Route exact path="/" render={() => <Dashboard region={config.region} />} />
-          <Route exact path="/connection" render={() => <ConnectionForm />} />
-          <Route exact path="/connection/:connectionName" render={() => <ConnectionForm />} />
-          <Route render={() => <PageNotFound />} />
-        </Switch>
+        <Header />
+        <Routes>
+          <Route path="/" element={<Dashboard region={config.region} />} />
+          <Route path="/connection" element={<ConnectionForm />} />
+          <Route path="/connection/:connectionName" element={<ConnectionForm />} />
+          <Route path="/greengrass" element={<GreengrassCoreDevicesDashboard />} />
+          <Route path="/greengrass/register" element={<GreengrassCoreDeviceForm />} />
+          <Route element={<PageNotFound />} />
+        </Routes>
       </BrowserRouter>
     </div>
   );

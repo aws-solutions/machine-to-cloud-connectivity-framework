@@ -27,6 +27,7 @@ template_dist_dir="$template_dir/global-s3-assets"
 build_dist_dir="$template_dir/regional-s3-assets"
 source_dir="$template_dir/../source"
 lambda_source_dir="$source_dir/lambda"
+root_dir="${template_dir%/*}"
 
 echo "------------------------------------------------------------------------------"
 echo "Clean up old build files"
@@ -41,31 +42,89 @@ echo "mkdir -p $build_dist_dir"
 mkdir -p $build_dist_dir
 
 echo "------------------------------------------------------------------------------"
+echo "Run ESLint and prettier"
+echo "------------------------------------------------------------------------------"
+cd $source_dir
+yarn clean:lint
+
+# Check the result of ESLint and prettier
+if [ $? -eq 0 ]
+then
+  echo "All TypeScript source codes are linted."
+else
+  echo "******************************************************************************"
+  echo "ESLint and prettier FAILED"
+  echo "******************************************************************************"
+  exit 1
+fi
+
+echo "------------------------------------------------------------------------------"
+echo "[autopep8] Clean Python virtual environment"
+echo "------------------------------------------------------------------------------"
+cd $root_dir
+if [ -d ".venv" ]; then
+  rm -rf ".venv"
+fi
+
+echo "------------------------------------------------------------------------------"
+echo "[autopep8] Create Python virtual environment"
+echo "------------------------------------------------------------------------------"
+python3 -m venv .venv
+source .venv/bin/activate
+pip3 install autopep8
+
+echo "------------------------------------------------------------------------------"
+echo "[autopep8] Run autopep8"
+echo "------------------------------------------------------------------------------"
+cd $source_dir
+autopep8 --diff --recursive --exclude="**/package/*" --exit-code ./machine_connector
+
+# Check the result of autopep8
+if [ $? -eq 0 ]
+then
+  echo "All Python source codes are linted."
+  deactivate
+else
+  echo "******************************************************************************"
+  echo "autopep8 FAILED"
+  echo "******************************************************************************"
+  exit 1
+fi
+
+echo "------------------------------------------------------------------------------"
 echo "Synth CDK Template"
 echo "------------------------------------------------------------------------------"
-SUB_BUCKET_NAME="s/BUCKET_NAME_PLACEHOLDER/$1/g"
-SUB_SOLUTION_NAME="s/SOLUTION_NAME_PLACEHOLDER/$2/g"
-SUB_VERSION="s/VERSION_PLACEHOLDER/$3/g"
+export BUCKET_NAME_PLACEHOLDER=$1
+export SOLUTION_NAME_PLACEHOLDER=$2
+export VERSION_PLACEHOLDER=$3
 export overrideWarningsEnabled=false
 
 cd $source_dir/infrastructure
-npm install
-node_modules/aws-cdk/bin/cdk synth --asset-metadata false --path-metadata false > $template_dir/machine-to-cloud-connectivity-framework.template
-sed -e $SUB_BUCKET_NAME -e $SUB_SOLUTION_NAME -e $SUB_VERSION $template_dir/machine-to-cloud-connectivity-framework.template > $template_dist_dir/machine-to-cloud-connectivity-framework.template
-rm $template_dir/machine-to-cloud-connectivity-framework.template
+yarn clean
+yarn install
+node_modules/aws-cdk/bin/cdk synth --asset-metadata false --path-metadata false > $template_dist_dir/machine-to-cloud-connectivity-framework.template
+
+if [ $? -ne 0 ]
+then
+  echo "******************************************************************************"
+  echo "cdk-nag found errors"
+  echo "******************************************************************************"
+  exit 1
+fi
 
 echo "------------------------------------------------------------------------------"
 echo "Build the common Lambda library"
 echo "------------------------------------------------------------------------------"
 cd $lambda_source_dir/lib
-npm run clean
-npm install
+yarn clean
+yarn install
 
 declare -a lambda_packages=(
   "connection-builder"
   "custom-resource"
   "greengrass-deployer"
   "sqs-message-consumer"
+  "timestream-writer"
 )
 
 for lambda_package in "${lambda_packages[@]}"
@@ -74,7 +133,7 @@ do
   echo "Build Lambda package: $lambda_package"
   echo "------------------------------------------------------------------------------"
   cd $lambda_source_dir/$lambda_package
-  npm run package
+  yarn package
 
   # Check the result of the package step and exit if a failure is identified
   if [ $? -eq 0 ]
@@ -92,41 +151,44 @@ do
 done
 
 echo "------------------------------------------------------------------------------"
-echo "[Packing] Lambda Packages - OPC DA Connector"
+echo "Build the machine connector"
 echo "------------------------------------------------------------------------------"
-cd $source_dir/machine_connector/m2c2_opcda_connector
-rm -rf package
-pip3 install -r requirements.txt --target ./package
-cp -rf $source_dir/machine_connector/utils package
-pip3 install -r $source_dir/machine_connector/utils/requirements.txt --target ./package/utils
-cd package
-zip -r $build_dist_dir/m2c2-opcda-connector.zip .
-cd ..
-zip -r $build_dist_dir/m2c2-opcda-connector.zip validations
-zip -g $build_dist_dir/m2c2-opcda-connector.zip *.py
+machine_connector_dir="$source_dir/machine_connector"
 
 echo "------------------------------------------------------------------------------"
-echo "[Packing] Lambda Packages - M2C2 Publisher"
+echo "Clean the machine connector directory"
 echo "------------------------------------------------------------------------------"
-cd $source_dir/machine_connector/m2c2_publisher
-rm -rf package
-pip3 install -r requirements.txt --target ./package
-cp -rf $source_dir/machine_connector/utils package
-pip3 install -r $source_dir/machine_connector/utils/requirements.txt --target ./package/utils
-cd package
-zip -r $build_dist_dir/m2c2_publisher.zip .
-cd ..
-zip -r $build_dist_dir/m2c2_publisher.zip converters targets
-zip -g $build_dist_dir/m2c2_publisher.zip *.py
+find $machine_connector_dir -iname "__pycache__" -type d -exec rm -rf "{}" \; 2> /dev/null
+find $machine_connector_dir -iname ".pytest_cache" -type d -exec rm -rf "{}" \; 2> /dev/null
+find $machine_connector_dir -type f -name '.coverage' -delete
+
+declare -a machine_connector_packages=(
+  "m2c2_opcda_connector"
+  "m2c2_publisher"
+)
+
+for machine_connector_package in "${machine_connector_packages[@]}"
+do
+  echo "------------------------------------------------------------------------------"
+  echo "Build package: $machine_connector_package"
+  echo "------------------------------------------------------------------------------"
+  cd $machine_connector_dir/$machine_connector_package
+  rm -rf package && mkdir package
+
+  rsync -avrq ./ package --exclude package --exclude tests
+  rsync -avrq $machine_connector_dir/utils/ package/utils --exclude tests
+
+  cd package
+  zip -r $build_dist_dir/$machine_connector_package.zip ./
+  cd $machine_connector_dir/$machine_connector_package
+  rm -rf package
+done
 
 echo "------------------------------------------------------------------------------"
 echo "[Build] UI"
 echo "------------------------------------------------------------------------------"
 cd $source_dir/ui
-npm run clean
-npm run install:yarn
-node_modules/yarn/bin/yarn install
-node_modules/yarn/bin/yarn build
+yarn build
 
 if [ $? -ne 0 ]
 then

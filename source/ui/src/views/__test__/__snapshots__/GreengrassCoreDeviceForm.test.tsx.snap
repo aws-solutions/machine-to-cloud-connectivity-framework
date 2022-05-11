@@ -1,0 +1,156 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`renders the Greengrass core device form by default 1`] = `
+<div>
+  <div
+    class="container"
+  >
+    <nav
+      aria-label="breadcrumb"
+    >
+      <ol
+        class="breadcrumb"
+      >
+        <li
+          class="breadcrumb-item"
+        >
+          <a
+            href="/greengrass"
+          >
+            manage.greengrass.core.devices
+          </a>
+        </li>
+        <li
+          aria-current="page"
+          class="breadcrumb-item active"
+        >
+          register.greengrass.core.device
+        </li>
+      </ol>
+    </nav>
+    <div
+      class="card"
+    >
+      <div
+        class="card-body"
+      >
+        <form
+          class=""
+        >
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              category
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.category
+            </small>
+            <select
+              class="form-control"
+              data-testid="category-select"
+              id="category"
+            >
+              <option
+                value="System"
+              >
+                category.create.new.greengrass.core.device
+              </option>
+              <option
+                value="User"
+              >
+                category.bring.existing.greengrass.core.device
+              </option>
+            </select>
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+            >
+              greengrass.core.device.name
+               
+              <span
+                class="red-text"
+              >
+                *
+              </span>
+            </label>
+            <small
+              class="form-text text-muted"
+            >
+              description.greengrass.core.device.name
+            </small>
+            <input
+              class="form-control is-invalid"
+              id="greengrassCoreDeviceName"
+              placeholder="placeholder.greengrass.core.device.name"
+              required=""
+              type="text"
+              value=""
+            />
+            <div
+              class="invalid-feedback"
+            >
+              invalid.greengrass.core.device.name
+            </div>
+          </div>
+          <div
+            class="row"
+          >
+            <div
+              class="col"
+            >
+              <span>
+                 
+              </span>
+            </div>
+          </div>
+          <div
+            class="row"
+          >
+            <div
+              class="justify-content-center grid col"
+            >
+              <div
+                class="btn-group"
+                role="group"
+              >
+                <button
+                  class="btn btn-primary btn-sm"
+                  disabled=""
+                  id="register-greengrass-core-device"
+                  type="submit"
+                >
+                  register
+                </button>
+                <span>
+                   
+                </span>
+                <button
+                  class="btn btn-secondary btn-sm"
+                  id="register-greengrass-core-device"
+                  type="button"
+                >
+                  cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+`;

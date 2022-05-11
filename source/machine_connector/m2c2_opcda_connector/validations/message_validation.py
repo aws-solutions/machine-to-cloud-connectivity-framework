@@ -1,34 +1,36 @@
-# Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-# SPDX-License-Identifier: Apache-2.
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
 
 import logging
-from .m2c2_msg_types import OPCDAMsgValidations
-from dateutil import parser
-
 import messages as msg
-from utils import AWSEndpointClient, InitMessage
 
-"""ensure that the data format is as should be"""
-""" Ex:
-{
-    "alias": "{site_name}/{area}/{process}/{machine_name}/{tag}",
-    "messages": [{
-        "name": alias,
-        "timestamp": str, (also validate this is a valid timestamp)
-        "quality": 'Good|GOOD|Bad|BAD|Uncertain|UNCERTAIN',
-        "value": any
-    }]
-}
-"""
+from dateutil import parser
+from utils import AWSEndpointClient, InitMessage
+from utils.custom_exception import ValidationException
+from .m2c2_msg_types import OPCDAMsgValidations
 
 
 class MessageValidation:
+    """ensure that the data format is as should be"""
+    """ Ex:
+    {
+        "alias": "{site_name}/{area}/{process}/{machine_name}/{tag}",
+        "messages": [{
+            "name": alias,
+            "timestamp": str, (also validate this is a valid timestamp)
+            "quality": 'Good|GOOD|Bad|BAD|Uncertain|UNCERTAIN',
+            "value": any
+        }]
+    }
+    """
+
     def __init__(self, topic: str) -> None:
-        self.logger = logging.getLogger()
-        self.logger.setLevel(logging.INFO)
         self.connector_client = AWSEndpointClient()
         self.vals = OPCDAMsgValidations()
         self.topic = topic
+
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger.setLevel(logging.INFO)
 
     def valid_val(self, entry: dict, validations: dict) -> bool:
         for k, v in entry.items():
@@ -61,23 +63,29 @@ class MessageValidation:
             )
             raise ValueError(err)
         except Exception as err:
-            self.logger.error("An unknown error has occurred while sending message validation error: '{}'".format(err))
+            self.logger.error(
+                "An unknown error has occurred while sending message validation error: '{}'".format(err))
             raise
 
     def validate_schema(self, message: dict) -> None:
         try:
             if not isinstance(message, dict):
-                self.error_to_iot_and_raise(msg.ERR_MSG_SCHEMA_MESSAGE_NOT_DICT.format(message))
+                self.error_to_iot_and_raise(
+                    msg.ERR_MSG_SCHEMA_MESSAGE_NOT_DICT.format(message))
 
-            self.missing_keys = self.find_missing_keys(message, self.vals.payload_required_keys())
+            self.missing_keys = self.find_missing_keys(
+                message, self.vals.payload_required_keys())
             if self.missing_keys:
-                self.error_to_iot_and_raise(msg.ERR_MISSING_KEYS.format(self.missing_keys))
+                self.error_to_iot_and_raise(
+                    msg.ERR_MISSING_KEYS.format(self.missing_keys))
 
             if not message["messages"]:
-                self.error_to_iot_and_raise(msg.ERR_MSG_SCHEMA_EMPTY_MESSAGES.format(message))
+                self.error_to_iot_and_raise(
+                    msg.ERR_MSG_SCHEMA_EMPTY_MESSAGES.format(message))
 
             if not self.valid_val(message, self.vals.payload_validations()):
-                self.error_to_iot_and_raise(msg.ERR_MSG_SCHEMA_MISSING_KEY.format(message))
+                self.error_to_iot_and_raise(
+                    msg.ERR_MSG_SCHEMA_MISSING_KEY.format(message))
 
             for entry in message["messages"]:
                 self.entry_missing_keys = self.find_missing_keys(
@@ -85,17 +93,21 @@ class MessageValidation:
                     self.vals.messages_required_keys()
                 )
                 if self.entry_missing_keys:
-                    self.error_to_iot_and_raise(msg.ERR_MISSING_KEYS.format(self.entry_missing_keys))
+                    self.error_to_iot_and_raise(
+                        msg.ERR_MISSING_KEYS.format(self.entry_missing_keys))
 
                 if not self.valid_val(entry, self.vals.msgs_validations()):
-                    self.error_to_iot_and_raise(msg.ERR_MSG_SCHEMA_MISSING_KEY.format(entry))
+                    self.error_to_iot_and_raise(
+                        msg.ERR_MSG_SCHEMA_MISSING_KEY.format(entry))
 
                 if not self.parsable(entry):
-                    self.error_to_iot_and_raise(msg.ERR_MSG_SCHEMA_DATE_CORRUPTED.format(entry))
+                    self.error_to_iot_and_raise(
+                        msg.ERR_MSG_SCHEMA_DATE_CORRUPTED.format(entry))
 
                 if entry["name"] != message["alias"]:
-                    self.error_to_iot_and_raise(msg.ERR_NAME_NOT_ALIAS.format(message))
+                    self.error_to_iot_and_raise(
+                        msg.ERR_NAME_NOT_ALIAS.format(message))
 
         except Exception as err:
             self.logger.error("Message validation failed. Error: %s", str(err))
-            raise Exception(msg.ERR_MSG_VALIDATION.format(err))
+            raise ValidationException(msg.ERR_MSG_VALIDATION.format(err))

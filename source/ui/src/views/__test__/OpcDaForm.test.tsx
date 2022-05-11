@@ -1,10 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { I18n } from '@aws-amplify/core';
 import { render } from '@testing-library/react';
-import { GetConnectionResponse, MachineProtocol } from '../../util/Types';
-import { INIT_CONNECTION } from '../../util/Utils';
-import OpcDaForm from '../OpcDaForm';
+import userEvent from '@testing-library/user-event';
+import OpcDaForm from '../connection/OpcDaForm';
+import { GetConnectionResponse, MachineProtocol } from '../../util/types';
+import { INIT_CONNECTION } from '../../util/utils';
 
 test('renders the default OpcDaForm', async () => {
   const connection: GetConnectionResponse = INIT_CONNECTION;
@@ -15,10 +17,12 @@ test('renders the default OpcDaForm', async () => {
 test('renders the OpcDaFrom with the existing connection', async () => {
   const connection: GetConnectionResponse = {
     connectionName: 'mock-connection-id',
+    greengrassCoreDeviceName: 'mock-greengrass-device-name',
     protocol: MachineProtocol.OPCDA,
-    sendDataToIoTSitewise: true,
+    sendDataToIoTSiteWise: true,
     sendDataToIoTTopic: true,
     sendDataToKinesisDataStreams: true,
+    sendDataToTimestream: true,
     area: 'mock-area',
     machineName: 'mock-machine',
     opcDa: {
@@ -48,6 +52,16 @@ test('renders the OpcDaFrom errors', async () => {
     opcDaMachineIp: 'machineIp invalid',
     tags: 'tags invalid'
   };
-  const opcDaForm = render(<OpcDaForm connection={connection} onChange={() => console.log('changed')} errors={errors} />);
+  const opcDaForm = render(
+    <OpcDaForm connection={connection} onChange={() => console.log('changed')} errors={errors} />
+  );
   expect(opcDaForm.container).toMatchSnapshot();
+});
+
+test('tests handleValueChange function', async () => {
+  const connection: GetConnectionResponse = INIT_CONNECTION;
+  const opcDaForm = render(<OpcDaForm connection={connection} onChange={event => console.log(event)} errors={{}} />);
+  const input = opcDaForm.getByPlaceholderText(I18n.get('placeholder.iterations'));
+  userEvent.type(input, '1');
+  expect((input as HTMLInputElement).value).toEqual('1');
 });

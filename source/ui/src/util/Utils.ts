@@ -1,29 +1,27 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import Auth from '@aws-amplify/auth';
-import { I18n, Logger } from '@aws-amplify/core';
+import { Auth } from '@aws-amplify/auth';
+import { Logger } from '@aws-amplify/core';
 import {
-  AlphaNumericValidationProps,
-  AmplifyConfigurationInput, AmplifyConfigurationResponse,
-  GetConnectionResponse, ConnectionControl, ConnectionDefinition,
-  KeyStringValue, MachineProtocol,
-  OpcDaDefinition, OpcUaDefinition
-} from './Types';
+  AmplifyConfigurationInput,
+  AmplifyConfigurationResponse,
+  ConnectionControl,
+  ConnectionDefinition,
+  ErrorMessage,
+  ErrorProps,
+  GetConnectionResponse,
+  ListConnectionsResponse,
+  ListGreengrassCoreDevicesResponse,
+  ListLogsResponse,
+  MachineProtocol,
+  OpcDaDefinition,
+  OpcUaDefinition,
+  PaginationType
+} from './types';
 
 // Logger for Utils
 const logger = new Logger('Utils');
-
-// Constant variables
-const IP_REGEX = /^(?!0)(?!.*\.$)((?!0\d)(1?\d?\d|25[0-5]|2[0-4]\d)(\.|$)){4}$/; // NOSONAR: typescript:S4784 - This is for IP address check
-const MAX_CHARACTERS = 30;
-const MAX_ITERATIONS = 30;
-const MIN_ITERATIONS = 1;
-const MAX_TIME_INTERVAL = 30;
-const MIN_TIME_INTERVAL = 0.5;
-const MIN_PORT = 1;
-const MAX_PORT = 65535;
-const MAX_OPCUA_SERVER_NAME_CHARACTERS = 256;
 
 // API name
 export const API_NAME = 'M2C2Api';
@@ -49,6 +47,12 @@ export function getAmplifyConfiguration(config: AmplifyConfigurationInput): Ampl
       userPoolId: config.userPoolId,
       userPoolWebClientId: config.webClientId,
       identityPoolId: config.identityPoolId
+    },
+    Storage: {
+      AWSS3: {
+        bucket: config.s3Bucket,
+        region: config.region
+      }
     }
   };
 }
@@ -68,48 +72,51 @@ export async function signOut() {
 /**
  * Builds the connection definition to send to the backend.
  * @param params The connection definition
- * @return The connection definition format required by the backend
+ * @returns The connection definition format required by the backend
  */
 export function buildConnectionDefinition(params: ConnectionDefinition): ConnectionDefinition {
-  const { control, connectionName, protocol } = params;
-  const connectionDefintion: ConnectionDefinition = {
-    control,
+  const { connectionName, control, greengrassCoreDeviceName, protocol } = params;
+  const connectionDefinition: ConnectionDefinition = {
     connectionName,
+    control,
+    greengrassCoreDeviceName,
     protocol
   };
 
   if ([ConnectionControl.DEPLOY, ConnectionControl.UPDATE].includes(params.control)) {
-    connectionDefintion.area = params.area;
-    connectionDefintion.machineName = params.machineName;
-    connectionDefintion.process = params.process;
-    connectionDefintion.siteName = params.siteName;
+    connectionDefinition.area = params.area;
+    connectionDefinition.machineName = params.machineName;
+    connectionDefinition.process = params.process;
+    connectionDefinition.siteName = params.siteName;
 
-    connectionDefintion.sendDataToIoTSitewise = params.sendDataToIoTSitewise;
-    connectionDefintion.sendDataToIoTTopic = params.sendDataToIoTTopic;
-    connectionDefintion.sendDataToKinesisDataStreams = params.sendDataToKinesisDataStreams;
+    connectionDefinition.sendDataToIoTSiteWise = params.sendDataToIoTSiteWise;
+    connectionDefinition.sendDataToIoTTopic = params.sendDataToIoTTopic;
+    connectionDefinition.sendDataToKinesisDataStreams = params.sendDataToKinesisDataStreams;
+    connectionDefinition.sendDataToTimestream = params.sendDataToTimestream;
 
     if (params.protocol === MachineProtocol.OPCDA) {
-      connectionDefintion.opcDa = params.opcDa;
-      connectionDefintion.opcDa!.interval = Number(connectionDefintion.opcDa!.interval);
-      connectionDefintion.opcDa!.iterations = Number(connectionDefintion.opcDa!.iterations);
+      connectionDefinition.opcDa = params.opcDa as OpcDaDefinition;
+      connectionDefinition.opcDa.interval = Number(connectionDefinition.opcDa.interval);
+      connectionDefinition.opcDa.iterations = Number(connectionDefinition.opcDa.iterations);
     } else if (params.protocol === MachineProtocol.OPCUA) {
-      connectionDefintion.opcUa = params.opcUa;
+      connectionDefinition.opcUa = params.opcUa as OpcUaDefinition;
 
-      if (connectionDefintion.opcUa!.port === undefined || String(connectionDefintion.opcUa!.port).trim() === '') {
-        delete connectionDefintion.opcUa!.port;
+      if (connectionDefinition.opcUa.port === undefined || String(connectionDefinition.opcUa.port).trim() === '') {
+        delete connectionDefinition.opcUa.port;
       } else {
-        connectionDefintion.opcUa!.port = Number(connectionDefintion.opcUa!.port);
+        connectionDefinition.opcUa.port = Number(connectionDefinition.opcUa.port);
       }
     }
   }
 
-  return connectionDefintion;
+  return connectionDefinition;
 }
 
 // The initial connection
 export const INIT_CONNECTION: GetConnectionResponse = {
   area: '',
   connectionName: '',
+  greengrassCoreDeviceName: '',
   machineName: '',
   opcDa: {
     machineIp: '',
@@ -126,9 +133,10 @@ export const INIT_CONNECTION: GetConnectionResponse = {
   },
   process: '',
   protocol: MachineProtocol.OPCDA,
-  sendDataToIoTSitewise: false,
+  sendDataToIoTSiteWise: false,
   sendDataToIoTTopic: false,
   sendDataToKinesisDataStreams: true,
+  sendDataToTimestream: false,
   siteName: '',
   listTags: '',
   tags: ''
@@ -140,161 +148,24 @@ export const INIT_CONNECTION: GetConnectionResponse = {
  * @param error The error to get the error message
  * @returns The error message or error object
  */
-export function getErrorMessage(error: any): any {
-  if (error.response && error.response.data) {
-    if (error.response.data.errorMessage) {
+export function getErrorMessage(error: ErrorProps | unknown): unknown {
+  const newError = error as ErrorProps;
+
+  if (typeof newError.response?.data !== 'undefined') {
+    const data = newError.response.data as ErrorMessage;
+
+    if (typeof data.errorMessage !== 'undefined') {
       // When it's from M2C2 API, it returns `errorMessage`.
-      return error.response.data.errorMessage;
+      return data.errorMessage;
     } else {
       // When it's the other Amplify API error, it returns response data.
-      return error.response.data;
+      return newError.response.data;
     }
-  } else if (error.message) {
-    return error.message;
+  } else if (newError.message) {
+    return newError.message;
   }
 
   return error;
-}
-
-/**
- * Validates the connection defintion. If not valid, returns errors.
- * @param params The connection definition
- * @returns The errors if any validation fails
- */
-export function validateConnectionDefinition(params: ConnectionDefinition): KeyStringValue {
-  const errors: KeyStringValue = {};
-  const { connectionName, area, machineName, process, siteName } = params;
-
-  /**
-   * Checks the connection name to meet the Lambda function name constraints.
-   * The connection name only allows alphanumeric characters, hypens, and underscores.
-   * The maximum characters are 30 characters since the solution preserve characters.
-   */
-  validateAlphaNumericHyphenUnderscoreStrinng({
-    value: connectionName,
-    maxLength: MAX_CHARACTERS,
-    errors,
-    errorKeyName: 'connectionName',
-    errorMessage: I18n.get('invalid.connection.name')
-  });
-  validateAlphaNumericHyphenUnderscoreStrinng({
-    value: siteName as string,
-    maxLength: MAX_CHARACTERS,
-    errors,
-    errorKeyName: 'siteName',
-    errorMessage: I18n.get('invalid.alphanumeric.hyphens.underscores').replace('{name}', 'Site name')
-  });
-  validateAlphaNumericHyphenUnderscoreStrinng({
-    value: area as string,
-    maxLength: MAX_CHARACTERS,
-    errors,
-    errorKeyName: 'area',
-    errorMessage: I18n.get('invalid.alphanumeric.hyphens.underscores').replace('{name}', 'Area')
-  });
-  validateAlphaNumericHyphenUnderscoreStrinng({
-    value: process as string,
-    maxLength: MAX_CHARACTERS,
-    errors,
-    errorKeyName: 'process',
-    errorMessage: I18n.get('invalid.alphanumeric.hyphens.underscores').replace('{name}', 'Process')
-  });
-  validateAlphaNumericHyphenUnderscoreStrinng({
-    value: machineName as string,
-    maxLength: MAX_CHARACTERS,
-    errors,
-    errorKeyName: 'machineName',
-    errorMessage: I18n.get('invalid.alphanumeric.hyphens.underscores').replace('{name}', 'Machine name')
-  });
-
-  /**
-   * Checks send data to IoT Sitewise, IoT topic and stream manager.
-   * One of those should be set to be sent.
-   */
-  if (!params.sendDataToIoTSitewise && !params.sendDataToIoTTopic && !params.sendDataToKinesisDataStreams) {
-    errors.sendDataTo = I18n.get('invalid.send.data.to');
-  }
-
-  if (params.protocol === MachineProtocol.OPCDA) {
-    validateOpcDa(params.opcDa!, errors);
-  } else if (params.protocol === MachineProtocol.OPCUA) {
-    validateOpcUa(params.opcUa!, errors);
-  }
-
-  return errors;
-}
-
-/**
- * Validates if the value only contains alphanumeric characters, hyphens, and underscores.
- * In addition, it validates the maximum length of the string.
- * @param props The validation check props
- */
-function validateAlphaNumericHyphenUnderscoreStrinng(props: AlphaNumericValidationProps) {
-  if (typeof props.value !== 'string'
-    || props.value.trim().length > props.maxLength
-    || !/^[a-zA-Z0-9-_]+$/.test(props.value)) {
-    props.errors[props.errorKeyName] = props.errorMessage;
-  }
-}
-
-/**
- * Validates the OPC DA connection definition.
- * @param opcDa The OPC DA connection definition
- * @param errors The errors
- */
-function validateOpcDa(opcDa: OpcDaDefinition, errors: KeyStringValue) {
-  // Iterations
-  const iterations = Number(opcDa.iterations as string);
-  if (isNaN(iterations) || !Number.isInteger(iterations) || iterations < MIN_ITERATIONS || iterations > MAX_ITERATIONS) {
-    errors.iterations = I18n.get('invalid.iterations');
-  }
-
-  // Time interval
-  const timeInterval = Number(opcDa.interval as string);
-  if (isNaN(timeInterval) || timeInterval < MIN_TIME_INTERVAL || timeInterval > MAX_TIME_INTERVAL) {
-    errors.interval = I18n.get('invalid.time.interval');
-  }
-
-  // Server name
-  if (opcDa.serverName.trim() === '') {
-    errors.opcDa_serverName = I18n.get('invalid.server.name');
-  }
-
-  // Machine IP
-  if (!IP_REGEX.test(opcDa.machineIp)) {
-    errors.opcDa_machineIp = I18n.get('invalid.machine.ip');
-  }
-
-  // Tags
-  if ((!opcDa.listTags || opcDa.listTags.length === 0) && (!opcDa.tags || opcDa.tags.length === 0)) {
-    errors.tags = I18n.get('invalid.tags');
-  }
-}
-
-/**
- * Validates the OPC UA connection definition.
- * @param opcUa The OPC UA connection definition
- * @param errors The errors
- */
-function validateOpcUa(opcUa: OpcUaDefinition, errors: KeyStringValue) {
-  // Server name
-  if (opcUa.serverName.trim() === '' || opcUa.serverName.trim().length > MAX_OPCUA_SERVER_NAME_CHARACTERS) {
-    errors.opcUa_serverName = I18n.get('invalid.server.name');
-  }
-
-  // Machine IP
-  if (!IP_REGEX.test(opcUa.machineIp)) {
-    errors.opcUa_machineIp = I18n.get('invalid.machine.ip');
-  }
-
-  // Port
-  if (opcUa.port !== undefined) {
-    if (typeof opcUa.port !== 'string' || (typeof opcUa.port === 'string' && opcUa.port.trim() !== '')) {
-      const port = Number(opcUa.port);
-      if (!Number.isInteger(port) || port < MIN_PORT || port > MAX_PORT) {
-        errors.port = I18n.get('invalid.port');
-      }
-    }
-  }
 }
 
 /**
@@ -302,23 +173,17 @@ function validateOpcUa(opcUa: OpcUaDefinition, errors: KeyStringValue) {
  * @param original The original object
  * @returns The deep copied object
  */
-export function copyObject(original: any): any {
-  if (typeof original !== 'object') {
+export function copyObject(original: Record<string, unknown>): Record<string, unknown> {
+  if (typeof original !== 'object' || Array.isArray(original)) {
     throw Error('Invalid object');
   }
 
-  let copiedObject: any;
-  if (!Array.isArray(original)) {
-    copiedObject = {};
-  } else {
-    copiedObject = copyArray(original);
-  }
-
-  for (let key in original) {
+  const copiedObject: Record<string, unknown> = {};
+  for (const key in original) {
     if (typeof original[key] === 'object' && !Array.isArray(original[key])) {
-      copiedObject[key] = copyObject(original[key]);
+      copiedObject[key] = copyObject(original[key] as Record<string, unknown>);
     } else if (Array.isArray(original[key])) {
-      copiedObject[key] = copyArray(original[key]);
+      copiedObject[key] = copyArray(original[key] as unknown[]);
     } else {
       copiedObject[key] = original[key];
     }
@@ -332,14 +197,14 @@ export function copyObject(original: any): any {
  * @param original The original array
  * @returns The deep copied array
  */
-export function copyArray(original: any[]): any {
+export function copyArray(original: unknown[]): unknown[] {
   if (!Array.isArray(original)) {
     throw Error('Invalid array');
   }
 
-  const copiedArray: any[] = [];
+  const copiedArray: unknown[] = [];
 
-  for (let item of original) {
+  for (const item of original) {
     let copiedItem = item;
 
     if (typeof item === 'object' && !Array.isArray(item)) {
@@ -352,4 +217,126 @@ export function copyArray(original: any[]): any {
   }
 
   return copiedArray;
+}
+
+/**
+ * Builds the OPC DA tags.
+ * @param value The value from the textarea
+ * @returns The list of tags
+ */
+export function buildOpcDaTags(value: string | undefined): string[] {
+  const arr: string[] = [];
+
+  if (typeof value === 'string' && value.trim() !== '') {
+    const splitTags = value.split('\n');
+
+    for (const tag of splitTags) {
+      const trimTag = tag.trim();
+      if (trimTag !== '') arr.push(trimTag);
+    }
+  }
+
+  return arr;
+}
+
+/**
+ * Sets the value of the object key.
+ * @param obj The object to set the value
+ * @param key The object key
+ * @param value The new object value
+ * @returns If the key exists, return `true`. Otherwise, return `false`.
+ */
+export function setValue(obj: Record<string, unknown>, key: string, value: unknown): boolean {
+  if (typeof obj !== 'object' || Array.isArray(obj)) return false;
+
+  if (Object.keys(obj).includes(key)) {
+    if (typeof obj[key] === typeof value || ['interval', 'iterations'].includes(key)) {
+      obj[key] = value;
+      return true;
+    }
+
+    return false;
+  }
+
+  for (const childKey in obj) {
+    if (setValue(obj[childKey] as Record<string, unknown>, key, value)) return true;
+  }
+
+  return false;
+}
+
+/**
+ * Validates the Greengrass core device name.
+ * @param name Greengrass core device name
+ * @returns If Greengrass core device name is valid
+ */
+export function validateGreengrassCoreDeviceName(name: string): boolean {
+  return typeof name === 'string' && /^[a-zA-Z0-9-_:]{1,128}$/.test(name);
+}
+
+/**
+ * Gets a conditional value based on the condition.
+ * @param condition The condition, it can be string, boolean, and so on
+ * @param trueValue The value to return when the condition is true
+ * @param falseValue The value to return when the condition is false
+ * @returns The conditional value
+ */
+export function getConditionalValue<T>(condition: unknown, trueValue: T, falseValue: T): T {
+  return condition ? trueValue : falseValue;
+}
+
+interface GetPaginationNextTokenRequest {
+  pageIndex: number;
+  pageToken: string[];
+  paginationType?: PaginationType;
+}
+
+/**
+ * Gets the pagination next token based on the pagination type.
+ * @param props The getting pagination next token properties
+ * @returns The pagination next token
+ */
+export function getPaginationNextToken(props: GetPaginationNextTokenRequest): string {
+  const { pageIndex, pageToken, paginationType } = props;
+  switch (paginationType) {
+    case PaginationType.PREV:
+      return pageToken[pageIndex - 1];
+    case PaginationType.NEXT:
+      return pageToken[pageIndex + 1];
+    default:
+      return '';
+  }
+}
+
+interface HandlePaginationRequest extends Omit<GetPaginationNextTokenRequest, 'pageIndex'> {
+  response: ListConnectionsResponse | ListGreengrassCoreDevicesResponse | ListLogsResponse;
+  setPageIndex: React.Dispatch<React.SetStateAction<number>>;
+  setPageToken: React.Dispatch<React.SetStateAction<string[]>>;
+}
+
+/**
+ * Handles pagination.
+ * @param props The handling pagination properties
+ */
+export function handlePagination(props: HandlePaginationRequest): void {
+  const { pageToken, paginationType, response, setPageIndex, setPageToken } = props;
+  switch (paginationType) {
+    case PaginationType.PREV:
+      setPageIndex(prevIndex => prevIndex - 1);
+      break;
+    case PaginationType.NEXT:
+      /**
+       * Due to inconsistency, it can't compare with the next index item.
+       * Therefore, it checks if the page token array has the next token or not.
+       */
+      if (response.nextToken && !pageToken.includes(response.nextToken)) {
+        setPageToken([...pageToken, response.nextToken]);
+      }
+      setPageIndex(prevIndex => prevIndex + 1);
+      break;
+    default:
+      setPageIndex(0);
+      setPageToken(getConditionalValue<string[]>(response.nextToken, ['', response.nextToken as string], ['']));
+      break;
+  }
 }

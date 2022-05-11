@@ -10,23 +10,13 @@ This software includes third party software subject to the following copyrights:
 @aws-amplify/api under the Apache License 2.0
 @aws-amplify/auth under the Apache License 2.0
 @aws-amplify/core under the Apache License 2.0
-@aws-amplify/interactions under the Apache License 2.0
 @aws-amplify/storage under the Apache License 2.0
 @aws-amplify/ui-react under the Apache License 2.0
 @aws-cdk/assert under the Apache License 2.0
-@aws-cdk/aws-apigateway under the Apache License 2.0
-@aws-cdk/aws-cognito under the Apache License 2.0
-@aws-cdk/aws-dynamodb under the Apache License 2.0
-@aws-cdk/aws-greengrass under the Apache License 2.0
-@aws-cdk/aws-iam under the Apache License 2.0
-@aws-cdk/aws-iot under the Apache License 2.0
-@aws-cdk/aws-iotsitewise under the Apache License 2.0
-@aws-cdk/aws-lambda under the Apache License 2.0
-@aws-cdk/aws-logs under the Apache License 2.0
-@aws-cdk/aws-s3 under the Apache License 2.0
-@aws-cdk/core under the Apache License 2.0
 @aws-solutions-constructs/aws-cloudfront-s3 under the Apache License 2.0
+@aws-solutions-constructs/aws-iot-sqs under the Apache License 2.0
 @aws-solutions-constructs/aws-kinesisstreams-kinesisfirehose-s3 under the Apache License 2.0
+@aws-solutions-constructs/@aws-solutions-constructs/aws-kinesisstreams-lambda under the Apache License 2.0
 @aws-solutions-constructs/aws-lambda-dynamodb under the Apache License 2.0
 @aws-solutions-constructs/aws-sqs-lambda under the Apache License 2.0
 @testing-library/jest-dom under the Massachusetts Institute of Technology (MIT) License
@@ -37,23 +27,37 @@ This software includes third party software subject to the following copyrights:
 @types/react-dom under the Massachusetts Institute of Technology (MIT) License
 @types/react-router-bootstrap under the Massachusetts Institute of Technology (MIT) License
 @types/react-router-dom under the Massachusetts Institute of Technology (MIT) License
-@types/tar under the Massachusetts Institute of Technology (MIT) License
 @types/uuid under the Massachusetts Institute of Technology (MIT) License
+@typescript-eslint/eslint-plugin under the Massachusetts Institute of Technology (MIT) License
+@typescript-eslint/parser The 2-Clause BSD License
+aws-amplify under the Apache License 2.0
 aws-cdk under the Apache License 2.0
+aws-cdk-lib under the Apache License 2.0
 aws-sdk under the Apache License 2.0
 axios under the Massachusetts Institute of Technology (MIT) License
 bootstrap under the Massachusetts Institute of Technology (MIT) License
 bootstrap-icons under the Massachusetts Institute of Technology (MIT) License
+constructs under the Apache License 2.0
+eslint under the Massachusetts Institute of Technology (MIT) License
+eslint-config-prettier under the Massachusetts Institute of Technology (MIT) License
+eslint-config-react-app under the Massachusetts Institute of Technology (MIT) License
+eslint-plugin-header under the Massachusetts Institute of Technology (MIT) License
+eslint-plugin-import under the Massachusetts Institute of Technology (MIT) License
+eslint-plugin-jsdoc 3-Clause BSD License
+eslint-plugin-node under the Massachusetts Institute of Technology (MIT) License
+eslint-plugin-prettier under the Massachusetts Institute of Technology (MIT) License
+eslint-plugin-react under the Massachusetts Institute of Technology (MIT) License
+eslint-plugin-react-hooks under the Massachusetts Institute of Technology (MIT) License
 jest under the Massachusetts Institute of Technology (MIT) License
 nanoid under the Massachusetts Institute of Technology (MIT) License
-node-sass under the Massachusetts Institute of Technology (MIT) License
+prettier under the Massachusetts Institute of Technology (MIT) License
 react under the Massachusetts Institute of Technology (MIT) License
 react-bootstrap under the Massachusetts Institute of Technology (MIT) License
 react-dom under the Massachusetts Institute of Technology (MIT) License
 react-router-bootstrap under the Massachusetts Institute of Technology (MIT) License
 react-router-dom under the Massachusetts Institute of Technology (MIT) License
 react-scripts under the Massachusetts Institute of Technology (MIT) License
-tar under the ISC License
+sass under the Massachusetts Institute of Technology (MIT) License
 ts-jest under the Massachusetts Institute of Technology (MIT) License
 ts-node under the Massachusetts Institute of Technology (MIT) License
 typescript under the Apache License 2.0

@@ -1,12 +1,11 @@
-# Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 
 import unittest
-import pytest
-from unittest import mock
-
 
 from converters.tag_converter import TagConverter
+
+
 class TestTagConverter(unittest.TestCase):
     def setUp(self):
         self.protocol_opcua = "opcua"

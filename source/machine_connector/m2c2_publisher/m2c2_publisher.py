@@ -1,4 +1,4 @@
-# Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 
 """
@@ -21,28 +21,32 @@ It publishes data to any of the following: SiteWise, Kinesis Data Stream, an IoT
 """
 import logging
 import os
+import time
 
 from greengrasssdk.stream_manager import (
     ExportDefinition
 )
-
 from payload_router import PayloadRouter
 from utils import (CheckpointManager, StreamManagerHelperClient)
-
+from utils.custom_exception import PublisherException
+from utils.constants import WORK_BASE_DIR
 
 # Constant variables
 # Kinesis Data Stream name
-KINESIS_STREAM_NAME = os.environ["KINESIS_STREAM_NAME"]
+KINESIS_STREAM_NAME = os.getenv("KINESIS_STREAM_NAME")
+# Timestream Kinesis Data Stream name
+TIMESTREAM_KINESIS_STREAM = os.getenv("TIMESTREAM_KINESIS_STREAM")
 # Greengrass Stream name
-CONNECTION_GG_STREAM_NAME = os.environ["CONNECTION_GG_STREAM_NAME"]
+CONNECTION_GG_STREAM_NAME = os.getenv("CONNECTION_GG_STREAM_NAME")
 # Connection name - used for IoT topic and alias (when needed)
-CONNECTION_NAME = os.environ["CONNECTION_NAME"]
+CONNECTION_NAME = os.getenv("CONNECTION_NAME")
 
 # Connection defined destination values
 # Connection builder won't set these if they aren't defined as a destination in the connection
 SEND_TO_SITEWISE = os.getenv("SEND_TO_SITEWISE")
 SEND_TO_IOT_TOPIC = os.getenv("SEND_TO_IOT_TOPIC")
 SEND_TO_KINESIS_STREAM = os.getenv("SEND_TO_KINESIS_STREAM")
+SEND_TO_TIMESTREAM = os.getenv("SEND_TO_TIMESTREAM")
 
 # The following variables may not be set
 # if using a protocol supported by an AWS-managed connector
@@ -56,12 +60,14 @@ PROCESS = os.getenv("PROCESS")
 MACHINE_NAME = os.getenv("MACHINE_NAME")
 
 # Messaging protocol
-PROTOCOL = os.environ['PROTOCOL']
+PROTOCOL = os.getenv("PROTOCOL")
 
 # Stream Manager SiteWise publisher stream
 sitewise_stream = 'SiteWise_Stream'
 # Stream Manager Kinesis publisher stream
 kinesis_sm_stream = 'm2c2_kinesis_stream'
+# Stream Manager Timestream Kinesis publisher stream
+timestream_kinesis_stream = "m2c2_timestream_stream"
 
 # Max size of message stream when creating (in bytes)
 max_stream_size = 5368706371  # 5GB
@@ -69,7 +75,7 @@ max_stream_size = 5368706371  # 5GB
 read_msg_number = 1
 
 # Checkpoint db - to track message sequence numbers
-checkpoint_db = '/m2c2/job/stream_checkpoints'
+checkpoint_db = f"{WORK_BASE_DIR}/m2c2-{CONNECTION_NAME}-publisher/stream_checkpoints"
 
 # Checkpoint client for tracking message sequence
 checkpoint_client = CheckpointManager(checkpoint_db)
@@ -90,65 +96,67 @@ def retrieve_checkpoints():
         )
         return(trailing_cp, primary_cp)
     except Exception as err:
-        logger.error("There was an issue retrieving checkpoints for stream {}: {}".format(
-            CONNECTION_GG_STREAM_NAME,
-            err
-           )
+        logger.error(
+            "There was an issue retrieving checkpoints for stream {}: {}".format(
+                CONNECTION_GG_STREAM_NAME,
+                err
+            )
         )
         raise
 
 
 def write_checkpoint(checkpoint, value):
     try:
-        checkpoint_client.write_checkpoints(CONNECTION_GG_STREAM_NAME, checkpoint, value)
+        checkpoint_client.write_checkpoints(
+            CONNECTION_GG_STREAM_NAME, checkpoint, value)
     except Exception as err:
-        logger.error("There was an issue writing the checkpoint {} of value {} for stream {}: {}".format(
-            checkpoint,
-            value,
-            CONNECTION_GG_STREAM_NAME,
-            err
-           )
+        logger.error(
+            f"There was an issue writing the checkpoint {checkpoint} of value {value} for stream {CONNECTION_GG_STREAM_NAME}: {err}"
         )
         raise
 
 
 def create_hierarchy():
-    return{
-            "site_name": SITE_NAME,
-            "area": AREA,
-            "process": PROCESS,
-            "machine_name": MACHINE_NAME
-        }
+    return {
+        "site_name": SITE_NAME,
+        "area": AREA,
+        "process": PROCESS,
+        "machine_name": MACHINE_NAME
+    }
 
 
 def create_destinations():
     return {
-            "send_to_sitewise": SEND_TO_SITEWISE,
-            "send_to_kinesis_stream": SEND_TO_KINESIS_STREAM,
-            "send_to_iot_topic": SEND_TO_IOT_TOPIC
-        }
+        "send_to_sitewise": SEND_TO_SITEWISE,
+        "send_to_kinesis_stream": SEND_TO_KINESIS_STREAM,
+        "send_to_iot_topic": SEND_TO_IOT_TOPIC,
+        "send_to_timestream": SEND_TO_TIMESTREAM
+    }
 
 
 def create_destination_streams():
     return {
-            "sitewise_stream": sitewise_stream,
-            "kinesis_sm_stream": kinesis_sm_stream
-        }
+        "sitewise_stream": sitewise_stream,
+        "kinesis_sm_stream": kinesis_sm_stream,
+        "timestream_kinesis_stream": timestream_kinesis_stream
+    }
 
 
 def init_router_client():
     hierarchy = create_hierarchy()
     destinations = create_destinations()
     destination_streams = create_destination_streams()
-    router_client = PayloadRouter(
-        PROTOCOL,
-        CONNECTION_NAME,
-        hierarchy,
-        destinations,
-        destination_streams,
-        max_stream_size,
-        KINESIS_STREAM_NAME
-    )
+    payload_router_parameters = {
+        "protocol": PROTOCOL,
+        "connection_name": CONNECTION_NAME,
+        "hierarchy": hierarchy,
+        "destinations": destinations,
+        "destination_streams": destination_streams,
+        "max_stream_size": max_stream_size,
+        "kinesis_data_stream": KINESIS_STREAM_NAME,
+        "timestream_kinesis_data_stream": TIMESTREAM_KINESIS_STREAM,
+    }
+    router_client = PayloadRouter(**payload_router_parameters)
     return router_client
 
 
@@ -157,16 +165,16 @@ def payload_router(router_client, message):
         message_sequence_number = router_client.route_payload(message)
         return message_sequence_number
     except Exception as err:
-        raise Exception("There was an error when trying to send data to the payload router: '{}'".format(err))
+        raise PublisherException(
+            f"There was an error when trying to send data to the payload router: '{err}'")
 
 
 def create_stream():
-    logger.info("Stream {} not found, attempting to create it.".format(
-        CONNECTION_GG_STREAM_NAME
-        )
-    )
+    logger.info(
+        f"Stream {CONNECTION_GG_STREAM_NAME} not found, attempting to create it.")
     gg_exports = ExportDefinition()
-    smh_client.create_stream(CONNECTION_GG_STREAM_NAME, max_stream_size, gg_exports)
+    smh_client.create_stream(CONNECTION_GG_STREAM_NAME,
+                             max_stream_size, gg_exports)
 
 
 def check_for_gg_stream():
@@ -179,10 +187,10 @@ def check_for_gg_stream():
 
 
 def main():
-    logger.info("Starting up publisher for connection {}".format(CONNECTION_NAME))
+    logger.info(f"Starting up publisher for connection {CONNECTION_NAME}")
 
-    logger.info("Checking for GG stream")
     # In this case, if the stream does not exist, it is created
+    logger.info("Checking for GG stream")
     stream_exists = check_for_gg_stream()
     if not stream_exists:
         create_stream()
@@ -201,14 +209,15 @@ def main():
     # If primary isn't set in the checkpoint manager,
     # retrieve the oldest sequence number from the stream
     if not primary:
-        primary = smh_client.get_oldest_sequence_number(CONNECTION_GG_STREAM_NAME)
+        primary = smh_client.get_oldest_sequence_number(
+            CONNECTION_GG_STREAM_NAME)
         write_checkpoint('primary', primary)
 
     # The sequence number tracks the sequence number of the message in progress
     sequence_number = primary
 
     # Retrive message from the stream
-    logger.info("Reading from stream {}".format(CONNECTION_GG_STREAM_NAME))
+    logger.info(f"Reading from stream {CONNECTION_GG_STREAM_NAME}")
     router_client = init_router_client()
     # In a infinite loop, read the next message in the stream
     # If there are no messages associate with the sequence number,
@@ -220,21 +229,24 @@ def main():
                 CONNECTION_GG_STREAM_NAME,
                 sequence_number,
                 read_msg_number
-                )
+            )
+
             if message_data:
                 for message in message_data:
-                    message_sequence_number = payload_router(router_client, message)
+                    message_sequence_number = payload_router(
+                        router_client, message)
                     write_checkpoint('trailing', message_sequence_number)
                     message_sequence_number += 1
                     write_checkpoint('primary', message_sequence_number)
                     sequence_number = message_sequence_number
+
+            # To reduce the load, sleep 0.01 second.
+            time.sleep(0.01)
         except Exception as err:
-            logger.error("There was an error when trying to read your data from a stream and send it to AWS: {}".format(err))
+            logger.error(
+                f"There was an error when trying to read your data from a stream and send it to AWS: {err}")
             raise
 
 
-def function_handler(connection_data, context):
-    return
-
-
-main()
+if __name__ == "__main__":
+    main()

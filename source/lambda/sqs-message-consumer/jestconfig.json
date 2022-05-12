@@ -4,8 +4,10 @@
   "transform": {
     "^.+\\.(t|j)sx?$": "ts-jest"
   },
+  "collectCoverageFrom": ["**/*.ts", "!**/test/*.ts"],
   "coverageReporters": [
     "text",
     ["lcov", {"projectRoot": "../../"}]
-  ]
+  ],
+  "setupFiles": ["./test/jest-environment-variables.ts"]
 }

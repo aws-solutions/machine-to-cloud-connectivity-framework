@@ -1,0 +1,7 @@
+RulesToSuppress:
+  - id: W76
+    reason: SPCM higher than 25; all policies are required.
+  - id: W89
+    reason: Lambda functions in the solution does not require any VPC connection.
+  - id: W92
+    reason: Lambda functions in the solution mostly does not require reserved concurrency executions.

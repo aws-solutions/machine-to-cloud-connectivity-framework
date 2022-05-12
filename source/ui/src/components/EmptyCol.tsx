@@ -6,5 +6,5 @@
  * @returns An empty col
  */
 export default function EmptyCol(): JSX.Element {
-  return (<span>&nbsp;</span>);
+  return <span>&nbsp;</span>;
 }

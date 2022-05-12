@@ -1,41 +1,52 @@
-// Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { App, Aspects, DefaultStackSynthesizer } from 'aws-cdk-lib';
 import {
-  App,
-  Aspects,
-  CfnResource,
-  IAspect,
-  IConstruct
-} from '@aws-cdk/core';
-import { CfnFunction } from '@aws-cdk/aws-lambda';
-import { M2C2Stack } from '../lib/machine-to-cloud-connectivity-stack';
-import { addCfnSuppressRules } from '../utils/utils';
+  MachineToCloudConnectivityFrameworkProps,
+  MachineToCloudConnectivityFrameworkStack
+} from '../lib/machine-to-cloud-connectivity-stack';
+import { AwsSolutionsChecks } from 'cdk-nag';
 
 /**
- * CDK Aspect implementation to add common metadata to suppress CFN rules
+ * Gets the solution props from the environment variables.
+ * @returns The solution props
  */
-class LambdaFunctionAspect implements IAspect {
-  visit(node: IConstruct): void {
-    const resource = node as CfnResource;
-    if (resource instanceof CfnFunction) {
+function getProps(): MachineToCloudConnectivityFrameworkProps {
+  const { BUCKET_NAME_PLACEHOLDER, SOLUTION_NAME_PLACEHOLDER, VERSION_PLACEHOLDER } = process.env;
 
-      const rules = [
-        { id: 'W58', reason: 'The function does have permission to write CloudWatch Logs.' },
-        { id: 'W89', reason: 'The Lambda function does not require any VPC connection at all.' }
-      ];
-
-      if (!resource.logicalId.includes('GreengrassDeployer')) {
-        rules.push({ id: 'W92', reason: 'The Lambda function does not require ReservedConcurrentExecutions.' });
-      }
-
-      addCfnSuppressRules(resource, rules);
-    }
+  if (typeof BUCKET_NAME_PLACEHOLDER !== 'string' || BUCKET_NAME_PLACEHOLDER.trim() === '') {
+    throw new Error('Missing required environment variable: BUCKET_NAME_PLACEHOLDER');
   }
+
+  if (typeof SOLUTION_NAME_PLACEHOLDER !== 'string' || SOLUTION_NAME_PLACEHOLDER.trim() === '') {
+    throw new Error('Missing required environment variable: SOLUTION_NAME_PLACEHOLDER');
+  }
+
+  if (typeof VERSION_PLACEHOLDER !== 'string' || VERSION_PLACEHOLDER.trim() === '') {
+    throw new Error('Missing required environment variable: BUCKET_NAME_PLACEHOLDER');
+  }
+
+  const solutionBucketName = BUCKET_NAME_PLACEHOLDER;
+  const solutionId = 'SO0070';
+  const solutionName = SOLUTION_NAME_PLACEHOLDER;
+  const solutionVersion = VERSION_PLACEHOLDER;
+  const description = `(${solutionId}) - ${solutionName} Version ${solutionVersion}`;
+
+  return {
+    description,
+    solutionBucketName,
+    solutionId,
+    solutionName,
+    solutionVersion
+  };
 }
 
 const app = new App();
-const stack = new M2C2Stack(app, 'M2C2Stack', {
-  description: '(SO0070) - The AWS cloud formation template for the deployment of SOLUTION_NAME_PLACEHOLDER. Version VERSION_PLACEHOLDER.'
+new MachineToCloudConnectivityFrameworkStack(app, 'Stack', {
+  synthesizer: new DefaultStackSynthesizer({
+    generateBootstrapVersionRule: false
+  }),
+  ...getProps()
 });
-Aspects.of(stack).add(new LambdaFunctionAspect());
+Aspects.of(app).add(new AwsSolutionsChecks());

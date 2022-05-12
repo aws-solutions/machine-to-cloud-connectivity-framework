@@ -1,6 +1,5 @@
-# Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
-
 
 class OPCDAMsgValidations:
     def __init__(self):
@@ -37,6 +36,6 @@ class OPCDAMsgValidations:
         return {
             "name": lambda x: isinstance(x, str),
             "timestamp": lambda x: isinstance(x, str),
-            "value": lambda x: x,
+            "value": lambda x: x != None,
             "quality": lambda x: isinstance(x, str) and x in self.quality_validations()
         }

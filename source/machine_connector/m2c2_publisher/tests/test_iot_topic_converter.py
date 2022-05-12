@@ -1,4 +1,4 @@
-# Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 
 import unittest
@@ -7,9 +7,8 @@ from converters.iot_topic_converter import IoTTopicConverter
 
 
 class TestTopicConverter(unittest.TestCase):
-
     def setUp(self):
-        self.job_name = "test_job"
+        self.connection_name = "test_job"
         self.protocol = "opcda"
         self.site_name = "test_site"
         self.area = "test_area"
@@ -23,11 +22,12 @@ class TestTopicConverter(unittest.TestCase):
             "machine_name": self.machine_name,
             "tag": self.tag
         }
-        self.client = IoTTopicConverter(self.job_name, self.protocol)
+        self.client = IoTTopicConverter(self.connection_name, self.protocol)
 
     def test_topic_converter(self):
         self.topic = self.client.topic_converter(self.payload)
-        self.assertEqual(self.topic, f"m2c2/data/{self.job_name}/{self.machine_name}/{self.tag}")
+        self.assertEqual(
+            self.topic, f"m2c2/data/{self.connection_name}/{self.machine_name}/{self.tag}")
 
     def test_incomplete_payload(self):
         self.payload = {
@@ -36,6 +36,3 @@ class TestTopicConverter(unittest.TestCase):
         }
         with self.assertRaises(Exception):
             self.client.topic_converter(self.payload)
-
-if __name__ == '__main__':
-    unittest.main()

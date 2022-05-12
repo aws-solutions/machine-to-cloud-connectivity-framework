@@ -4,12 +4,10 @@
 import axios from 'axios';
 import { customAlphabet } from 'nanoid';
 import { LambdaError } from './errors';
-import { ConnectionBuilderTypes, UtilsTypes } from './types';
+import { AnonymousMetricData, AwsSdkOptions } from './types/utils-types';
 
-const { SOLUTION_ID, SOLUTION_VERSION } = process.env;
 const UPPER_ALPHA_NUMERIC = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 const METRICS_ENDPOINT = 'https://metrics.awssolutionsbuilder.com/generic';
-const GREENGRASS_LAMBDA_RUNTIME = 'python3.7';
 
 /**
  * Generates an unique ID based on the parameter length.
@@ -27,11 +25,11 @@ export function generateUniqueId(length: number = 4) {
  * @param input The optional AWS SDK options
  * @returns The custom user agent options for AWS JavaScript SDK
  */
-export function getAwsSdkOptions(input?: UtilsTypes.AwsSdkOptions): UtilsTypes.AwsSdkOptions {
-  const options: UtilsTypes.AwsSdkOptions = { ...input };
+export function getAwsSdkOptions(input?: AwsSdkOptions): AwsSdkOptions {
+  const { SOLUTION_ID, SOLUTION_VERSION } = process.env;
+  const options: AwsSdkOptions = { ...input };
 
-  if (SOLUTION_ID && SOLUTION_VERSION
-    && SOLUTION_ID.trim() !== '' && SOLUTION_VERSION.trim() !== '') {
+  if (SOLUTION_ID && SOLUTION_VERSION && SOLUTION_ID.trim() !== '' && SOLUTION_VERSION.trim() !== '') {
     options.customUserAgent = `AwsSolution/${SOLUTION_ID}/${SOLUTION_VERSION}`;
   }
 
@@ -39,30 +37,13 @@ export function getAwsSdkOptions(input?: UtilsTypes.AwsSdkOptions): UtilsTypes.A
 }
 
 /**
- * Gets the Lambda runtime based on the machine protocol.
- * @param protocol The machine protocol
- * @returns The Lambda runtime of the machine protocol
- */
-export function getLambdaRuntime(protocol: ConnectionBuilderTypes.MachineProtocol): string {
-
-  switch (protocol) {
-    case ConnectionBuilderTypes.MachineProtocol.OPCDA:
-    case ConnectionBuilderTypes.MachineProtocol.OPCUA:
-      return GREENGRASS_LAMBDA_RUNTIME;
-    default:
-      throw new LambdaError({
-        message: 'Unsupported protocol.',
-        name: 'UtilsLambdaRuntimError'
-      });
-  }
-}
-
-/**
  * Sends anonymous usage metrics.
  * @param data Data to send a anonymous metric
+ * @param uuid The solution UUID
  */
-export async function sendAnonymousMetric(data: any, uuid: string) {
+export async function sendAnonymousMetric(data: AnonymousMetricData, uuid: string) {
   try {
+    const { SOLUTION_ID, SOLUTION_VERSION } = process.env;
     const body = {
       Solution: SOLUTION_ID,
       Version: SOLUTION_VERSION,
@@ -98,7 +79,7 @@ export async function sleep(seconds: number): Promise<PromiseConstructor> {
  * @returns The trimmed strings in the object
  * @throws `UtilsInvalidObject` when object is not provided
  */
-export function trimAllStringInObjectOrArray(obj: any) {
+export function trimAllStringInObjectOrArray(obj: unknown) {
   if (typeof obj !== 'object') {
     throw new LambdaError({
       message: 'Invalid object',
@@ -107,28 +88,39 @@ export function trimAllStringInObjectOrArray(obj: any) {
     });
   }
 
-  let trimedObject: any;
-  if (!Array.isArray(obj)) {
-    trimedObject = {};
+  let trimmedObject: unknown;
+  if (Array.isArray(obj)) {
+    trimmedObject = [];
   } else {
-    trimedObject = [];
+    trimmedObject = {};
   }
 
-  for (let key in obj) {
+  for (const key in obj) {
     if (typeof obj[key] === 'object') {
-      trimedObject[key] = trimAllStringInObjectOrArray(obj[key]);
-    } else if (typeof obj[key] === 'string') {
-      const trimedStr = obj[key].trim();
-
-      if (Array.isArray(obj)) {
-        trimedObject.push(trimedStr);
-      } else {
-        trimedObject[key] = trimedStr;
-      }
+      trimmedObject[key] = trimAllStringInObjectOrArray(obj[key]);
     } else {
-      trimedObject[key] = obj[key];
+      if (typeof obj[key] === 'string') {
+        obj[key] = obj[key].trim();
+      }
+
+      if (Array.isArray(trimmedObject)) {
+        trimmedObject.push(obj[key]);
+      } else {
+        trimmedObject[key] = obj[key];
+      }
     }
   }
 
-  return trimedObject;
+  return trimmedObject;
+}
+
+/**
+ * Validates if the provided version is valid.
+ * The valid version consists of a major version number, a minor version number, and a patch version number.
+ * (e.g. 1.0.0)
+ * @param version The version to validate
+ * @returns If the version is valid or not
+ */
+export function isValidVersion(version: string): boolean {
+  return /^(\d|[1-9]\d*)\.(\d|[1-9]\d*)\.(\d|[1-9]\d*)$/.test(version);
 }

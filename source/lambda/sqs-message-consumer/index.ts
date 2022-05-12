@@ -4,7 +4,7 @@
 import { DocumentClient } from 'aws-sdk/clients/dynamodb';
 import { LambdaError } from '../lib/errors';
 import Logger, { LoggingLevel } from '../lib/logger';
-import { MessageConsumerTypes } from '../lib/types';
+import { BatchPutRequest, EventMessage, ItemBody, RecordBody, SqsRecord } from '../lib/types/message-consumer-types';
 import { getAwsSdkOptions } from '../lib/utils';
 
 const dynamoDb = new DocumentClient(getAwsSdkOptions());
@@ -16,11 +16,11 @@ const logger = new Logger('sqs-message-consumer', LOGGING_LEVEL);
  * The Lambda function consumes the IoT topic messages in the SQS queue.
  * @param event Logs from the SQS queue
  */
-exports.handler = async (event: MessageConsumerTypes.EventMessage): Promise<void> => {
+export async function handler(event: EventMessage): Promise<void> {
   logger.log(LoggingLevel.DEBUG, `Event: ${JSON.stringify(event, null, 2)}`);
 
   const { Records } = event;
-  let batchItems: MessageConsumerTypes.BatchPutRequest[] = [];
+  let batchItems: BatchPutRequest[] = [];
 
   // DynamoDB TTL - a week after now
   const ttlDate = new Date();
@@ -28,17 +28,17 @@ exports.handler = async (event: MessageConsumerTypes.EventMessage): Promise<void
   const ttl = Math.floor(ttlDate.getTime() / 1000);
 
   while (Records.length > 0) {
-    Records.splice(0, BATCH_WRITE_MAX).forEach((record: MessageConsumerTypes.SqsRecord) => {
+    Records.splice(0, BATCH_WRITE_MAX).forEach((record: SqsRecord) => {
       try {
         checkMessageRecordValidation(record);
-        const body: any = JSON.parse(record.body);
+        const body: RecordBody = JSON.parse(record.body);
         const { connectionName, timestamp, logType } = body;
 
         delete body.connectionName;
         delete body.timestamp;
         delete body.logType;
 
-        const item: MessageConsumerTypes.RecordBody = {
+        const item: ItemBody = {
           connectionName,
           timestamp,
           logType,
@@ -57,14 +57,19 @@ exports.handler = async (event: MessageConsumerTypes.EventMessage): Promise<void
 
     if (batchItems.length > 0) {
       try {
-        const batchResult = await dynamoDb.batchWrite({
-          RequestItems: { [LOGS_DYNAMODB_TABLE]: batchItems }
-        }).promise();
+        const batchResult = await dynamoDb
+          .batchWrite({ RequestItems: { [LOGS_DYNAMODB_TABLE]: batchItems } })
+          .promise();
 
-        if (batchResult.UnprocessedItems &&
+        if (
+          batchResult.UnprocessedItems &&
           batchResult.UnprocessedItems[LOGS_DYNAMODB_TABLE] &&
-          batchResult.UnprocessedItems[LOGS_DYNAMODB_TABLE].length > 0) {
-          logger.log(LoggingLevel.WARN, `Items were unprocessed: ${JSON.stringify(batchResult.UnprocessedItems[LOGS_DYNAMODB_TABLE])}`);
+          batchResult.UnprocessedItems[LOGS_DYNAMODB_TABLE].length > 0
+        ) {
+          logger.log(
+            LoggingLevel.WARN,
+            `Items were unprocessed: ${JSON.stringify(batchResult.UnprocessedItems[LOGS_DYNAMODB_TABLE])}`
+          );
         }
       } catch (error) {
         logger.log(LoggingLevel.ERROR, `Error to batchWrite the DynamoDB items: ${JSON.stringify(batchItems)}`);
@@ -80,12 +85,15 @@ exports.handler = async (event: MessageConsumerTypes.EventMessage): Promise<void
  * Checks if the message record is valid.
  * @param record The message record
  */
-function checkMessageRecordValidation(record: MessageConsumerTypes.SqsRecord) {
-  const body: any = JSON.parse(record.body);
+function checkMessageRecordValidation(record: SqsRecord) {
+  const body: RecordBody = JSON.parse(record.body);
   const { connectionName, timestamp, logType } = body;
 
   if (!connectionName || !timestamp || !logType) {
-    logger.log(LoggingLevel.ERROR, `Required values are missing: [connectionName]: ${connectionName}, [timestamp]: ${timestamp}, [logType]: ${logType}`);
+    logger.log(
+      LoggingLevel.ERROR,
+      `Required values are missing: [connectionName]: ${connectionName}, [timestamp]: ${timestamp}, [logType]: ${logType}`
+    );
     throw new LambdaError({
       message: `Required values are missing: [connectionName]: ${connectionName}, [timestamp]: ${timestamp}, [logType]: ${logType}`,
       name: 'MessageConsumerError',

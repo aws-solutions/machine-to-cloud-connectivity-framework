@@ -9,6 +9,12 @@
 
 set -e
 
+# Configure environment variables
+template_dir=$PWD
+root_dir="${template_dir%/*}"
+source_dir="$root_dir/source"
+coverage_reports_top_path="$source_dir/test/coverage-reports"
+
 prepare_jest_coverage_report() {
   local component_name=$1
 
@@ -17,7 +23,7 @@ prepare_jest_coverage_report() {
     exit 129
   fi
 
-	# prepare coverage reports
+  # prepare coverage reports
   rm -fr coverage/lcov-report
   mkdir -p $coverage_reports_top_path/jest
   coverage_report_path=$coverage_reports_top_path/jest/$component_name
@@ -27,7 +33,7 @@ prepare_jest_coverage_report() {
 
 run_typescript_test() {
   local component_path=$1
-	local component_name=$2
+  local component_name=$2
 
   echo "------------------------------------------------------------------------------"
   echo "[Test] Run TypeScript unit test with coverage for $component_name"
@@ -35,24 +41,37 @@ run_typescript_test() {
   echo "cd $component_path"
   cd $component_path
 
-	# clean and install dependencies
-  npm run clean
-	npm install
+  # clean and install dependencies
+  yarn clean
+  yarn install
 
   # run unit tests
-  npm test
+  yarn test
 
   # prepare coverage reports
-	prepare_jest_coverage_report $component_name
+  prepare_jest_coverage_report $component_name
 }
 
-# Configure environment variables
-template_dir=$PWD
-root_dir="${template_dir%/*}"
-source_dir="$root_dir/source"
-coverage_reports_top_path="$source_dir/test/coverage-reports"
+run_python_test() {
+  local component_path=$1
+  local component_name=$2
 
-# Test packages
+  echo "------------------------------------------------------------------------------"
+  echo "[Test] Run Python unit test with coverage for $component_name"
+  echo "------------------------------------------------------------------------------"
+  python_coverage_report="$coverage_reports_top_path/$component_name.coverage.xml"
+  rm -f $python_coverage_report
+  cd $component_path
+
+  # run unit tests
+  python3 -m pytest -v --tb=long --cov=$component_path \
+      --cov-config=tests/.coveragerc \
+      --cov-report=term-missing \
+      --cov-report "xml:$python_coverage_report"
+  sed -i -e "s,<source>$source_dir,<source>source,g" $python_coverage_report
+}
+
+# TypeScript packages
 declare -a packages=(
   "infrastructure"
   "lib"
@@ -60,6 +79,8 @@ declare -a packages=(
   "greengrass-deployer"
   "custom-resource"
   "sqs-message-consumer"
+  "timestream-writer"
+  "ui"
 )
 
 for package in "${packages[@]}"
@@ -77,29 +98,11 @@ do
     echo "Test for $package passed"
   else
     echo "******************************************************************************"
-    echo "Lambda test FAILED for $package"
+    echo "TypeScript test FAILED for $package"
     echo "******************************************************************************"
     exit 1
   fi
 done
-
-# Test UI
-cd $source_dir/ui
-npm run clean
-npm run install:yarn
-node_modules/yarn/bin/yarn install
-node_modules/yarn/bin/yarn test
-prepare_jest_coverage_report ui
-
-if [ $? -eq 0 ]
-then
-  echo "Test for ui passed"
-else
-  echo "******************************************************************************"
-  echo "Lambda test FAILED for ui"
-  echo "******************************************************************************"
-  exit 1
-fi
 
 echo "------------------------------------------------------------------------------"
 echo "[Init] Clean Python virtual environment"
@@ -110,30 +113,37 @@ if [ -d ".venv" ]; then
 fi
 
 echo "------------------------------------------------------------------------------"
-echo "[Init] Create Python virtual environment"
+echo "[Init] Create Python virtual environment and installing dev requirements"
 echo "------------------------------------------------------------------------------"
 python3 -m venv .venv
 source .venv/bin/activate
-
-echo "------------------------------------------------------------------------------"
-echo "[Test] Python unit tests"
-echo "------------------------------------------------------------------------------"
-cd $source_dir/machine_connector/m2c2_publisher
-pip install -r tests/requirements_dev.txt
 cd $source_dir/machine_connector
-python_coverage_report="$coverage_reports_top_path/machine_connector.coverage.xml"
-echo "coverage report path set to $python_coverage_report"
-coverage run --include=${source_dir}/machine_connector/utils --omit=${source_dir}/machine_connector/m2c2_opcda_connector,${source_dir}machine_connector/m2c2_publisher -m pytest tests -v --tb=long --cov=${source_dir}/machine_connector --cov-report=term-missing --cov-report "xml:$python_coverage_report"
-sed -i -e "s,<source>$source_dir,<source>source,g" $python_coverage_report
-python_coverage_report="$coverage_reports_top_path/m2c2_publisher.coverage.xml"
-echo "coverage report path set to $python_coverage_report"
-cd $source_dir/machine_connector/m2c2_publisher
-cp -r $source_dir/machine_connector/utils .
-coverage run --omit=${source_dir}/machine_connector/m2c2_publisher/utils -m pytest tests -v --cov=${source_dir}/machine_connector/m2c2_publisher --cov-report=term-missing --cov-report "xml:$python_coverage_report"
-sed -i -e "s,<source>$source_dir,<source>source,g" $python_coverage_report
-rm -rf $source_dir/machine_connector/m2c2_publisher/utils
+pip install -r requirements_dev.txt
+
+# Python packages
+declare -a packages=(
+  "utils"
+  "m2c2_publisher"
+  "m2c2_opcda_connector"
+)
+
+for package in "${packages[@]}"
+do
+  run_python_test $source_dir/machine_connector/$package $package
+
+  # Check the result of the test and exit if a failure is identified
+  if [ $? -eq 0 ]
+  then
+    echo "Test for $package passed"
+  else
+    echo "******************************************************************************"
+    echo "Python test FAILED for $package"
+    echo "******************************************************************************"
+    exit 1
+  fi
+done
+
 echo "------------------------------------------------------------------------------"
 echo "[End] Deactivate Python virtual environment"
 echo "------------------------------------------------------------------------------"
 deactivate
-

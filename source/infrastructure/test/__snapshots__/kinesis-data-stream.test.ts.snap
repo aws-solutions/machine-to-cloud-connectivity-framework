@@ -1,0 +1,525 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`M2C2 data stream test 1`] = `
+Object {
+  "Resources": Object {
+    "TestKinesisDataStreamKinesisFirehoseToS3KinesisFirehose7F1FF68F": Object {
+      "Metadata": Object {
+        "cdk_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "AwsSolutions-IAM5",
+              "reason": "It specifies a bucket, so it is not a wildcard permission.",
+            },
+            Object {
+              "id": "AwsSolutions-KDF1",
+              "reason": "The data stream is encrypted.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "DeliveryStreamType": "KinesisStreamAsSource",
+        "ExtendedS3DestinationConfiguration": Object {
+          "BucketARN": Object {
+            "Fn::GetAtt": Array [
+              "TestKinesisDataStreamKinesisFirehoseToS3S3Bucket772620F8",
+              "Arn",
+            ],
+          },
+          "BufferingHints": Object {
+            "IntervalInSeconds": 300,
+            "SizeInMBs": 5,
+          },
+          "CloudWatchLoggingOptions": Object {
+            "Enabled": true,
+            "LogGroupName": Object {
+              "Ref": "TestKinesisDataStreamKinesisFirehoseToS3firehoseloggroup9770CCFE",
+            },
+            "LogStreamName": Object {
+              "Ref": "TestKinesisDataStreamKinesisFirehoseToS3firehoseloggroupfirehoselogstream355DD551",
+            },
+          },
+          "CompressionFormat": "GZIP",
+          "EncryptionConfiguration": Object {
+            "KMSEncryptionConfig": Object {
+              "AWSKMSKeyARN": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":kms:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":alias/aws/s3",
+                  ],
+                ],
+              },
+            },
+          },
+          "RoleARN": Object {
+            "Fn::GetAtt": Array [
+              "TestKinesisDataStreamKinesisFirehoseToS3KinesisFirehoseRoleB0907667",
+              "Arn",
+            ],
+          },
+        },
+        "KinesisStreamSourceConfiguration": Object {
+          "KinesisStreamARN": Object {
+            "Fn::GetAtt": Array [
+              "TestKinesisDataStreamKinesisStream37C75F74",
+              "Arn",
+            ],
+          },
+          "RoleARN": Object {
+            "Fn::GetAtt": Array [
+              "TestKinesisDataStreamKinesisStreamsRole62182271",
+              "Arn",
+            ],
+          },
+        },
+      },
+      "Type": "AWS::KinesisFirehose::DeliveryStream",
+    },
+    "TestKinesisDataStreamKinesisFirehoseToS3KinesisFirehosePolicyD26DDC12": Object {
+      "Metadata": Object {
+        "cdk_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "AwsSolutions-IAM5",
+              "reason": "It specifies a bucket, so it is not a wildcard permission.",
+            },
+            Object {
+              "id": "AwsSolutions-KDF1",
+              "reason": "The data stream is encrypted.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "s3:AbortMultipartUpload",
+                "s3:GetBucketLocation",
+                "s3:GetObject",
+                "s3:ListBucket",
+                "s3:ListBucketMultipartUploads",
+                "s3:PutObject",
+              ],
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "TestKinesisDataStreamKinesisFirehoseToS3S3Bucket772620F8",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "TestKinesisDataStreamKinesisFirehoseToS3S3Bucket772620F8",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            Object {
+              "Action": "logs:PutLogEvents",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":logs:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":log-group:",
+                    Object {
+                      "Ref": "TestKinesisDataStreamKinesisFirehoseToS3firehoseloggroup9770CCFE",
+                    },
+                    ":log-stream:",
+                    Object {
+                      "Ref": "TestKinesisDataStreamKinesisFirehoseToS3firehoseloggroupfirehoselogstream355DD551",
+                    },
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestKinesisDataStreamKinesisFirehoseToS3KinesisFirehosePolicyD26DDC12",
+        "Roles": Array [
+          Object {
+            "Ref": "TestKinesisDataStreamKinesisFirehoseToS3KinesisFirehoseRoleB0907667",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestKinesisDataStreamKinesisFirehoseToS3KinesisFirehoseRoleB0907667": Object {
+      "Metadata": Object {
+        "cdk_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "AwsSolutions-IAM5",
+              "reason": "It specifies a bucket, so it is not a wildcard permission.",
+            },
+            Object {
+              "id": "AwsSolutions-KDF1",
+              "reason": "The data stream is encrypted.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "firehose.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestKinesisDataStreamKinesisFirehoseToS3S3Bucket772620F8": Object {
+      "DeletionPolicy": "Retain",
+      "Metadata": Object {
+        "cdk_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "AwsSolutions-IAM5",
+              "reason": "It specifies a bucket, so it is not a wildcard permission.",
+            },
+            Object {
+              "id": "AwsSolutions-KDF1",
+              "reason": "The data stream is encrypted.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "BucketEncryption": Object {
+          "ServerSideEncryptionConfiguration": Array [
+            Object {
+              "ServerSideEncryptionByDefault": Object {
+                "SSEAlgorithm": "AES256",
+              },
+            },
+          ],
+        },
+        "LifecycleConfiguration": Object {
+          "Rules": Array [
+            Object {
+              "NoncurrentVersionTransitions": Array [
+                Object {
+                  "StorageClass": "GLACIER",
+                  "TransitionInDays": 90,
+                },
+              ],
+              "Status": "Enabled",
+            },
+          ],
+        },
+        "LoggingConfiguration": Object {
+          "DestinationBucketName": Object {
+            "Ref": "TestLoggingBucket",
+          },
+          "LogFilePrefix": "m2c2data/",
+        },
+        "PublicAccessBlockConfiguration": Object {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true,
+        },
+        "VersioningConfiguration": Object {
+          "Status": "Enabled",
+        },
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "TestKinesisDataStreamKinesisFirehoseToS3S3BucketPolicyEE72FD7C": Object {
+      "Metadata": Object {
+        "cdk_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "AwsSolutions-IAM5",
+              "reason": "It specifies a bucket, so it is not a wildcard permission.",
+            },
+            Object {
+              "id": "AwsSolutions-KDF1",
+              "reason": "The data stream is encrypted.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "Bucket": Object {
+          "Ref": "TestKinesisDataStreamKinesisFirehoseToS3S3Bucket772620F8",
+        },
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "s3:*",
+              "Condition": Object {
+                "Bool": Object {
+                  "aws:SecureTransport": "false",
+                },
+              },
+              "Effect": "Deny",
+              "Principal": Object {
+                "AWS": "*",
+              },
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "TestKinesisDataStreamKinesisFirehoseToS3S3Bucket772620F8",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "TestKinesisDataStreamKinesisFirehoseToS3S3Bucket772620F8",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::S3::BucketPolicy",
+    },
+    "TestKinesisDataStreamKinesisFirehoseToS3firehoseloggroup9770CCFE": Object {
+      "DeletionPolicy": "Retain",
+      "Metadata": Object {
+        "cdk_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "AwsSolutions-IAM5",
+              "reason": "It specifies a bucket, so it is not a wildcard permission.",
+            },
+            Object {
+              "id": "AwsSolutions-KDF1",
+              "reason": "The data stream is encrypted.",
+            },
+          ],
+        },
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "W86",
+              "reason": "Retention period for CloudWatchLogs LogGroups are set to 'Never Expire' to preserve customer data indefinitely",
+            },
+            Object {
+              "id": "W84",
+              "reason": "By default CloudWatchLogs LogGroups data is encrypted using the CloudWatch server-side encryption keys (AWS Managed Keys)",
+            },
+          ],
+        },
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "TestKinesisDataStreamKinesisFirehoseToS3firehoseloggroupfirehoselogstream355DD551": Object {
+      "DeletionPolicy": "Retain",
+      "Metadata": Object {
+        "cdk_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "AwsSolutions-IAM5",
+              "reason": "It specifies a bucket, so it is not a wildcard permission.",
+            },
+            Object {
+              "id": "AwsSolutions-KDF1",
+              "reason": "The data stream is encrypted.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "LogGroupName": Object {
+          "Ref": "TestKinesisDataStreamKinesisFirehoseToS3firehoseloggroup9770CCFE",
+        },
+      },
+      "Type": "AWS::Logs::LogStream",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "TestKinesisDataStreamKinesisStream37C75F74": Object {
+      "Metadata": Object {
+        "cdk_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "AwsSolutions-IAM5",
+              "reason": "It specifies a bucket, so it is not a wildcard permission.",
+            },
+            Object {
+              "id": "AwsSolutions-KDF1",
+              "reason": "The data stream is encrypted.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "RetentionPeriodHours": 24,
+        "ShardCount": 1,
+        "StreamEncryption": Object {
+          "EncryptionType": "KMS",
+          "KeyId": "alias/aws/kinesis",
+        },
+        "StreamModeDetails": Object {
+          "StreamMode": "PROVISIONED",
+        },
+      },
+      "Type": "AWS::Kinesis::Stream",
+    },
+    "TestKinesisDataStreamKinesisStreamGetRecordsIteratorAgeAlarmFFF983C2": Object {
+      "Metadata": Object {
+        "cdk_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "AwsSolutions-IAM5",
+              "reason": "It specifies a bucket, so it is not a wildcard permission.",
+            },
+            Object {
+              "id": "AwsSolutions-KDF1",
+              "reason": "The data stream is encrypted.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "AlarmDescription": "Consumer Record Processing Falling Behind, there is risk for data loss due to record expiration.",
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "EvaluationPeriods": 1,
+        "MetricName": "GetRecords.IteratorAgeMilliseconds",
+        "Namespace": "AWS/Kinesis",
+        "Period": 300,
+        "Statistic": "Maximum",
+        "Threshold": 2592000,
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "TestKinesisDataStreamKinesisStreamReadProvisionedThroughputExceededAlarm16D630D3": Object {
+      "Metadata": Object {
+        "cdk_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "AwsSolutions-IAM5",
+              "reason": "It specifies a bucket, so it is not a wildcard permission.",
+            },
+            Object {
+              "id": "AwsSolutions-KDF1",
+              "reason": "The data stream is encrypted.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "AlarmDescription": "Consumer Application is Reading at a Slower Rate Than Expected.",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "EvaluationPeriods": 1,
+        "MetricName": "ReadProvisionedThroughputExceeded",
+        "Namespace": "AWS/Kinesis",
+        "Period": 300,
+        "Statistic": "Average",
+        "Threshold": 0,
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "TestKinesisDataStreamKinesisStreamsRole62182271": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "firehose.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Policies": Array [
+          Object {
+            "PolicyDocument": Object {
+              "Statement": Array [
+                Object {
+                  "Action": Array [
+                    "kinesis:DescribeStream",
+                    "kinesis:GetShardIterator",
+                    "kinesis:GetRecords",
+                    "kinesis:ListShards",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": Object {
+                    "Fn::GetAtt": Array [
+                      "TestKinesisDataStreamKinesisStream37C75F74",
+                      "Arn",
+                    ],
+                  },
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "KinesisStreamsRoleRolePolicy",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestLoggingBucket": Object {
+      "DeletionPolicy": "Retain",
+      "Properties": Object {
+        "AccessControl": "LogDeliveryWrite",
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain",
+    },
+  },
+}
+`;

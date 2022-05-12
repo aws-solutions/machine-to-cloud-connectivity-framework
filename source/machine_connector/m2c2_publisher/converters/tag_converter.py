@@ -1,13 +1,14 @@
-# Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
+
 import logging
 
 
 class TagConverter:
     def __init__(self, protocol):
         self.protocol = protocol
-        # Logging
-        self.logger = logging.getLogger()
+
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.setLevel(logging.INFO)
 
     def convert_opcua_tag(self, payload):

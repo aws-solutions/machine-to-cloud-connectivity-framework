@@ -1,6 +1,6 @@
 {
   "name": "timestream-writer",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "It consumes the Kinesis Data Stream data and store the data into Amazon Timestream table.",
   "main": "index.js",
   "scripts": {

@@ -1,6 +1,6 @@
 {
   "name": "machine-to-cloud-connectivity-framework-source",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Machine to Cloud Connectivity Framework ESLint and prettier",
   "private": true,
   "license": "Apache-2.0",

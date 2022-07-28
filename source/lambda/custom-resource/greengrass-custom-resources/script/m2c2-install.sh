@@ -12,6 +12,7 @@ IOT_PRIVATE_KEY='PRIVATE_KEY_PLACEHOLDER'
 ENABLE_DATA_PROCESSING_PACK='false'
 
 VERSION='1.0.82.0'
+GREENGRASS_NUCLEUS_VERSION='2.5.6'
 
 function printUsage() {
   cat 1>&2 <<EOF
@@ -436,7 +437,7 @@ function modifyEtcSudoers() {
 }
 
 function downloadGreengrassNucleus() {
-    local greengrass_package=greengrass-nucleus-latest.zip
+    local greengrass_package=greengrass-$GREENGRASS_NUCLEUS_VERSION.zip
     logOuput \
         curl --retry 10 -s https://d2s8p88vqu9w66.cloudfront.net/releases/$greengrass_package -o greengrass-package.zip
     showErrorOnFailure "Failed to download $greengrass_package. Please check your internet connection and retry."

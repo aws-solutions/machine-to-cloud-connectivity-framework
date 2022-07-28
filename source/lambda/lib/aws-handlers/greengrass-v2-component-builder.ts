@@ -38,7 +38,7 @@ export class GreengrassV2ComponentBuilder {
     // By default, all components have the Greengrass Nucleus and stream manager as dependencies.
     const componentDependencies: Record<string, ComponentDependency> = {
       'aws.greengrass.Nucleus': {
-        VersionRequirement: '>=2.0.0 <2.6.0',
+        VersionRequirement: '=2.5.6',
         DependencyType: 'HARD'
       },
       'aws.greengrass.StreamManager': {

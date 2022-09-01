@@ -15,12 +15,20 @@ export enum ConnectionControl {
 
 export enum MachineProtocol {
   OPCDA = 'opcda',
-  OPCUA = 'opcua'
+  OPCUA = 'opcua',
+  OSIPI = 'osipi'
 }
 
 export enum LogType {
   INFO = 'info',
   ERROR = 'error'
+}
+
+export enum OsiPiAuthMode {
+  ANONYMOUS = 'Anonymous',
+  BASIC = 'BASIC'
+  //TODO: Figure out how to support Kerberos auth
+  // KERBEROS = 'KERBEROS'
 }
 
 /**
@@ -36,8 +44,10 @@ export interface ConnectionDefinition {
   gatewayId?: string;
   greengrassCoreDeviceName?: string;
   machineName?: string;
+  logLevel?: string;
   opcDa?: OpcDaDefinition;
   opcUa?: OpcUaDefinition;
+  osiPi?: OsiPiDefinition;
   process?: string;
   sendDataToIoTSiteWise?: boolean;
   sendDataToIoTTopic?: boolean;
@@ -61,4 +71,19 @@ export interface OpcDaDefinition extends CommonDefinition {
 export interface OpcUaDefinition extends CommonDefinition {
   port?: number;
   source?: CapabilityConfigurationSource;
+}
+
+export interface OsiPiDefinition {
+  apiUrl: string;
+  serverName: string;
+  authMode: OsiPiAuthMode;
+  verifySSL: boolean;
+  username?: string;
+  password?: string;
+  credentialSecretArn?: string;
+  tags: string[];
+  requestFrequency: number;
+  catchupFrequency: number;
+  maxRequestDuration: number;
+  queryOffset: number;
 }

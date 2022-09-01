@@ -25,6 +25,7 @@ const event: ConnectionDefinition = {
   area: mockValues.area,
   process: mockValues.process,
   machineName: mockValues.machineName,
+  logLevel: mockValues.logLevel,
   sendDataToIoTSiteWise: false,
   sendDataToIoTTopic: true,
   sendDataToKinesisDataStreams: false,
@@ -91,6 +92,7 @@ test('Test success to deploy OPC DA connection with list tags and tags', async (
     area: event.area,
     greengrassCoreDeviceName: event.greengrassCoreDeviceName,
     machineName: event.machineName,
+    logLevel: event.logLevel,
     opcDa: event.opcDa,
     opcUa: undefined,
     process: event.process,
@@ -112,7 +114,9 @@ test('Test success to deploy OPC DA connection with list tags and tags', async (
     connectionName: event.connectionName,
     machineName: event.machineName,
     process: event.process,
-    siteName: event.siteName
+    logLevel: event.logLevel,
+    siteName: event.siteName,
+    protocol: event.protocol
   });
   expect(mockGreengrassV2Handler.createComponent).toHaveBeenNthCalledWith(2, {
     area: event.area,
@@ -120,6 +124,7 @@ test('Test success to deploy OPC DA connection with list tags and tags', async (
     connectionName: event.connectionName,
     machineName: event.machineName,
     process: event.process,
+    logLevel: event.logLevel,
     protocol: event.protocol,
     sendDataToIoTSiteWise: event.sendDataToIoTSiteWise,
     sendDataToIoTTopic: event.sendDataToIoTTopic,
@@ -132,7 +137,8 @@ test('Test success to deploy OPC DA connection with list tags and tags', async (
     iotThingArn: getGreengrassCoreDevice.iotThingArn,
     deletedComponents: [],
     newComponents: [mockValues.componentName.opcDaConnector, mockValues.componentName.publisher],
-    updatedComponents: {}
+    updatedComponents: {},
+    secretManagement: []
   });
   expect(mockGreengrassV2Handler.deleteComponent).not.toHaveBeenCalled();
   expect(mockGreengrassV2Handler.getDeployment).toHaveBeenCalledTimes(1);
@@ -226,8 +232,10 @@ test('Test failure to deploy OPC DA connection due to creating component failure
     componentType: ComponentType.COLLECTOR,
     connectionName: event.connectionName,
     machineName: event.machineName,
+    logLevel: event.logLevel,
     process: event.process,
-    siteName: event.siteName
+    siteName: event.siteName,
+    protocol: event.protocol
   });
   expect(mockGreengrassV2Handler.createDeployment).not.toHaveBeenCalled();
   expect(mockGreengrassV2Handler.deleteComponent).toHaveBeenCalledTimes(2);
@@ -286,6 +294,7 @@ test('Test success to deploy OPC UA connection', async () => {
     area: event.area,
     greengrassCoreDeviceName: event.greengrassCoreDeviceName,
     machineName: event.machineName,
+    logLevel: event.logLevel,
     opcDa: undefined,
     opcUa: event.opcUa,
     process: event.process,
@@ -307,6 +316,7 @@ test('Test success to deploy OPC UA connection', async () => {
     connectionName: event.connectionName,
     machineName: event.machineName,
     process: event.process,
+    logLevel: event.logLevel,
     protocol: event.protocol,
     sendDataToIoTSiteWise: event.sendDataToIoTSiteWise,
     sendDataToIoTTopic: event.sendDataToIoTTopic,
@@ -319,7 +329,8 @@ test('Test success to deploy OPC UA connection', async () => {
     iotThingArn: getGreengrassCoreDevice.iotThingArn,
     deletedComponents: [],
     newComponents: [mockValues.componentName.publisher],
-    updatedComponents: {}
+    updatedComponents: {},
+    secretManagement: []
   });
   expect(mockGreengrassV2Handler.deleteComponent).not.toHaveBeenCalled();
   expect(mockGreengrassV2Handler.getDeployment).toHaveBeenCalledTimes(1);

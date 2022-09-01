@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { LambdaError } from '../errors';
 import {
   ComponentConnectionMetadata,
   ComponentDependency,
@@ -17,12 +18,15 @@ const { ARTIFACT_BUCKET, KINESIS_STREAM, TIMESTREAM_KINESIS_STREAM } = process.e
  * and /source/machine_connector/m2c2_publisher/requirements.txt
  */
 const PYTHON_MODULE_VERSION = {
-  awsiotsdk: '1.7.1',
+  awsiotsdk: '1.11.1',
   backoff: '1.10.0',
   greengrasssdk: '1.6.0',
   'OpenOPC-Python3x': '1.3.1',
   Pyro4: '4.81',
-  'python-dateutil': '2.8.1'
+  'python-dateutil': '2.8.1',
+  requests_ntlm: '1.1.0',
+  testresources: '2.0.1',
+  wheel: '0.37.1'
 };
 
 export class GreengrassV2ComponentBuilder {
@@ -32,7 +36,17 @@ export class GreengrassV2ComponentBuilder {
    * @returns The component recipe
    */
   public static createRecipe(params: CreateComponentRecipeRequest): CreateComponentRecipeResponse {
-    const { area, componentType, componentVersion, connectionName, machineName, process, protocol, siteName } = params;
+    const {
+      area,
+      componentType,
+      componentVersion,
+      connectionName,
+      machineName,
+      process,
+      logLevel,
+      protocol,
+      siteName
+    } = params;
     const { sendDataToIoTSiteWise, sendDataToIoTTopic, sendDataToKinesisStreams, sendDataToTimestream } = params;
 
     // By default, all components have the Greengrass Nucleus and stream manager as dependencies.
@@ -47,11 +61,12 @@ export class GreengrassV2ComponentBuilder {
       }
     };
     const connectionMetadata: ComponentConnectionMetadata = {
-      area,
-      connectionName,
-      machineName,
-      process,
-      siteName,
+      area: area,
+      connectionName: connectionName,
+      machineName: machineName,
+      process: process,
+      siteName: siteName,
+      logLevel: logLevel,
       streamName: `m2c2_${connectionName}_stream`
     };
     const componentEnvironmentVariables: Record<string, string> = {
@@ -60,15 +75,17 @@ export class GreengrassV2ComponentBuilder {
       CONNECTION_NAME: '{configuration:/connectionMetadata/connectionName}',
       MACHINE_NAME: '{configuration:/connectionMetadata/machineName}',
       PROCESS: '{configuration:/connectionMetadata/process}',
-      SITE_NAME: '{configuration:/connectionMetadata/siteName}'
+      SITE_NAME: '{configuration:/connectionMetadata/siteName}',
+      LOG_LEVEL: '{configuration:/connectionMetadata/logLevel}'
     };
 
     // By default, all components install `awsiotsdk`, `backoff`, `greengrasssdk`, and `python-dateutil` before running.
-    const pythonPackages = ['awsiotsdk', 'backoff', 'greengrasssdk', 'python-dateutil'];
+    const pythonPackages = ['awsiotsdk', 'backoff', 'greengrasssdk', 'python-dateutil', 'wheel'];
+    const pythonUnversionedPackages = [];
 
     let componentName = `m2c2-${connectionName}`;
     let topic = `m2c2/+/${connectionName}`;
-    let artifact = 'm2c2_opcda_connector';
+    let artifact = '';
 
     if (componentType === ComponentType.PUBLISHER) {
       /**
@@ -109,16 +126,39 @@ export class GreengrassV2ComponentBuilder {
       componentEnvironmentVariables.SEND_TO_TIMESTREAM = '{configuration:/connectionMetadata/sendDataToTimestream}';
       componentEnvironmentVariables.TIMESTREAM_KINESIS_STREAM = TIMESTREAM_KINESIS_STREAM;
     } else {
-      /**
-       * Currently, only the OPC DA collector component is supported.
-       * The OPC DA collector needs to install OpenOPC and Pyro4 before running.
-       */
-      pythonPackages.push(...['OpenOPC-Python3x', 'Pyro4']);
+      if (params.protocol == MachineProtocol.OPCDA) {
+        artifact = 'm2c2_opcda_connector';
+
+        /**
+         * The OPC DA collector needs to install OpenOPC and Pyro4 before running.
+         */
+        pythonPackages.push(...['OpenOPC-Python3x', 'Pyro4']);
+      } else if (params.protocol == MachineProtocol.OSIPI) {
+        artifact = 'm2c2_osipi_connector';
+
+        pythonPackages.push(...['testresources', 'requests_ntlm']);
+        pythonUnversionedPackages.push(
+          ...['git+https://github.com/dcbark01/PI-Web-API-Client-Python.git@b620f72f2d2551632f406df44bd409f5cc305055']
+        );
+
+        componentDependencies['aws.greengrass.SecretManager'] = {
+          VersionRequirement: '>=2.1.0 <3.0.0',
+          DependencyType: 'HARD'
+        };
+      } else {
+        throw new LambdaError({
+          message: `no handler exists for protocol: "${params.protocol}".`,
+          name: 'IoTProtocolHandlerNotFoundError',
+          statusCode: 400
+        });
+      }
     }
 
-    const pythonPackagesInstall = pythonPackages
+    let pythonPackagesInstall = pythonPackages
       .map(pythonPackage => `${pythonPackage}==${PYTHON_MODULE_VERSION[pythonPackage]}`)
       .join(' ');
+
+    pythonPackagesInstall += ' ' + pythonUnversionedPackages.join(' ');
 
     return {
       RecipeFormatVersion: '2020-01-25',
@@ -135,6 +175,13 @@ export class GreengrassV2ComponentBuilder {
                 operations: ['aws.greengrass#PublishToIoTCore', 'aws.greengrass#SubscribeToIoTCore'],
                 resources: [topic]
               }
+            },
+            'aws.greengrass.SecretManager': {
+              [`${componentName}:secrets:1`]: {
+                policyDescription: `Allows access to secrets ${componentName}.`,
+                operations: ['aws.greengrass#GetSecretValue'],
+                resources: ['*']
+              }
             }
           },
           connectionMetadata
@@ -149,8 +196,15 @@ export class GreengrassV2ComponentBuilder {
           Name: 'Linux',
           Lifecycle: {
             Setenv: componentEnvironmentVariables,
-            Install: `pip3 install -I ${pythonPackagesInstall}`,
-            Run: `python3 {artifacts:decompressedPath}/${artifact}/${artifact}.py`
+            Install: `
+            python3 -m venv .venv
+            . .venv/bin/activate
+            pip3 install -I ${pythonPackagesInstall}
+            `,
+            Run: `
+            . .venv/bin/activate
+            python3 {artifacts:decompressedPath}/${artifact}/${artifact}.py
+            `
           },
           Artifacts: [
             {

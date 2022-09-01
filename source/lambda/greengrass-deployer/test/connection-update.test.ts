@@ -26,6 +26,7 @@ const event: ConnectionDefinition = {
   area: mockValues.area,
   process: mockValues.process,
   machineName: mockValues.machineName,
+  logLevel: mockValues.logLevel,
   sendDataToIoTSiteWise: true,
   sendDataToIoTTopic: true,
   sendDataToKinesisDataStreams: true,
@@ -45,6 +46,7 @@ const opcDaComponent = {
   machineName: event.machineName,
   process: event.process,
   siteName: event.siteName,
+  logLevel: event.logLevel,
   streamName: `m2c2_${event.connectionName}_stream`
 };
 const publisherComponent = {
@@ -53,6 +55,7 @@ const publisherComponent = {
   machineName: event.machineName,
   process: event.process,
   siteName: event.siteName,
+  logLevel: event.logLevel,
   streamName: `m2c2_${event.connectionName}_stream`,
   sendDataToIoTTopic: 'Yes',
   sendDataToIoTSiteWise: 'Yes',
@@ -113,6 +116,7 @@ test('Test success to update running OPC DA connection with list tags', async ()
     area: event.area,
     greengrassCoreDeviceName: event.greengrassCoreDeviceName,
     machineName: event.machineName,
+    logLevel: event.logLevel,
     opcDa: event.opcDa,
     opcUa: undefined,
     process: event.process,
@@ -130,7 +134,8 @@ test('Test success to update running OPC DA connection with list tags', async ()
     updatedComponents: {
       [`m2c2-${event.connectionName}`]: JSON.stringify({ connectionMetadata: opcDaComponent }),
       [`m2c2-${event.connectionName}-publisher`]: JSON.stringify({ connectionMetadata: publisherComponent })
-    }
+    },
+    secretManagement: []
   });
   expect(mockGreengrassV2Handler.getDeployment).toHaveBeenCalledTimes(1);
   expect(mockGreengrassV2Handler.getDeployment).toHaveBeenCalledWith(mockValues.deploymentId);
@@ -204,6 +209,7 @@ test('Test success to update stopped OPC DA connection with tags', async () => {
     area: event.area,
     greengrassCoreDeviceName: event.greengrassCoreDeviceName,
     machineName: event.machineName,
+    logLevel: event.logLevel,
     opcDa: event.opcDa,
     opcUa: undefined,
     process: event.process,
@@ -221,7 +227,8 @@ test('Test success to update stopped OPC DA connection with tags', async () => {
     updatedComponents: {
       [`m2c2-${event.connectionName}`]: JSON.stringify({ connectionMetadata: opcDaComponent }),
       [`m2c2-${event.connectionName}-publisher`]: JSON.stringify({ connectionMetadata: publisherComponent })
-    }
+    },
+    secretManagement: []
   });
   expect(mockGreengrassV2Handler.getDeployment).toHaveBeenCalledTimes(1);
   expect(mockGreengrassV2Handler.getDeployment).toHaveBeenCalledWith(mockValues.deploymentId);
@@ -304,6 +311,7 @@ test('Test success to update running OPC UA connection when current server name 
     area: event.area,
     greengrassCoreDeviceName: event.greengrassCoreDeviceName,
     machineName: event.machineName,
+    logLevel: event.logLevel,
     opcDa: undefined,
     opcUa: event.opcUa,
     process: event.process,
@@ -320,7 +328,8 @@ test('Test success to update running OPC UA connection when current server name 
     newComponents: [],
     updatedComponents: {
       [`m2c2-${event.connectionName}-publisher`]: JSON.stringify({ connectionMetadata: publisherComponent })
-    }
+    },
+    secretManagement: []
   });
   expect(mockGreengrassV2Handler.getDeployment).toHaveBeenCalledTimes(1);
   expect(mockGreengrassV2Handler.getDeployment).toHaveBeenCalledWith(mockValues.deploymentId);
@@ -404,6 +413,7 @@ test('Test success to update stopped OPC UA connection when current server name 
     area: event.area,
     greengrassCoreDeviceName: event.greengrassCoreDeviceName,
     machineName: event.machineName,
+    logLevel: event.logLevel,
     opcDa: undefined,
     opcUa: event.opcUa,
     process: event.process,
@@ -420,7 +430,8 @@ test('Test success to update stopped OPC UA connection when current server name 
     newComponents: [],
     updatedComponents: {
       [`m2c2-${event.connectionName}-publisher`]: JSON.stringify({ connectionMetadata: publisherComponent })
-    }
+    },
+    secretManagement: []
   });
   expect(mockGreengrassV2Handler.getDeployment).toHaveBeenCalledTimes(1);
   expect(mockGreengrassV2Handler.getDeployment).toHaveBeenCalledWith(mockValues.deploymentId);

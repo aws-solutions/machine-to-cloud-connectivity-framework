@@ -14,6 +14,7 @@ const params: ConnectionDefinition = {
   area: 'area',
   process: 'process',
   machineName: 'machine',
+  logLevel: undefined,
   sendDataToIoTSiteWise: true,
   sendDataToIoTTopic: true,
   sendDataToKinesisDataStreams: true,

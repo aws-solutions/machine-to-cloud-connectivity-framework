@@ -27,9 +27,20 @@ class TagConverter:
         tag = payload["alias"].split('/')[-1]
         return tag
 
+    def convert_osipi_tag(self, payload):
+        """
+        Converting the OSI PI name, representing the telemetry tag
+        Replacing '/' with '_' and "." with "-" in tag
+        """
+        self.payload = payload
+        tag = self.payload["alias"].replace(".", "-").replace("/", "_")
+        return tag
+
     def retrieve_tag(self, payload):
         if self.protocol == "opcua":
             self.tag = self.convert_opcua_tag(payload)
         if self.protocol == "opcda":
             self.tag = self.convert_opcda_tag(payload)
+        if self.protocol == "osipi":
+            self.tag = self.convert_osipi_tag(payload)
         return self.tag

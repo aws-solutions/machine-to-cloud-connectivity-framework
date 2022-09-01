@@ -111,6 +111,7 @@ export interface ManageIoTRoleAliasProperties extends ResourceProperty {
 export interface CopyGreengrassComponentArtifactProperties extends CopyProperties {
   Artifacts: {
     OpcDaConnectorArtifact: string;
+    OsiPiConnectorArtifact: string;
     PublisherArtifact: string;
   };
 }

@@ -33,8 +33,8 @@ test('renders the OpcDaFrom with the existing connection', async () => {
       listTags: ['listTag1.*', 'listTag2.*'],
       tags: ['tag1', 'tag2']
     },
-    listTags: 'listTag1.*\nlistTag2.*',
-    tags: 'tag1\ntag2'
+    opcDaListTags: 'listTag1.*\nlistTag2.*',
+    opcDaTags: 'tag1\ntag2'
   };
 
   const opcDaForm = render(<OpcDaForm connection={connection} onChange={() => console.log('changed')} errors={{}} />);

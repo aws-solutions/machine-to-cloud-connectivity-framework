@@ -2,7 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ConnectionControl, ConnectionDefinition, MachineProtocol } from './solution-common-types';
-import { ComponentDependencyType, CoreDeviceStatus } from 'aws-sdk/clients/greengrassv2';
+import {
+  ComponentDependencyType,
+  ComponentDeploymentSpecification,
+  CoreDeviceStatus
+} from 'aws-sdk/clients/greengrassv2';
 export { DeploymentStatus } from 'aws-sdk/clients/greengrassv2';
 
 type ComponentRecipeFormatVersion = '2020-01-25';
@@ -21,6 +25,7 @@ export interface CreateComponentRecipeRequest {
   machineName: string;
   process: string;
   siteName: string;
+  logLevel: string;
   componentVersion?: string;
   protocol?: MachineProtocol;
   sendDataToIoTSiteWise?: boolean;
@@ -69,6 +74,7 @@ export interface ComponentConnectionMetadata {
   machineName: string;
   process: string;
   siteName: string;
+  logLevel?: string;
   streamName: string;
   sendDataToIoTTopic?: string;
   sendDataToIoTSiteWise?: string;
@@ -106,6 +112,12 @@ export interface CreateDeploymentRequest {
   deletedComponents?: string[];
   newComponents?: string[];
   updatedComponents?: Record<string, string>;
+  secretManagement: SecretManagement[];
+}
+
+export interface PublicComponentSpecification {
+  componentName: string;
+  specification: ComponentDeploymentSpecification;
 }
 
 export interface PostDeploymentRequest {
@@ -120,4 +132,9 @@ export interface GreengrassCoreDeviceItem {
 
 export interface ListGreengrassCoreDevicesResponse {
   greengrassCoreDevices: GreengrassCoreDeviceItem[];
+}
+
+export interface SecretManagement {
+  secretArn: string;
+  action: ConnectionControl;
 }

@@ -4,7 +4,9 @@
 import GreengrassV2, {
   ComponentDeploymentSpecifications,
   CreateComponentVersionResponse,
-  CreateDeploymentResponse
+  CreateDeploymentResponse,
+  GetComponentRequest,
+  GetComponentResponse
 } from 'aws-sdk/clients/greengrassv2';
 import { GreengrassV2ComponentBuilder } from './greengrass-v2-component-builder';
 import Logger, { LoggingLevel } from '../logger';
@@ -15,6 +17,7 @@ import {
   GreengrassCoreDeviceItem
 } from '../types/greengrass-v2-handler-types';
 import { getAwsSdkOptions, isValidVersion, sleep } from '../utils';
+import { ConnectionControl } from '../types/solution-common-types';
 
 const { LOGGING_LEVEL } = process.env;
 
@@ -85,6 +88,21 @@ export default class GreengrassV2Handler {
   }
 
   /**
+   *
+   * @param componentName the name of the public component
+   * @returns GetComponentResponse
+   */
+  public async getPublicComponent(componentName: string): Promise<GetComponentResponse> {
+    const versionArn = await this.findPublicComponentArn(componentName);
+
+    const getComponentRequest: GetComponentRequest = {
+      arn: versionArn,
+      recipeOutputFormat: 'JSON'
+    };
+    return await greengrassV2.getComponent(getComponentRequest).promise();
+  }
+
+  /**
    * Finds the Greengrass v2 component latest version ARN.
    * @param componentName The Greengrass v2 component name
    * @returns The Greengrass v2 component latest version ARN
@@ -93,6 +111,30 @@ export default class GreengrassV2Handler {
     logger.log(LoggingLevel.DEBUG, `Finding component ARN: ${componentName}`);
 
     const params: GreengrassV2.ListComponentsRequest = { scope: 'PRIVATE' };
+
+    do {
+      const { components, nextToken } = await greengrassV2.listComponents({ ...params }).promise();
+      const component = components.find(c => c.componentName === componentName);
+
+      if (component) {
+        return component.latestVersion.arn;
+      }
+
+      params.nextToken = nextToken;
+    } while (params.nextToken);
+
+    return undefined;
+  }
+
+  /**
+   * Finds the Greengrass v2 public component latest version ARN.
+   * @param componentName The Greengrass v2 component name
+   * @returns The Greengrass v2 component latest version ARN
+   */
+  private async findPublicComponentArn(componentName: string): Promise<string> {
+    logger.log(LoggingLevel.DEBUG, `Finding public component ARN: ${componentName}`);
+
+    const params: GreengrassV2.ListComponentsRequest = { scope: 'PUBLIC' };
 
     do {
       const { components, nextToken } = await greengrassV2.listComponents({ ...params }).promise();
@@ -120,7 +162,13 @@ export default class GreengrassV2Handler {
   public async createDeployment(params: CreateDeploymentRequest): Promise<CreateDeploymentResponse> {
     logger.log(LoggingLevel.DEBUG, `Creating deployment: ${JSON.stringify(params)}`);
 
-    const { iotThingArn, newComponents = [], deletedComponents = [], updatedComponents = {} } = params;
+    const {
+      iotThingArn,
+      newComponents = [],
+      deletedComponents = [],
+      updatedComponents = {},
+      secretManagement = []
+    } = params;
     const { deployments } = await greengrassV2.listDeployments({ targetArn: iotThingArn }).promise();
     let deploymentComponents: ComponentDeploymentSpecifications = {};
 
@@ -128,6 +176,83 @@ export default class GreengrassV2Handler {
       const deploymentId = deployments[0].deploymentId;
       const deployment = await this.getDeployment(deploymentId);
       deploymentComponents = deployment.components;
+    }
+
+    const hasRemainingComponentsAfterUpdate = this.determineIfAnyCustomComponentsRemaining(
+      deploymentComponents,
+      newComponents,
+      deletedComponents
+    );
+
+    if (hasRemainingComponentsAfterUpdate) {
+      //If secrets manager already in deployment, dont re-add it. (Greengrass limits public components to a single instance per deployment)
+      if (deploymentComponents['aws.greengrass.SecretManager'] == undefined) {
+        deploymentComponents['aws.greengrass.SecretManager'] = {
+          componentVersion: '2.1.0',
+          configurationUpdate: {
+            merge: JSON.stringify({
+              cloudSecrets: []
+            })
+          }
+        };
+      }
+    } else {
+      //remove secretManager when all other components are gone
+      deletedComponents.push('aws.greengrass.SecretManager');
+    }
+
+    let secretConfigList = [];
+    if (deploymentComponents['aws.greengrass.SecretManager'] != undefined) {
+      const configUpdate = deploymentComponents['aws.greengrass.SecretManager'].configurationUpdate;
+      if (configUpdate != undefined && configUpdate.merge != undefined) {
+        const existingSecretConfig = JSON.parse(configUpdate.merge);
+
+        secretConfigList = existingSecretConfig['cloudSecrets'];
+      }
+
+      for (const secretInfo of secretManagement) {
+        const secretArnIndex = secretConfigList.findIndex(x => x.arn === secretInfo.secretArn);
+
+        //Add/Update secrets config. Uses the AWSCURRENT version stage for all secrets.
+        switch (secretInfo.action) {
+          case ConnectionControl.DEPLOY:
+          case ConnectionControl.UPDATE:
+            if (secretArnIndex < 0) {
+              secretConfigList.push({
+                arn: secretInfo.secretArn,
+                labels: ['AWSCURRENT']
+              });
+            } else {
+              if (secretConfigList[secretArnIndex]['labels'] == undefined) {
+                secretConfigList[secretArnIndex]['labels'] = ['AWSCURRENT'];
+              } else {
+                //workaround for GreenGrass secret caching to force update to latest version on change
+                secretConfigList[secretArnIndex]['labels'].push('AWSCURRENT');
+              }
+            }
+            break;
+          case ConnectionControl.DELETE:
+            if (secretArnIndex >= 0) {
+              secretConfigList.splice(secretArnIndex, 1);
+            }
+            break;
+          default:
+            break;
+        }
+      }
+
+      if (secretConfigList.length > 0) {
+        const secretConfig = {
+          cloudSecrets: secretConfigList
+        };
+
+        deploymentComponents['aws.greengrass.SecretManager'].configurationUpdate = {
+          merge: JSON.stringify(secretConfig)
+        };
+      } else {
+        //remove secretManager when all secrets are gone
+        deletedComponents.push('aws.greengrass.SecretManager');
+      }
     }
 
     for (const component of deletedComponents) {
@@ -207,5 +332,29 @@ export default class GreengrassV2Handler {
        */
       if (error.code !== 'ResourceNotFoundException') throw error;
     }
+  }
+
+  /**
+   * Check if any non-excluded components will exist after deploying
+   * @param existingComponents existing deployed components
+   * @param newComponents new components to be deployed
+   * @param deletedComponents components to be deleted
+   * @returns true if there will be remaining deployment components, otherwise false
+   */
+  private determineIfAnyCustomComponentsRemaining(
+    existingComponents: ComponentDeploymentSpecifications,
+    newComponents: string[],
+    deletedComponents: string[]
+  ) {
+    let componentCount = Object.keys(existingComponents).length;
+
+    if (existingComponents['aws.greengrass.SecretManager'] != undefined) {
+      componentCount--;
+    }
+
+    componentCount += newComponents.length;
+    componentCount -= deletedComponents.length;
+
+    return componentCount > 0;
   }
 }

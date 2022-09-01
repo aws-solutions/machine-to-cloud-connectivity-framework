@@ -7,7 +7,7 @@ import messages
 
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
-from utils.custom_exception import OPCDaConnectorException
+from utils.custom_exception import ConnectorException
 
 
 class TestOpcDaConnector(TestCase):
@@ -105,7 +105,7 @@ class TestOpcDaConnector(TestCase):
 
             self.connector.MessageValidation.validate_schema.side_effect = Exception(
                 "Failure")
-            with self.assertRaises(OPCDaConnectorException):
+            with self.assertRaises(ConnectorException):
                 self.connector.validate_schema("")
 
     def test_m2c2_stream_required_format(self):
@@ -242,7 +242,7 @@ class TestOpcDaConnector(TestCase):
             # Connection failure
             mock_open_opc.open_client.side_effect = Exception(
                 "Failure")
-            with self.assertRaises(OPCDaConnectorException):
+            with self.assertRaises(ConnectorException):
                 self.connector.device_connect(self.connection_data)
 
     def test_read_opc_da_data(self):
@@ -406,7 +406,7 @@ class TestOpcDaConnector(TestCase):
             reset_all_mocks()
             self.connector.connector_client.start_client.side_effect = Exception(
                 "Failure")
-            with self.assertRaises(OPCDaConnectorException):
+            with self.assertRaises(ConnectorException):
                 self.connector.control_switch().get("start")(self.connection_data)
 
             # Stop already stopped
@@ -435,7 +435,7 @@ class TestOpcDaConnector(TestCase):
             reset_all_mocks()
             self.connector.connector_client.read_local_connection_configuration.side_effect = Exception(
                 "Failure")
-            with self.assertRaises(OPCDaConnectorException):
+            with self.assertRaises(ConnectorException):
                 self.connector.control_switch().get("stop")()
 
             # Pull success

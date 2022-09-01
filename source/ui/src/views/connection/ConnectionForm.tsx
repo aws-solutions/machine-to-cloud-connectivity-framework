@@ -34,6 +34,7 @@ import {
 } from '../../util/types';
 import { INIT_CONNECTION, buildConnectionDefinition, getConditionalValue, getErrorMessage } from '../../util/utils';
 import { ConnectionHook } from '../../hooks/ConnectionHook';
+import OsiPiForm from './OsiPiForm';
 
 const logger = new Logger('ConnectionForm');
 
@@ -110,7 +111,8 @@ export default function ConnectionForm(): JSX.Element {
         sendDataToIoTTopic: connection.sendDataToIoTTopic,
         sendDataToKinesisDataStreams: connection.sendDataToKinesisDataStreams,
         sendDataToTimestream: connection.sendDataToTimestream,
-        siteName: connection.siteName
+        siteName: connection.siteName,
+        logLevel: connection.logLevel
       };
       const newErrors = await checkErrors({ connection, connectionDefinition });
 
@@ -282,6 +284,19 @@ export default function ConnectionForm(): JSX.Element {
             </Form.Group>
             <Form.Group>
               <Form.Label>
+                {I18n.get('connector.log.level')} <span className="red-text">*</span>
+              </Form.Label>
+              <Form.Text muted>{I18n.get('description.logLevel')}</Form.Text>
+              <Form.Control id="logLevel" as="select" onChange={change} value={connection.logLevel}>
+                <option value="INFO">Info</option>
+                <option value="WARNING">Warning</option>
+                <option value="ERROR">Error</option>
+                <option value="CRITICAL">Critical</option>
+                <option value="DEBUG">Debug</option>
+              </Form.Control>
+            </Form.Group>
+            <Form.Group>
+              <Form.Label>
                 {I18n.get('send.data.to')} <span className="red-text">*</span>
               </Form.Label>
               <Form.Text muted>{I18n.get('description.send.data.to')}</Form.Text>
@@ -341,6 +356,7 @@ export default function ConnectionForm(): JSX.Element {
                 disabled={connectionName !== undefined}>
                 <option value={MachineProtocol.OPCDA}>OPC DA</option>
                 <option value={MachineProtocol.OPCUA}>OPC UA</option>
+                <option value={MachineProtocol.OSIPI}>OSI PI</option>
               </Form.Control>
             </Form.Group>
             {connection.protocol === MachineProtocol.OPCDA && (
@@ -348,6 +364,9 @@ export default function ConnectionForm(): JSX.Element {
             )}
             {connection.protocol === MachineProtocol.OPCUA && (
               <OpcUaForm connection={{ ...connection }} onChange={change} errors={errors} />
+            )}
+            {connection.protocol === MachineProtocol.OSIPI && (
+              <OsiPiForm connection={{ ...connection }} onChange={change} errors={errors} />
             )}
             <EmptyRow />
             <Row>

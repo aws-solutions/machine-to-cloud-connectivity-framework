@@ -8,7 +8,9 @@ import {
   KeyStringValue,
   MachineProtocol,
   OpcDaDefinition,
-  OpcUaDefinition
+  OpcUaDefinition,
+  OsiPiAuthMode,
+  OsiPiDefinition
 } from './types';
 
 // Constant variables
@@ -21,6 +23,15 @@ const MIN_TIME_INTERVAL = 0.5;
 const MIN_PORT = 1;
 const MAX_PORT = 65535;
 const MAX_OPCUA_SERVER_NAME_CHARACTERS = 256;
+const MAX_OSIPI_SERVER_NAME_CHARACTERS = 256;
+const MIN_OSIPI_REQUEST_FREQUENCY = 1; //1 sec
+const MAX_OSIPI_REQUEST_FREQUENCY = 3600; //1 hour
+const MIN_OSIPI_CATCHUP_FREQUENCY = 0.1; //10 ms
+const MAX_OSIPI_CATCHUP_FREQUENCY = 3600; //1 hour
+const MIN_OSIPI_REQUEST_DURATION = 1; // 1 second
+const MAX_OSIPI_REQUEST_DURATION = 3600; //1 hour
+const MIN_OSIPI_QUERY_OFFSET = 0; //now
+const MAX_OSIPI_QUERY_OFFSET = 86400; //1 day
 
 /**
  * Validates the connection definition. If not valid, returns errors.
@@ -97,6 +108,8 @@ export function validateConnectionDefinition(params: ConnectionDefinition): KeyS
     validateOpcDa(params.opcDa as OpcDaDefinition, errors);
   } else if (params.protocol === MachineProtocol.OPCUA) {
     validateOpcUa(params.opcUa as OpcUaDefinition, errors);
+  } else if (params.protocol === MachineProtocol.OSIPI) {
+    validateOsiPi(params.osiPi as OsiPiDefinition, errors);
   }
 
   return errors;
@@ -184,10 +197,106 @@ function validateOpcUa(opcUa: OpcUaDefinition, errors: KeyStringValue) {
 }
 
 /**
+ * Validates the OSI PI connection definition.
+ * @param osiPi The OSI PI connection definition
+ * @param errors The errors
+ */
+function validateOsiPi(osiPi: OsiPiDefinition, errors: KeyStringValue) {
+  if (!isValidUrl(osiPi.apiUrl)) {
+    errors.osiPi_apiUrl = I18n.get('invalid.url');
+  }
+
+  // Server name
+  if (osiPi.serverName.trim() === '' || osiPi.serverName.trim().length > MAX_OSIPI_SERVER_NAME_CHARACTERS) {
+    errors.opcUa_serverName = I18n.get('invalid.server.name');
+  }
+
+  if (osiPi.authMode === OsiPiAuthMode.BASIC) {
+    if (osiPi.username == undefined || osiPi.username.trim() === '') {
+      errors.osiPi_username = I18n.get('invalid.username');
+    }
+
+    if (osiPi.password == undefined || osiPi.password.trim() === '') {
+      errors.osiPi_password = I18n.get('invalid.password');
+    }
+  }
+
+  let existingQueryError = false;
+
+  const requestFrequency = Number(osiPi.requestFrequency as string);
+  if (
+    isNaN(requestFrequency) ||
+    requestFrequency < MIN_OSIPI_REQUEST_FREQUENCY ||
+    requestFrequency > MAX_OSIPI_REQUEST_FREQUENCY
+  ) {
+    errors.osiPi_requestFrequency = I18n.get('invalid.osiPi.requestFrequency');
+    existingQueryError = true;
+  }
+
+  const catchupFrequency = Number(osiPi.catchupFrequency as string);
+  if (
+    isNaN(catchupFrequency) ||
+    catchupFrequency < MIN_OSIPI_CATCHUP_FREQUENCY ||
+    catchupFrequency > MAX_OSIPI_CATCHUP_FREQUENCY
+  ) {
+    errors.osiPi_catchupFrequency = I18n.get('invalid.osiPi.requestFrequency');
+    existingQueryError = true;
+  }
+
+  const maxRequestDuration = Number(osiPi.maxRequestDuration as string);
+  if (
+    isNaN(maxRequestDuration) ||
+    maxRequestDuration < MIN_OSIPI_REQUEST_DURATION ||
+    maxRequestDuration > MAX_OSIPI_REQUEST_DURATION
+  ) {
+    errors.osiPi_maxRequestDuration = I18n.get('invalid.osiPi.maxRequestDuration');
+    existingQueryError = true;
+  }
+
+  if (!existingQueryError) {
+    if (maxRequestDuration <= requestFrequency) {
+      errors.osiPi_maxRequestDuration = I18n.get('invalid.osiPi.maxRequestDurationVsRequestFrequency');
+    }
+    if (catchupFrequency > requestFrequency) {
+      errors.osiPi_catchupFrequency = I18n.get('invalid.osiPi.catchupFrequencyVsRequestFrequency');
+    }
+  }
+
+  const queryOffset = Number(osiPi.queryOffset as string);
+  if (isNaN(queryOffset) || queryOffset < MIN_OSIPI_QUERY_OFFSET || queryOffset > MAX_OSIPI_QUERY_OFFSET) {
+    errors.osiPi_queryOffset = I18n.get('invalid.osiPi.queryOffset');
+  }
+
+  // Tags
+  if (!osiPi.tags || osiPi.tags.length === 0) {
+    errors.osiPi_Tags = I18n.get('invalid.tags');
+  }
+}
+
+/**
  * Validates the Greengrass core device name.
  * @param name Greengrass core device name
  * @returns If Greengrass core device name is valid
  */
 export function validateGreengrassCoreDeviceName(name: string): boolean {
   return typeof name === 'string' && /^[a-zA-Z0-9-_:]{1,128}$/.test(name);
+}
+
+/**
+ *
+ * @param urlStr The URL to validate
+ * @returns If the URL is in a valid format
+ */
+function isValidUrl(urlStr: string) {
+  try {
+    const url = new URL(urlStr);
+
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      return false;
+    }
+
+    return true;
+  } catch (_) {
+    return false;
+  }
 }

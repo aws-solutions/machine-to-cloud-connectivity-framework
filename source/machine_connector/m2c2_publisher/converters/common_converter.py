@@ -37,7 +37,7 @@ class CommonConverter:
             ]
             self.metadata_dict = dict(zip(self.key_list, self.value_list))
             payload.update(self.metadata_dict)
-            return(payload)
+            return (payload)
         except Exception as err:
             self.logger.error(
                 "An error has occurred in the common converter: {}".format(err))

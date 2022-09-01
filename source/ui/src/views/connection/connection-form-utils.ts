@@ -11,9 +11,10 @@ import {
   KeyStringValue,
   MachineProtocol,
   OpcDaDefinition,
-  OpcUaDefinition
+  OpcUaDefinition,
+  OsiPiDefinition
 } from '../../util/types';
-import { buildOpcDaTags, copyObject, getConditionalValue, setValue } from '../../util/utils';
+import { buildPerLineTags, copyObject, getConditionalValue, setValue } from '../../util/utils';
 import { validateConnectionDefinition } from '../../util/validations';
 
 type CheckErrorsRequest = {
@@ -31,10 +32,13 @@ export async function checkErrors(props: CheckErrorsRequest): Promise<KeyStringV
 
   if (connectionDefinition.protocol === MachineProtocol.OPCDA) {
     connectionDefinition.opcDa = connection.opcDa as OpcDaDefinition;
-    connectionDefinition.opcDa.listTags = buildOpcDaTags(connection.listTags);
-    connectionDefinition.opcDa.tags = buildOpcDaTags(connection.tags);
+    connectionDefinition.opcDa.listTags = buildPerLineTags(connection.opcDaListTags);
+    connectionDefinition.opcDa.tags = buildPerLineTags(connection.opcDaTags);
   } else if (connectionDefinition.protocol === MachineProtocol.OPCUA) {
     connectionDefinition.opcUa = connection.opcUa;
+  } else if (connectionDefinition.protocol === MachineProtocol.OSIPI) {
+    connectionDefinition.osiPi = connection.osiPi as OsiPiDefinition;
+    connectionDefinition.osiPi.tags = buildPerLineTags(connection.osiPiTags);
   }
 
   const newErrors = validateConnectionDefinition(connectionDefinition);
@@ -97,20 +101,28 @@ export function handleValueChange(props: HandleValueChangeRequest): void {
   let value: string | boolean = event.target.value;
   const copiedConnection = copyObject(connection as unknown as Record<string, unknown>);
 
-  if (id.startsWith('sendDataTo')) {
+  if (event.target.type == 'checkbox') {
     const { checked } = event.target as HTMLInputElement;
     value = checked;
   }
 
   // To prevent same ID from different protocols, OPC UA has prefix.
   let opcUaId: string | undefined;
-  if (id.startsWith('opcUa')) {
+  if (id.startsWith('opcUa-')) {
     opcUaId = id.split('-').pop() as string;
+  }
+
+  // To prevent same ID from different protocols, OSI PI has prefix.
+  let osiPiId: string | undefined;
+  if (id.startsWith('osiPi_')) {
+    osiPiId = id.split('_').pop() as string;
   }
 
   let valueChangeCondition: boolean;
   if (typeof opcUaId !== 'undefined') {
     valueChangeCondition = setValue(copiedConnection.opcUa as Record<string, unknown>, opcUaId, value);
+  } else if (typeof osiPiId !== 'undefined') {
+    valueChangeCondition = setValue(copiedConnection.osiPi as Record<string, unknown>, osiPiId, value);
   } else {
     valueChangeCondition = setValue(copiedConnection, id, value);
   }
@@ -119,17 +131,30 @@ export function handleValueChange(props: HandleValueChangeRequest): void {
     setConnection(copiedConnection as unknown as GetConnectionResponse);
 
     // Since `listTags` and `tags` need to be built to the array, it does not check the validation in real time.
-    if (!['listTags', 'tags'].includes(id)) {
+    if (!['opcDaListTags', 'opcDaTags'].includes(id)) {
       const newErrors = validateConnectionDefinition(copiedConnection as unknown as ConnectionDefinition);
 
-      if (id.toLowerCase().endsWith('machineip') || id.toLowerCase().endsWith('servername')) {
+      if (
+        osiPiId === undefined &&
+        (id.toLowerCase().endsWith('machineip') || id.toLowerCase().endsWith('servername'))
+      ) {
         id = getConditionalValue<string>(opcUaId, `opcUa_${opcUaId}`, `opcDa_${id}`);
       }
 
-      setErrors({
+      const errorsObj = {
         ...errors,
         [id]: newErrors[id]
-      });
+      };
+
+      if (id === 'osiPi_requestFrequency' || newErrors.osiPi_catchupFrequency == undefined) {
+        errorsObj['osiPi_catchupFrequency'] = newErrors['osiPi_catchupFrequency'];
+      }
+
+      if (id === 'osiPi_requestFrequency' || newErrors.osiPi_maxRequestDuration == undefined) {
+        errorsObj['osiPi_maxRequestDuration'] = newErrors['osiPi_maxRequestDuration'];
+      }
+
+      setErrors(errorsObj);
     }
   }
 }

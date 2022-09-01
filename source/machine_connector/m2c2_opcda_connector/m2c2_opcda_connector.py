@@ -18,7 +18,7 @@ from threading import Timer
 from typing import Union
 from utils import StreamManagerHelperClient, AWSEndpointClient, InitMessage
 from utils.subscription_stream_handler import SubscriptionStreamHandler
-from utils.custom_exception import OPCDaConnectorException
+from utils.custom_exception import ConnectorException
 from validations.message_validation import MessageValidation
 
 # payload array containing responses from the OPC DA server
@@ -95,7 +95,7 @@ def validate_schema(message: dict) -> None:
         validation.validate_schema(message)
     except Exception as err:
         logger.error(f"Message validation failed. Error: {err}")
-        raise OPCDaConnectorException(msg.ERR_MSG_VALIDATION.format(err))
+        raise ConnectorException(msg.ERR_MSG_VALIDATION.format(err))
 
 
 def m2c2_stream_required_format(tag: str, messages: list) -> dict:
@@ -177,16 +177,16 @@ def device_connect(connection_data: dict) -> None:
                     opc_server=connection_data["opcDa"]["serverName"]
                 )
                 break
-            except:
+            except Exception as err:
                 if i == CONNECTION_RETRY - 1:
                     raise
 
-                logger.error("Connection failed to %s, retry to connect...",
-                             connection_data["opcDa"]["machineIp"])
+                logger.error(f"Connection failed to %s, retry to connect...\n %s",
+                             connection_data["opcDa"]["machineIp"], err)
                 time.sleep(i + 1)
     except Exception as err:
         logger.error(f"Connection failed. Error: {err}")
-        raise OPCDaConnectorException(msg.ERR_MSG_FAIL_TO_CONNECT)
+        raise ConnectorException(msg.ERR_MSG_FAIL_TO_CONNECT)
 
 
 def read_opc_da_data(tags: list, list_tags: list, payload_content: list) -> list:
@@ -352,7 +352,7 @@ def start(connection_data: dict) -> None:
     except Exception as err:
         error_message = f"Failed to execute the start: {err}"
         logger.error(error_message)
-        raise OPCDaConnectorException(error_message)
+        raise ConnectorException(error_message)
 
 
 def stop() -> None:
@@ -383,7 +383,7 @@ def stop() -> None:
     except Exception as err:
         error_message = f"Failed to execute the stop: {err}"
         logger.error(error_message)
-        raise OPCDaConnectorException(error_message)
+        raise ConnectorException(error_message)
 
 
 def push(connection_data: dict) -> None:

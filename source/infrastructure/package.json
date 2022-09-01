@@ -1,6 +1,6 @@
 {
   "name": "machine-to-cloud-connectivity-infrastructure",
-  "version": "4.0.1",
+  "version": "4.1.0",
   "author": "AWS Solutions Builders",
   "license": "Apache-2.0",
   "bin": {

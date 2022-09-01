@@ -6,8 +6,8 @@ class FileException(Exception):
     pass
 
 
-class OPCDaConnectorException(Exception):
-    """Machine to Cloud Connectivity Framework OPC DA connector exception"""
+class ConnectorException(Exception):
+    """Machine to Cloud Connectivity Framework connector exception"""
     pass
 
 

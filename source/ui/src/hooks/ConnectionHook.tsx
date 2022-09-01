@@ -17,7 +17,7 @@ import {
   OpcUaDefinition,
   PaginationType
 } from '../util/types';
-import { getErrorMessage, getPaginationNextToken, handlePagination } from '../util/utils';
+import { getErrorMessage, getPaginationNextToken, handlePagination, INIT_CONNECTION } from '../util/utils';
 
 type ConnectionHookRequest = {
   setConnection: React.Dispatch<GetConnectionResponse>;
@@ -56,12 +56,12 @@ export function ConnectionHook(props: ConnectionHookRequest): ConnectionHookResp
       })) as GetConnectionResponse;
 
       if (response.protocol === MachineProtocol.OPCDA) {
-        const listTags: string[] = [];
+        const opcDaListTags: string[] = [];
         const tags: string[] = [];
 
         if (response.opcDa?.listTags) {
           for (const tag of response.opcDa.listTags) {
-            listTags.push(tag);
+            opcDaListTags.push(tag);
           }
         }
 
@@ -71,12 +71,31 @@ export function ConnectionHook(props: ConnectionHookRequest): ConnectionHookResp
           }
         }
 
-        response.listTags = listTags.join('\n');
-        response.tags = tags.join('\n');
+        response.opcDaListTags = opcDaListTags.join('\n');
+        response.opcDaTags = tags.join('\n');
       } else if (response.protocol === MachineProtocol.OPCUA) {
         if (response.opcUa?.port === undefined) {
           (response.opcUa as OpcUaDefinition).port = '';
         }
+      } else if (response.protocol === MachineProtocol.OSIPI) {
+        if (response.osiPi != undefined) {
+          if (response.osiPi.username == undefined) {
+            response.osiPi.username = INIT_CONNECTION.osiPi?.username;
+          }
+          if (response.osiPi.password == undefined) {
+            response.osiPi.password = INIT_CONNECTION.osiPi?.password;
+          }
+        }
+
+        const tags: string[] = [];
+
+        if (response.osiPi?.tags) {
+          for (const tag of response.osiPi.tags) {
+            tags.push(tag);
+          }
+        }
+
+        response.osiPiTags = tags.join('\n');
       }
 
       setConnection(response);

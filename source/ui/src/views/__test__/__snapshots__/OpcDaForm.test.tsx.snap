@@ -151,7 +151,7 @@ exports[`renders the OpcDaFrom errors 1`] = `
         </label>
         <textarea
           class="form-control is-invalid"
-          id="listTags"
+          id="opcDaListTags"
           placeholder="placeholder.list.tags"
         />
       </div>
@@ -165,7 +165,7 @@ exports[`renders the OpcDaFrom errors 1`] = `
         </label>
         <textarea
           class="form-control is-invalid"
-          id="tags"
+          id="opcDaTags"
           placeholder="placeholder.tags"
         />
         <div
@@ -328,7 +328,7 @@ exports[`renders the OpcDaFrom with the existing connection 1`] = `
         </label>
         <textarea
           class="form-control"
-          id="listTags"
+          id="opcDaListTags"
           placeholder="placeholder.list.tags"
         >
           listTag1.*
@@ -345,7 +345,7 @@ listTag2.*
         </label>
         <textarea
           class="form-control"
-          id="tags"
+          id="opcDaTags"
           placeholder="placeholder.tags"
         >
           tag1
@@ -509,7 +509,7 @@ exports[`renders the default OpcDaForm 1`] = `
         </label>
         <textarea
           class="form-control"
-          id="listTags"
+          id="opcDaListTags"
           placeholder="placeholder.list.tags"
         />
       </div>
@@ -523,7 +523,7 @@ exports[`renders the default OpcDaForm 1`] = `
         </label>
         <textarea
           class="form-control"
-          id="tags"
+          id="opcDaTags"
           placeholder="placeholder.tags"
         />
         <div

@@ -192,6 +192,7 @@ describe('Test COPY_GREENGRASS_COMPONENTS_ARTIFACT', () => {
       Resource: ResourceTypes.COPY_GREENGRASS_COMPONENTS_ARTIFACT,
       Artifacts: {
         OpcDaConnectorArtifact: mockValues.artifact.opcDaArtifact,
+        OsiPiConnectorArtifact: mockValues.artifact.osiPiArtifact,
         PublisherArtifact: mockValues.artifact.publisherArtifact
       },
       DestinationBucket: mockValues.destinationBucket,

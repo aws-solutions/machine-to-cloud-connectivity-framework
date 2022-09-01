@@ -15,6 +15,7 @@ export const script = fs.readFileSync(`${__dirname}/../greengrass-custom-resourc
 export const mockValues = {
   artifact: {
     opcDaArtifact: 'mock-opcda.zip',
+    osiPiArtifact: 'mock-osipi.zip',
     publisherArtifact: 'mock-publisher.zip'
   },
   axiosConfig: {

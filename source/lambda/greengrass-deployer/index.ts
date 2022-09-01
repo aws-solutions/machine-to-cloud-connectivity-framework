@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import DynamoDBHandler from '../lib/aws-handlers/dynamodb-handler';
+import SecretsManagerHandler from '../lib/aws-handlers/secretsManager-handler';
 import GreengrassV2Handler from '../lib/aws-handlers/greengrass-v2-handler';
 import IoTHandler from '../lib/aws-handlers/iot-handler';
 import IoTSiteWiseHandler from '../lib/aws-handlers/iot-sitewise-handler';
@@ -18,15 +19,22 @@ import {
   CreateComponentRecipeRequest,
   CreateDeploymentRequest,
   DeploymentStatus,
-  PostDeploymentRequest
+  PostDeploymentRequest,
+  SecretManagement
 } from '../lib/types/greengrass-v2-handler-types';
 import { IoTMessageTypes } from '../lib/types/iot-handler-types';
 import { CapabilityConfigurationSource } from '../lib/types/iot-sitewise-handler-types';
-import { ConnectionControl, ConnectionDefinition, MachineProtocol } from '../lib/types/solution-common-types';
+import {
+  ConnectionControl,
+  ConnectionDefinition,
+  MachineProtocol,
+  OsiPiAuthMode
+} from '../lib/types/solution-common-types';
 import { sendAnonymousMetric, sleep } from '../lib/utils';
 
 const { LOGGING_LEVEL, SOLUTION_UUID } = process.env;
 const dynamoDbHandler = new DynamoDBHandler();
+const secretsManagerHandler = new SecretsManagerHandler();
 const greengrassV2Handler = new GreengrassV2Handler();
 const iotHandler = new IoTHandler();
 const iotSitewiseHandler = new IoTSiteWiseHandler();
@@ -46,6 +54,7 @@ export async function handler(event: ConnectionDefinition): Promise<void> {
   const { iotSiteWiseGatewayId, iotThingArn } = greengrassCoreDevice;
 
   let updatedComponents: Record<string, string> = {};
+  const secretManagement: SecretManagement[] = [];
   let futureStatus: ConnectionControl;
 
   switch (control) {
@@ -68,6 +77,26 @@ export async function handler(event: ConnectionDefinition): Promise<void> {
           gatewayId: iotSiteWiseGatewayId,
           newConfiguration: event
         });
+      } else if (event.protocol === MachineProtocol.OSIPI) {
+        if (
+          event.osiPi?.authMode === OsiPiAuthMode.BASIC &&
+          !isNullOrWhitespace(event.osiPi.username) &&
+          !isNullOrWhitespace(event.osiPi.password)
+        ) {
+          const secretResponse = await secretsManagerHandler.updateSecret(`m2c2-${event.connectionName}`, {
+            username: event.osiPi.username,
+            password: event.osiPi.password
+          });
+
+          //remove basic creds from osiPi obj
+          delete event.osiPi.username;
+          delete event.osiPi.password;
+
+          secretManagement.push({
+            secretArn: secretResponse.ARN,
+            action: ConnectionControl.UPDATE
+          });
+        }
       }
 
       break;
@@ -81,8 +110,41 @@ export async function handler(event: ConnectionDefinition): Promise<void> {
         ...(await deleteComponents({ connectionName, gatewayId: iotSiteWiseGatewayId, protocol }))
       );
 
+      try {
+        const deletedSecret = await secretsManagerHandler.deleteSecret(`m2c2-${event.connectionName}`);
+
+        secretManagement.push({
+          secretArn: deletedSecret.ARN,
+          action: ConnectionControl.DELETE
+        });
+      } catch (err) {
+        logger.log(
+          LoggingLevel.DEBUG,
+          `Secret deletion failed. Most likely this is due to the component not having a secret`
+        );
+      }
+
       break;
     case ConnectionControl.DEPLOY:
+      if (event.protocol == MachineProtocol.OSIPI) {
+        if (event.osiPi?.authMode == OsiPiAuthMode.BASIC) {
+          const secretResponse = await secretsManagerHandler.createSecret(`m2c2-${event.connectionName}`, {
+            username: event.osiPi.username,
+            password: event.osiPi.password
+          });
+          event.osiPi.credentialSecretArn = secretResponse.ARN;
+
+          //remove basic creds from osiPi obj
+          event.osiPi.username = undefined;
+          event.osiPi.password = undefined;
+
+          secretManagement.push({
+            secretArn: secretResponse.ARN,
+            action: ConnectionControl.DEPLOY
+          });
+        }
+      }
+
       await dynamoDbHandler.addConnection(event);
       newComponents.push(...(await createComponents({ ...event, gatewayId: iotSiteWiseGatewayId })));
       futureStatus = ConnectionControl.START;
@@ -95,7 +157,13 @@ export async function handler(event: ConnectionDefinition): Promise<void> {
       });
   }
 
-  const deploymentStatus = await createDeployment({ iotThingArn, deletedComponents, newComponents, updatedComponents });
+  const deploymentStatus = await createDeployment({
+    iotThingArn,
+    deletedComponents,
+    newComponents,
+    updatedComponents,
+    secretManagement
+  });
 
   if (['CANCELED', 'FAILED'].includes(deploymentStatus)) {
     const errorMessage = 'The greengrass deployment has been canceled or failed.';
@@ -149,6 +217,7 @@ async function createComponents(connectionDefinition: ConnectionDefinition): Pro
     gatewayId,
     machineName,
     process,
+    logLevel,
     protocol,
     sendDataToIoTSiteWise,
     sendDataToIoTTopic,
@@ -160,15 +229,17 @@ async function createComponents(connectionDefinition: ConnectionDefinition): Pro
   try {
     const newComponents: string[] = [];
     const createComponentParameters: CreateComponentRecipeRequest = {
-      area,
+      area: area,
       componentType: ComponentType.COLLECTOR,
-      connectionName,
-      machineName,
-      process,
-      siteName
+      connectionName: connectionName,
+      machineName: machineName,
+      process: process,
+      siteName: siteName,
+      logLevel: logLevel,
+      protocol: protocol
     };
 
-    if (protocol === MachineProtocol.OPCDA) {
+    if (protocol === MachineProtocol.OPCDA || protocol === MachineProtocol.OSIPI) {
       /**
        * When the protocol is OPC DA, create a collector component.
        */
@@ -190,7 +261,6 @@ async function createComponents(connectionDefinition: ConnectionDefinition): Pro
 
     // Creates a publisher component.
     createComponentParameters.componentType = ComponentType.PUBLISHER;
-    createComponentParameters.protocol = protocol;
     createComponentParameters.sendDataToIoTSiteWise = sendDataToIoTSiteWise;
     createComponentParameters.sendDataToIoTTopic = sendDataToIoTTopic;
     createComponentParameters.sendDataToKinesisStreams = sendDataToKinesisDataStreams;
@@ -247,7 +317,7 @@ async function deleteComponents(params: DeleteComponentRequest): Promise<string[
     const deletedComponents: string[] = [];
     let componentName = `m2c2-${connectionName}`;
 
-    if (protocol === MachineProtocol.OPCDA) {
+    if (protocol === MachineProtocol.OPCDA || protocol === MachineProtocol.OSIPI) {
       await iotHandler.publishIoTTopicMessage({
         connectionName,
         type: IoTMessageTypes.JOB,
@@ -314,6 +384,7 @@ function updateComponents(connectionDefinition: ConnectionDefinition): Record<st
     connectionName,
     machineName,
     process,
+    logLevel,
     protocol,
     siteName,
     sendDataToIoTTopic,
@@ -327,11 +398,12 @@ function updateComponents(connectionDefinition: ConnectionDefinition): Record<st
     machineName,
     process,
     siteName,
+    logLevel: logLevel,
     streamName: `m2c2_${connectionName}_stream`
   };
   const updatedComponents: Record<string, string> = {};
 
-  if (protocol === MachineProtocol.OPCDA) {
+  if (protocol === MachineProtocol.OPCDA || protocol === MachineProtocol.OSIPI) {
     updatedComponents[`m2c2-${connectionName}`] = JSON.stringify({ connectionMetadata });
   }
 
@@ -431,12 +503,13 @@ async function updateOpcUaConfiguration(params: UpdateOpcUaConfigurationRequest)
  * @returns The Greengrass v2 new deployment status
  */
 async function createDeployment(params: CreateDeploymentRequest): Promise<DeploymentStatus> {
-  const { iotThingArn, deletedComponents, newComponents, updatedComponents } = params;
+  const { iotThingArn, deletedComponents, newComponents, updatedComponents, secretManagement } = params;
   const { deploymentId } = await greengrassV2Handler.createDeployment({
     iotThingArn,
     deletedComponents,
     newComponents,
-    updatedComponents
+    updatedComponents,
+    secretManagement
   });
   let deploymentStatus: DeploymentStatus;
 
@@ -463,10 +536,10 @@ async function postDeployment(params: PostDeploymentRequest): Promise<void> {
   const { connectionName, control, greengrassCoreDeviceName, protocol } = connectionDefinition;
 
   // Sometimes it takes time to deploy the components, so it gives a term.
-  if (protocol === MachineProtocol.OPCDA) {
+  if (protocol === MachineProtocol.OPCDA || protocol === MachineProtocol.OSIPI) {
     if (control === ConnectionControl.DEPLOY) {
       await sleep(30);
-      await startOpcDaConnection(connectionDefinition);
+      await startComponentBasedConnection(connectionDefinition);
     } else if (control === ConnectionControl.UPDATE && futureStatus === ConnectionControl.START) {
       await sleep(30);
       await iotHandler.publishIoTTopicMessage({
@@ -479,7 +552,7 @@ async function postDeployment(params: PostDeploymentRequest): Promise<void> {
       });
 
       await sleep(3);
-      await startOpcDaConnection(connectionDefinition);
+      await startComponentBasedConnection(connectionDefinition);
     }
   }
 
@@ -493,12 +566,14 @@ async function postDeployment(params: PostDeploymentRequest): Promise<void> {
         machineName: connectionDefinition.machineName,
         opcDa: connectionDefinition.opcDa,
         opcUa: connectionDefinition.opcUa,
+        osiPi: connectionDefinition.osiPi,
         process: connectionDefinition.process,
         sendDataToIoTSiteWise: connectionDefinition.sendDataToIoTSiteWise,
         sendDataToIoTTopic: connectionDefinition.sendDataToIoTTopic,
         sendDataToKinesisDataStreams: connectionDefinition.sendDataToKinesisDataStreams,
         sendDataToTimestream: connectionDefinition.sendDataToTimestream,
-        siteName: connectionDefinition.siteName
+        siteName: connectionDefinition.siteName,
+        logLevel: connectionDefinition.logLevel
       })
     ];
 
@@ -516,10 +591,10 @@ async function postDeployment(params: PostDeploymentRequest): Promise<void> {
 }
 
 /**
- * Starts the OPC DA connection.
+ * Starts connection for a component based consumer of data (OPC DA / OSI PI)
  * @param connectionDefinition The connection definition
  */
-async function startOpcDaConnection(connectionDefinition: ConnectionDefinition): Promise<void> {
+async function startComponentBasedConnection(connectionDefinition: ConnectionDefinition): Promise<void> {
   const { connectionName } = connectionDefinition;
   await iotHandler.publishIoTTopicMessage({
     connectionName,
@@ -546,5 +621,19 @@ function createMetricsData(data: MetricData, connectionDefinition: ConnectionDef
     data.iterations = opcDa.iterations;
     data.numberOfLists = opcDa.listTags ? opcDa.listTags.length : 0;
     data.numberOfTags = opcDa.tags ? opcDa.tags.length : 0;
+  } else if (protocol === MachineProtocol.OSIPI) {
+    const { osiPi } = connectionDefinition;
+    data.interval = osiPi.requestFrequency;
+    data.iterations = 1;
+    data.numberOfTags = osiPi.tags ? osiPi.tags.length : 0;
   }
+}
+
+/**
+ *
+ * @param str the string to check if null/undefined/empty
+ * @returns true if the string is null/undefined/empty, otherwise false
+ */
+function isNullOrWhitespace(str: string) {
+  return str == undefined || str.trim().length == 0;
 }

@@ -9,10 +9,14 @@
 - [AWS CDK and Solutions Constructs](#aws-cdk-and-solutions-constructs)
 - [Customizing the Solution](#customizing-the-solution)
   - [Prerequisites for Customization](#prerequisites-for-customization)
+    - [1. Clone the repository](#1-clone-the-repository)
+    - [2. Declare environment variables](#2-declare-environment-variables)
   - [Unit Test](#unit-test)
   - [Build](#build)
   - [Deploy](#deploy)
+- [Collection of operational metrics](#collection-of-operational-metrics)
 - [License](#license)
+- [NOTES](#notes)
 
 # Solution Overview
 
@@ -92,12 +96,45 @@ chmod +x build-s3-dist.sh
 - Get the link of the solution template uploaded to your Amazon S3 bucket.
 - Deploy the solution to your account by launching a new AWS CloudFormation stack using the link of the solution template in Amazon S3.
 
+CLI based CloudFormation deployment:
+
+```bash
+
+export INITIAL_USER=name@example.com
+
+aws cloudformation create-stack \
+   --profile ${AWS_PROFILE:-default} \
+   --region ${REGION} \
+   --template-url https://${DIST_BUCKET_PREFIX}-${REGION}.s3.amazonaws.com/${SOLUTION_NAME}/${VERSION}/machine-to-cloud-connectivity-framework.template \
+   --stack-name m2c2 \
+   --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
+   --parameters \
+        ParameterKey=UserEmail,ParameterValue=$INITIAL_USER \
+        ParameterKey=LoggingLevel,ParameterValue=ERROR \
+        ParameterKey=ExistingKinesisStreamName,ParameterValue="" \
+        ParameterKey=ExistingTimestreamDatabaseName,ParameterValue=""
+
+```
+
 # Collection of operational metrics
 
 This solution collects anonymous operational metrics to help AWS improve the quality and features of the solution. For more information, including how to disable this capability, please see the [implementation guide](https://docs.aws.amazon.com/solutions/latest/machine-to-cloud-connectivity-framework/operational-metrics.html).
 
 # License
 
-Copyright 2019-2022 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
 SPDX-License-Identifier: Apache-2.0
+
+
+# NOTES
+
+On some operating systems, Python virtual environment must be installed manually
+```bash
+sudo apt install python3.8-venv
+```
+
+For the OSI PI connector, the following must be installed prior to deployment of M2C2 on the IoT Core Device
+```bash
+sudo apt-get install libkrb5-dev
+```

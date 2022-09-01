@@ -223,6 +223,7 @@ export class CustomResourcesConstruct extends Construct {
         Resource: 'CopyGreengrassComponentsArtifact',
         Artifacts: {
           OpcDaConnectorArtifact: 'm2c2_opcda_connector.zip',
+          OsiPiConnectorArtifact: 'm2c2_osipi_connector.zip',
           PublisherArtifact: 'm2c2_publisher.zip'
         },
         DestinationBucket: props.greengrassV2ResourceBucket.bucketName,

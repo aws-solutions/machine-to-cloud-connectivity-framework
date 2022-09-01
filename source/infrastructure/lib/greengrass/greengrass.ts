@@ -146,6 +146,22 @@ export class GreengrassConstruct extends Construct {
               actions: ['s3:GetBucketLocation', 's3:GetObject']
             })
           ]
+        }),
+        SecretsManagerPolicy: new PolicyDocument({
+          statements: [
+            new PolicyStatement({
+              effect: Effect.ALLOW,
+              resources: [
+                Stack.of(this).formatArn({
+                  service: 'secretsmanager',
+                  resource: 'secret',
+                  resourceName: '*',
+                  arnFormat: ArnFormat.COLON_RESOURCE_NAME
+                })
+              ],
+              actions: ['secretsmanager:GetSecretValue']
+            })
+          ]
         })
       }
     });

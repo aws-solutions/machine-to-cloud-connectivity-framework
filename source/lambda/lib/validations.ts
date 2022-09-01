@@ -9,7 +9,9 @@ import {
   ConnectionDefinition,
   MachineProtocol,
   OpcDaDefinition,
-  OpcUaDefinition
+  OpcUaDefinition,
+  OsiPiAuthMode,
+  OsiPiDefinition
 } from './types/solution-common-types';
 
 const EMPTY_TYPES = [undefined, null];
@@ -22,7 +24,15 @@ export const ValidationsLimit = {
   MAX_ITERATION: 30,
   MIN_PORT: 1,
   MAX_PORT: 65535,
-  MAX_OPCUA_SERVER_NAME_CHARACTERS: 256
+  MAX_OPCUA_SERVER_NAME_CHARACTERS: 256,
+  MIN_OSIPI_REQUEST_FREQUENCY: 1, //1 sec
+  MAX_OSIPI_REQUEST_FREQUENCY: 3600, //1 hr
+  MIN_OSIPI_CATCHUP_FREQUENCY: 0.1, //10ms
+  MAX_OSIPI_CATCHUP_FREQUENCY: 3600, //1 hr
+  MIN_OSIPI_REQUEST_DURATION: 1, //1 sec
+  MAX_OSIPI_REQUEST_DURATION: 3600, //1 hr
+  MIN_OSIPI_QUERY_OFFSET: 0, //now
+  MAX_OSIPI_QUERY_OFFSET: 86400 //1 day
 };
 
 /**
@@ -54,7 +64,7 @@ export function validateConnectionDefinition(connectionDefinition: ConnectionDef
 
   if (!protocolValues.includes(protocol)) {
     throw new LambdaError({
-      message: `"protocol" is invalid from the connection definition. It should be one of these: ${protocolValues}.`,
+      message: `"protocol" (${protocol}) is invalid from the connection definition. It should be one of these: ${protocolValues}.`,
       name: 'ValidationError',
       statusCode: 400
     });
@@ -121,9 +131,12 @@ function validateDetailedConnectionDefinition(connectionDefinition: ConnectionDe
   if (protocol === MachineProtocol.OPCDA) {
     // OPC DA
     validateOpcDaConnectionDefinition(connectionDefinition.opcDa);
-  } else {
+  } else if (protocol === MachineProtocol.OPCUA) {
     // OPC UA
     validateOpcUaConnectionDefinition(connectionDefinition.opcUa);
+  } else if (protocol === MachineProtocol.OSIPI) {
+    // OSI PI
+    validateOsiPiConnectionDefinition(connectionDefinition.osiPi);
   }
 }
 
@@ -290,17 +303,51 @@ function validateAllTags(listTags: string[], tags: string[]) {
     });
   }
 
-  if (listTagsLength > 0) validateTags(listTags, 'listTags');
-  if (tagsLength > 0) validateTags(tags, 'tags');
+  if (listTagsLength > 0) validateTagItems(listTags, 'listTags');
+  if (tagsLength > 0) validateTagItems(tags, 'tags');
 }
 
+/**
+ * Validates tags.
+ * @param tags The specific tags
+ * @throws `ValidationError` when list tags or tags are invalid
+ */
+function validateTags(tags: string[]) {
+  if (EMPTY_TYPES.includes(tags)) {
+    throw new LambdaError({
+      message: 'Tags are missing. At least one tag must be specified: tags.',
+      name: 'ValidationError',
+      statusCode: 400
+    });
+  }
+
+  if (!Array.isArray(tags)) {
+    throw new LambdaError({
+      message: `"tags" is invalid from the connection definition. It should be a string array.`,
+      name: 'ValidationError',
+      statusCode: 400
+    });
+  }
+
+  const tagsLength = tags ? tags.length : 0;
+
+  if (tagsLength === 0) {
+    throw new LambdaError({
+      message: `"tags" is empty. At least one tag is required.`,
+      name: 'ValidationError',
+      statusCode: 400
+    });
+  }
+
+  if (tagsLength > 0) validateTagItems(tags, 'tags');
+}
 /**
  * Validates items in tags array.
  * @param tags The tags array
  * @param name The name of the tags
  * @throws `ValidationError` when any item in tags is invalid
  */
-function validateTags(tags: string[], name: string) {
+function validateTagItems(tags: string[], name: string) {
   for (const tag of tags) {
     validateStringValue(tag, `Tag in ${name}`);
   }
@@ -344,6 +391,149 @@ function validateOpcUaConnectionDefinition(opcUa: OpcUaDefinition) {
         statusCode: 400
       });
     }
+  }
+}
+
+/**
+ * Validates the OSI PI connection definition.
+ * @param osiPi The OSI PI connection definition
+ * @throws `ValidationError` when the OSI PI connection definition is invalid
+ */
+function validateOsiPiConnectionDefinition(osiPi: OsiPiDefinition) {
+  // Since the type of array is also `object`, it checks if the value is an array.
+  if (typeof osiPi !== 'object' || Array.isArray(osiPi) || Object.keys(osiPi).length === 0) {
+    throw new LambdaError({
+      message: '"opcDa" is missing or invalid from the connection definition. See the implementation guide.',
+      name: 'ValidationError',
+      statusCode: 400
+    });
+  }
+
+  const {
+    apiUrl,
+    serverName,
+    authMode,
+    username,
+    password,
+    requestFrequency,
+    catchupFrequency,
+    maxRequestDuration,
+    queryOffset,
+    tags
+  } = osiPi;
+
+  validateUrl(apiUrl);
+  if (authMode === OsiPiAuthMode.BASIC) {
+    validateStringValue(username, 'username');
+    validateStringValue(password, 'password');
+  }
+  validateStringValue(serverName, 'serverName');
+  validateOsiPiQueryValues(requestFrequency, catchupFrequency, maxRequestDuration);
+  validateOsiPiQueryOffsetValue(queryOffset);
+  validateTags(tags);
+}
+
+/**
+ * Checks if string is a valid URL
+ * @param urlStr The url to validate
+ */
+function validateUrl(urlStr: string) {
+  try {
+    const url = new URL(urlStr);
+
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      throw new LambdaError({
+        message: `"apiUrl" protocol is invalid. It should be either 'https' or 'http'.`,
+        name: 'ValidationError',
+        statusCode: 400
+      });
+    }
+  } catch (_) {
+    throw new LambdaError({
+      message: `"apiUrl" is empty or malformed.`,
+      name: 'ValidationError',
+      statusCode: 400
+    });
+  }
+}
+
+/**
+ * Validates the osi pi query values.
+ * @param requestFrequency The api query frequency
+ * @param catchupFrequency The api query frequency when catching up to live data
+ * @param maxRequestDuration The maximum duration that a single api request can cover
+ * @throws `ValidationError` when any property is invalid
+ */
+function validateOsiPiQueryValues(requestFrequency: number, catchupFrequency: number, maxRequestDuration: number) {
+  if (
+    !Number.isInteger(requestFrequency) ||
+    requestFrequency < ValidationsLimit.MIN_OSIPI_REQUEST_FREQUENCY ||
+    requestFrequency > ValidationsLimit.MAX_OSIPI_REQUEST_FREQUENCY
+  ) {
+    throw new LambdaError({
+      message: `"requestFrequency" is missing or invalid from the connection definition. It should be an integer number between ${ValidationsLimit.MIN_OSIPI_REQUEST_FREQUENCY} and ${ValidationsLimit.MAX_OSIPI_REQUEST_FREQUENCY}.`,
+      name: 'ValidationError',
+      statusCode: 400
+    });
+  }
+
+  if (
+    typeof catchupFrequency !== 'number' ||
+    catchupFrequency < ValidationsLimit.MIN_OSIPI_CATCHUP_FREQUENCY ||
+    catchupFrequency > ValidationsLimit.MAX_OSIPI_CATCHUP_FREQUENCY
+  ) {
+    throw new LambdaError({
+      message: `"catchupFrequency" is missing or invalid from the connection definition. It should be a float number between ${ValidationsLimit.MIN_OSIPI_CATCHUP_FREQUENCY} and ${ValidationsLimit.MAX_OSIPI_CATCHUP_FREQUENCY}.`,
+      name: 'ValidationError',
+      statusCode: 400
+    });
+  }
+
+  if (
+    typeof maxRequestDuration !== 'number' ||
+    maxRequestDuration < ValidationsLimit.MIN_OSIPI_REQUEST_DURATION ||
+    maxRequestDuration > ValidationsLimit.MAX_OSIPI_REQUEST_DURATION
+  ) {
+    throw new LambdaError({
+      message: `"maxRequestDuration" is missing or invalid from the connection definition. It should be a float number between ${ValidationsLimit.MIN_OSIPI_REQUEST_DURATION} and ${ValidationsLimit.MAX_OSIPI_REQUEST_DURATION}.`,
+      name: 'ValidationError',
+      statusCode: 400
+    });
+  }
+
+  if (maxRequestDuration <= requestFrequency) {
+    throw new LambdaError({
+      message: `"maxRequestDuration" must be greater than "requestFrequency"`,
+      name: 'ValidationError',
+      statusCode: 400
+    });
+  }
+
+  if (catchupFrequency > requestFrequency) {
+    throw new LambdaError({
+      message: `"catchupFrequency" must be less than or equal to "requestFrequency"`,
+      name: 'ValidationError',
+      statusCode: 400
+    });
+  }
+}
+
+/**
+ * Validates the osi pi query offset value.
+ * @param queryOffset The offset from current time to query at
+ * @throws `ValidationError` when any property is invalid
+ */
+function validateOsiPiQueryOffsetValue(queryOffset: number) {
+  if (
+    !Number.isInteger(queryOffset) ||
+    queryOffset < ValidationsLimit.MIN_OSIPI_QUERY_OFFSET ||
+    queryOffset > ValidationsLimit.MAX_OSIPI_QUERY_OFFSET
+  ) {
+    throw new LambdaError({
+      message: `"queryOffset" is missing or invalid from the connection definition. It should be a number from ${ValidationsLimit.MIN_OSIPI_QUERY_OFFSET} to ${ValidationsLimit.MAX_OSIPI_QUERY_OFFSET}.`,
+      name: 'ValidationError',
+      statusCode: 400
+    });
   }
 }
 

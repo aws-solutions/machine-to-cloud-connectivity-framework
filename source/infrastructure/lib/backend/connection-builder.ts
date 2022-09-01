@@ -198,6 +198,28 @@ export class ConnectionBuilderConstruct extends Construct {
               resources: [props.greengrassResourceBucket.bucketArn, props.greengrassResourceBucket.arnForObjects('*')]
             })
           ]
+        }),
+        SecretsManagerPolicy: new PolicyDocument({
+          statements: [
+            new PolicyStatement({
+              effect: Effect.ALLOW,
+              resources: [
+                Stack.of(this).formatArn({
+                  service: 'secretsmanager',
+                  resource: 'secret',
+                  resourceName: '*',
+                  arnFormat: ArnFormat.COLON_RESOURCE_NAME
+                })
+              ],
+              actions: [
+                'secretsmanager:CreateSecret',
+                'secretsmanager:DeleteSecret',
+                'secretsmanager:PutSecretValue',
+                'secretsmanager:UpdateSecret',
+                'secretsmanager:RestoreSecret'
+              ]
+            })
+          ]
         })
       }
     });

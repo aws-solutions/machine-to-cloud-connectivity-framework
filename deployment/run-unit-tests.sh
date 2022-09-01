@@ -125,6 +125,7 @@ declare -a packages=(
   "utils"
   "m2c2_publisher"
   "m2c2_opcda_connector"
+  "m2c2_osipi_connector"
 )
 
 for package in "${packages[@]}"

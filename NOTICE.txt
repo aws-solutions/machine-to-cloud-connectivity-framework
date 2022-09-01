@@ -1,5 +1,5 @@
 Machine To Cloud Connectivity Framework
-Copyright 2019-2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
 **********************
 THIRD PARTY COMPONENTS
@@ -70,3 +70,4 @@ greengrasssdk under the Apache License 2.0
 OpenOPC-Python3x under the GNU GENERAL PUBLIC License Version 2
 Pyro4 under the Massachusetts Institute of Technology (MIT) License
 python-dateutil under the Apache 2.0 License and the 3-Clause BSD License
+dcbark01/PI-Web-API-Client-Python under the Apache 2.0 License

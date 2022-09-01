@@ -76,7 +76,8 @@ test('Test success to delete OPC DA connection', async () => {
     iotThingArn: getGreengrassCoreDevice.iotThingArn,
     deletedComponents: [mockValues.componentName.opcDaConnector, mockValues.componentName.publisher],
     newComponents: [],
-    updatedComponents: {}
+    updatedComponents: {},
+    secretManagement: []
   });
   expect(mockGreengrassV2Handler.deleteComponent).toHaveBeenCalledTimes(2);
   expect(mockGreengrassV2Handler.deleteComponent).toHaveBeenNthCalledWith(1, mockValues.componentName.opcDaConnector);
@@ -191,7 +192,8 @@ test('Test success to delete OPC UA connection when the connection is running', 
     iotThingArn: getGreengrassCoreDevice.iotThingArn,
     deletedComponents: [mockValues.componentName.publisher],
     newComponents: [],
-    updatedComponents: {}
+    updatedComponents: {},
+    secretManagement: []
   });
   expect(mockGreengrassV2Handler.deleteComponent).toHaveBeenCalledTimes(1);
   expect(mockGreengrassV2Handler.deleteComponent).toHaveBeenCalledWith(mockValues.componentName.publisher);
@@ -252,7 +254,8 @@ test('Test success to delete OPC UA connection when the connection is stopped', 
     iotThingArn: getGreengrassCoreDevice.iotThingArn,
     deletedComponents: [mockValues.componentName.publisher],
     newComponents: [],
-    updatedComponents: {}
+    updatedComponents: {},
+    secretManagement: []
   });
   expect(mockGreengrassV2Handler.deleteComponent).toHaveBeenCalledTimes(1);
   expect(mockGreengrassV2Handler.deleteComponent).toHaveBeenCalledWith(mockValues.componentName.publisher);

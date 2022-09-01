@@ -2,7 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { DocumentClient } from 'aws-sdk/clients/dynamodb';
-import { ConnectionControl, LogType, MachineProtocol, OpcDaDefinition, OpcUaDefinition } from './solution-common-types';
+import {
+  ConnectionControl,
+  LogType,
+  MachineProtocol,
+  OpcDaDefinition,
+  OpcUaDefinition,
+  OsiPiDefinition
+} from './solution-common-types';
 
 export type PageItems = GetConnectionResponse[] | LogItem[] | GreengrassCoreDeviceItem[];
 
@@ -15,6 +22,7 @@ export interface GetConnectionsItem {
   sendDataToKinesisDataStreams: boolean;
   sendDataToTimestream: boolean;
   machineName?: string;
+  logLevel: string;
 }
 
 export interface GetConnectionsResponse {
@@ -41,8 +49,10 @@ export interface GetConnectionResponse {
   machineName?: string;
   opcDa?: OpcDaDefinition;
   opcUa?: OpcUaDefinition;
+  osiPi?: OsiPiDefinition;
   process?: string;
   siteName?: string;
+  logLevel: string;
 }
 
 export interface UpdateConnectionsRequest {
@@ -51,8 +61,10 @@ export interface UpdateConnectionsRequest {
   area?: string;
   greengrassCoreDeviceName?: string;
   machineName?: string;
+  logLevel?: string;
   opcDa?: OpcDaDefinition;
   opcUa?: OpcUaDefinition;
+  osiPi?: OsiPiDefinition;
   process?: string;
   sendDataToIoTSiteWise?: boolean;
   sendDataToIoTTopic?: boolean;

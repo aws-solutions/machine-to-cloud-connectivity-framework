@@ -87,6 +87,7 @@ export default function Dashboard(props: { region: string }): JSX.Element {
         <td>
           {connection.protocol === MachineProtocol.OPCDA && 'OPC DA'}
           {connection.protocol === MachineProtocol.OPCUA && 'OPC UA'}
+          {connection.protocol === MachineProtocol.OSIPI && 'OSI PI'}
         </td>
         <td>{I18n.get(`status.${connection.status}`)}</td>
         <td>

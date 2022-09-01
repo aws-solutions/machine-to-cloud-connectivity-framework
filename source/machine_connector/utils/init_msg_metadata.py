@@ -22,4 +22,4 @@ class InitMessage:
         self.user_message["area"] = self.AREA
         self.user_message["process"] = self.PROCESS
         self.user_message["machineName"] = self.MACHINE_NAME
-        return(self.user_message)
+        return (self.user_message)

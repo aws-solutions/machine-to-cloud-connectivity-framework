@@ -6,4 +6,4 @@ from .checkpoint_manager import CheckpointManager
 from .stream_manager_helper import StreamManagerHelperClient
 from .init_msg_metadata import InitMessage
 
-__version__ = "4.0.0"
+__version__ = "4.1.0"

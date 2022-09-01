@@ -170,16 +170,15 @@ async function processConnection(connectionDefinition: ConnectionDefinition): Pr
     const newConnectionDefinition = await buildConnectionDefinition(connectionName, control, protocol);
 
     /**
-     * Currently, only supporting OPC DA and OPC UA.
-     * As protocol validation check has been done in the previous step, `else` statement is for OPC UA.
+     * Currently, only supporting OPC DA, OPC UA, and OSI PI.
      */
-    if (protocol === MachineProtocol.OPCDA) {
+    if (protocol === MachineProtocol.OPCDA || protocol === MachineProtocol.OSIPI) {
       await iotHandler.publishIoTTopicMessage({
         connectionName,
         type: IoTMessageTypes.JOB,
         data: newConnectionDefinition
       });
-    } else {
+    } else if (protocol === MachineProtocol.OPCUA) {
       const greengrassCoreDevice = await dynamoDbHandler.getGreengrassCoreDevice(
         newConnectionDefinition.greengrassCoreDeviceName
       );
@@ -255,6 +254,12 @@ async function processConnection(connectionDefinition: ConnectionDefinition): Pr
           break;
         }
       }
+    } else {
+      throw new LambdaError({
+        message: `Invalid Connection Protocol (${protocol}) found when processing the connection: ${connectionName}`,
+        name: 'ConnectionBuilderError',
+        statusCode: 500
+      });
     }
 
     await updateConnection(newConnectionDefinition);
@@ -311,15 +316,17 @@ async function buildConnectionDefinition(
   newConnectionDefinition.sendDataToIoTTopic = existingConnection.sendDataToIoTTopic;
   newConnectionDefinition.sendDataToKinesisDataStreams = existingConnection.sendDataToKinesisDataStreams;
   newConnectionDefinition.siteName = existingConnection.siteName;
+  newConnectionDefinition.logLevel = existingConnection.logLevel;
 
   /**
-   * Currently, only supporting OPC DA and OPC UA.
-   * As protocol validation check has been done in the previous step, `else` statement is for OPC UA.
+   * Set the connection definition for the appropriate Machine Protocol
    */
   if (newConnectionDefinition.protocol === MachineProtocol.OPCDA) {
     newConnectionDefinition.opcDa = existingConnection.opcDa;
-  } else {
+  } else if (newConnectionDefinition.protocol === MachineProtocol.OPCUA) {
     newConnectionDefinition.opcUa = existingConnection.opcUa;
+  } else if (newConnectionDefinition.protocol === MachineProtocol.OSIPI) {
+    newConnectionDefinition.osiPi = existingConnection.osiPi;
   }
 
   return newConnectionDefinition;

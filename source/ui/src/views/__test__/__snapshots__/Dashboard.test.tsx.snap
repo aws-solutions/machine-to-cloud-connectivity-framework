@@ -204,6 +204,58 @@ exports[`renders the Dashboard component when connections and the next token exi
                 </div>
               </td>
             </tr>
+            <tr>
+              <td>
+                mock-connection-3
+              </td>
+              <td>
+                mock-machine-3
+              </td>
+              <td>
+                OSI PI
+              </td>
+              <td>
+                status.stop
+              </td>
+              <td>
+                <button
+                  class="uppercase-text btn btn-outline-success btn-sm"
+                  id="start-connection-mock-connection-3"
+                  type="button"
+                >
+                  start
+                </button>
+                <span>
+                   
+                </span>
+                <button
+                  class="uppercase-text btn btn-outline-danger btn-sm"
+                  disabled=""
+                  id="stop-connection-mock-connection-3"
+                  type="button"
+                >
+                  stop
+                </button>
+              </td>
+              <td>
+                <div
+                  class="dropdown-button dropright btn-group"
+                  role="group"
+                >
+                  <button
+                    aria-expanded="false"
+                    aria-haspopup="true"
+                    class="dropdown-toggle btn btn-link"
+                    id="manage-connection-mock-connection-3"
+                    type="button"
+                  >
+                    <i
+                      class="bi-tools btn-manage-connection-icon"
+                    />
+                  </button>
+                </div>
+              </td>
+            </tr>
           </tbody>
         </table>
         <div
@@ -557,6 +609,58 @@ exports[`renders the Dashboard component when connections exist 1`] = `
                     aria-haspopup="true"
                     class="dropdown-toggle btn btn-link"
                     id="manage-connection-mock-connection-2"
+                    type="button"
+                  >
+                    <i
+                      class="bi-tools btn-manage-connection-icon"
+                    />
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                mock-connection-3
+              </td>
+              <td>
+                mock-machine-3
+              </td>
+              <td>
+                OSI PI
+              </td>
+              <td>
+                status.stop
+              </td>
+              <td>
+                <button
+                  class="uppercase-text btn btn-outline-success btn-sm"
+                  id="start-connection-mock-connection-3"
+                  type="button"
+                >
+                  start
+                </button>
+                <span>
+                   
+                </span>
+                <button
+                  class="uppercase-text btn btn-outline-danger btn-sm"
+                  disabled=""
+                  id="stop-connection-mock-connection-3"
+                  type="button"
+                >
+                  stop
+                </button>
+              </td>
+              <td>
+                <div
+                  class="dropdown-button dropright btn-group"
+                  role="group"
+                >
+                  <button
+                    aria-expanded="false"
+                    aria-haspopup="true"
+                    class="dropdown-toggle btn btn-link"
+                    id="manage-connection-mock-connection-3"
                     type="button"
                   >
                     <i

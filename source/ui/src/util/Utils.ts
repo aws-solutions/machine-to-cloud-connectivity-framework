@@ -17,6 +17,8 @@ import {
   MachineProtocol,
   OpcDaDefinition,
   OpcUaDefinition,
+  OsiPiAuthMode,
+  OsiPiDefinition,
   PaginationType
 } from './types';
 
@@ -89,6 +91,8 @@ export function buildConnectionDefinition(params: ConnectionDefinition): Connect
     connectionDefinition.process = params.process;
     connectionDefinition.siteName = params.siteName;
 
+    connectionDefinition.logLevel = params.logLevel;
+
     connectionDefinition.sendDataToIoTSiteWise = params.sendDataToIoTSiteWise;
     connectionDefinition.sendDataToIoTTopic = params.sendDataToIoTTopic;
     connectionDefinition.sendDataToKinesisDataStreams = params.sendDataToKinesisDataStreams;
@@ -106,6 +110,12 @@ export function buildConnectionDefinition(params: ConnectionDefinition): Connect
       } else {
         connectionDefinition.opcUa.port = Number(connectionDefinition.opcUa.port);
       }
+    } else if (params.protocol === MachineProtocol.OSIPI) {
+      connectionDefinition.osiPi = params.osiPi as OsiPiDefinition;
+      connectionDefinition.osiPi.requestFrequency = Number(connectionDefinition.osiPi.requestFrequency);
+      connectionDefinition.osiPi.catchupFrequency = Number(connectionDefinition.osiPi.catchupFrequency);
+      connectionDefinition.osiPi.maxRequestDuration = Number(connectionDefinition.osiPi.maxRequestDuration);
+      connectionDefinition.osiPi.queryOffset = Number(connectionDefinition.osiPi.queryOffset);
     }
   }
 
@@ -118,6 +128,7 @@ export const INIT_CONNECTION: GetConnectionResponse = {
   connectionName: '',
   greengrassCoreDeviceName: '',
   machineName: '',
+  logLevel: 'INFO',
   opcDa: {
     machineIp: '',
     serverName: '',
@@ -131,6 +142,19 @@ export const INIT_CONNECTION: GetConnectionResponse = {
     serverName: '',
     port: ''
   },
+  osiPi: {
+    apiUrl: '',
+    serverName: '',
+    authMode: OsiPiAuthMode.ANONYMOUS,
+    verifySSL: true,
+    username: '',
+    password: '',
+    tags: [],
+    requestFrequency: 5,
+    catchupFrequency: 0.1,
+    maxRequestDuration: 60,
+    queryOffset: 0
+  },
   process: '',
   protocol: MachineProtocol.OPCDA,
   sendDataToIoTSiteWise: false,
@@ -138,8 +162,9 @@ export const INIT_CONNECTION: GetConnectionResponse = {
   sendDataToKinesisDataStreams: true,
   sendDataToTimestream: false,
   siteName: '',
-  listTags: '',
-  tags: ''
+  opcDaListTags: '',
+  opcDaTags: '',
+  osiPiTags: ''
 };
 
 /**
@@ -220,11 +245,11 @@ export function copyArray(original: unknown[]): unknown[] {
 }
 
 /**
- * Builds the OPC DA tags.
+ * Builds the tags.
  * @param value The value from the textarea
  * @returns The list of tags
  */
-export function buildOpcDaTags(value: string | undefined): string[] {
+export function buildPerLineTags(value: string | undefined): string[] {
   const arr: string[] = [];
 
   if (typeof value === 'string' && value.trim() !== '') {
@@ -250,7 +275,12 @@ export function setValue(obj: Record<string, unknown>, key: string, value: unkno
   if (typeof obj !== 'object' || Array.isArray(obj)) return false;
 
   if (Object.keys(obj).includes(key)) {
-    if (typeof obj[key] === typeof value || ['interval', 'iterations'].includes(key)) {
+    if (
+      typeof obj[key] === typeof value ||
+      ['interval', 'iterations', 'requestFrequency', 'catchupFrequency', 'maxRequestDuration', 'queryOffset'].includes(
+        key
+      )
+    ) {
       obj[key] = value;
       return true;
     }

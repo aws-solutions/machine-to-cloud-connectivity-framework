@@ -21,9 +21,11 @@ const mockValues = {
   deploymentId: 'mock-deployment-id',
   iotThingArn: 'arn:of:iot:thing',
   machineName: 'machine',
+  logLevel: undefined,
   nextToken: 'next-token',
   process: 'process',
-  siteName: 'site'
+  siteName: 'site',
+  protocol: MachineProtocol.OPCDA
 };
 
 describe('Unit tests of createComponent() function', () => {
@@ -33,6 +35,7 @@ describe('Unit tests of createComponent() function', () => {
     componentVersion: '1.0.0',
     connectionName: mockValues.connectionName,
     machineName: mockValues.machineName,
+    logLevel: mockValues.logLevel,
     process: mockValues.process,
     siteName: mockValues.siteName
   };
@@ -43,6 +46,7 @@ describe('Unit tests of createComponent() function', () => {
   });
 
   test('Test success to create a collector component', async () => {
+    params.protocol = mockValues.protocol;
     const recipe = GreengrassV2ComponentBuilder.createRecipe(params);
 
     mockAwsGreengrassV2.createComponentVersion.mockImplementationOnce(() => ({
@@ -409,7 +413,8 @@ describe('Unit tests of createDeployment() function', () => {
     const greengrassV2Handler = new GreengrassV2Handler();
     const params: CreateDeploymentRequest = {
       iotThingArn: mockValues.iotThingArn,
-      deletedComponents: [mockValues.componentName]
+      deletedComponents: [mockValues.componentName],
+      secretManagement: []
     };
     const response = await greengrassV2Handler.createDeployment(params);
 
@@ -459,7 +464,8 @@ describe('Unit tests of createDeployment() function', () => {
       iotThingArn: mockValues.iotThingArn,
       updatedComponents: {
         [mockValues.componentName]: JSON.stringify({ newKey: 'newValue' })
-      }
+      },
+      secretManagement: []
     };
     const response = await greengrassV2Handler.createDeployment(params);
 
@@ -504,7 +510,8 @@ describe('Unit tests of createDeployment() function', () => {
     const greengrassV2Handler = new GreengrassV2Handler();
     const params: CreateDeploymentRequest = {
       iotThingArn: mockValues.iotThingArn,
-      newComponents: [mockValues.componentName]
+      newComponents: [mockValues.componentName],
+      secretManagement: []
     };
     const response = await greengrassV2Handler.createDeployment(params);
 
@@ -544,7 +551,8 @@ describe('Unit tests of createDeployment() function', () => {
     const greengrassV2Handler = new GreengrassV2Handler();
     const params: CreateDeploymentRequest = {
       iotThingArn: mockValues.iotThingArn,
-      newComponents: [mockValues.componentName]
+      newComponents: [mockValues.componentName],
+      secretManagement: []
     };
     const response = await greengrassV2Handler.createDeployment(params);
 
@@ -586,7 +594,8 @@ describe('Unit tests of createDeployment() function', () => {
     const greengrassV2Handler = new GreengrassV2Handler();
     const params: CreateDeploymentRequest = {
       iotThingArn: mockValues.iotThingArn,
-      newComponents: [mockValues.componentName]
+      newComponents: [mockValues.componentName],
+      secretManagement: []
     };
     const response = await greengrassV2Handler.createDeployment(params);
 
@@ -635,7 +644,8 @@ describe('Unit tests of createDeployment() function', () => {
     const greengrassV2Handler = new GreengrassV2Handler();
     const params: CreateDeploymentRequest = {
       iotThingArn: mockValues.iotThingArn,
-      newComponents: [mockValues.componentName]
+      newComponents: [mockValues.componentName],
+      secretManagement: []
     };
     const response = await greengrassV2Handler.createDeployment(params);
 

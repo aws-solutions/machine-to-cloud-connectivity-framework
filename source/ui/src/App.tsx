@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import Amplify from '@aws-amplify/core';
+import { Amplify } from 'aws-amplify';
 import { withAuthenticator } from '@aws-amplify/ui-react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Header from './components/Header';

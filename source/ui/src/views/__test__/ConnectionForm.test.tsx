@@ -12,7 +12,8 @@ import {
   CreatedBy,
   GetConnectionResponse,
   ListGreengrassCoreDevicesResponse,
-  MachineProtocol
+  MachineProtocol,
+  OsiPiAuthMode
 } from '../../util/types';
 import { API_NAME } from '../../util/utils';
 
@@ -38,6 +39,7 @@ const opcDaResponse: GetConnectionResponse = {
   area: 'mock-area',
   process: 'mock-process',
   machineName: 'mock-machine',
+  logLevel: undefined,
   opcDa: {
     machineIp: '1.2.3.4',
     serverName: 'mock-opcda-server-name',
@@ -59,11 +61,41 @@ const opcUaResponse: GetConnectionResponse = {
   area: 'mock-area',
   process: 'mock-process',
   machineName: 'mock-machine',
+  logLevel: undefined,
   opcUa: {
     machineIp: '1.2.3.4',
     serverName: 'mock-opcua-server-name'
   }
 };
+
+const osiPiResponse: GetConnectionResponse = {
+  connectionName: 'mock-connection-id',
+  greengrassCoreDeviceName: 'mock-greengrass-device-name',
+  protocol: MachineProtocol.OSIPI,
+  sendDataToIoTSiteWise: true,
+  sendDataToIoTTopic: true,
+  sendDataToKinesisDataStreams: true,
+  sendDataToTimestream: true,
+  siteName: 'mock-site',
+  area: 'mock-area',
+  process: 'mock-process',
+  machineName: 'mock-machine',
+  logLevel: undefined,
+  osiPi: {
+    apiUrl: 'https://osiPiServer/piwebapi',
+    verifySSL: true,
+    serverName: 'mock-server',
+    authMode: OsiPiAuthMode.BASIC,
+    username: 'mock-user',
+    password: 'mock-password',
+    requestFrequency: 5,
+    catchupFrequency: 0.1,
+    maxRequestDuration: 60,
+    queryOffset: 0,
+    tags: ['tag1', 'tag2']
+  }
+};
+
 const greengrassCoreDevicesResponse: ListGreengrassCoreDevicesResponse = {
   greengrassCoreDevices: [
     { name: 'mock-greengrass-1', createdBy: CreatedBy.SYSTEM, numberOfConnections: 0 },
@@ -377,8 +409,8 @@ test('tests handleConnection function - OPC DA without errors', async () => {
     ...opcDaResponse,
     control: ConnectionControl.UPDATE
   };
-  delete copiedResponse.listTags;
-  delete copiedResponse.tags;
+  delete copiedResponse.opcDaListTags;
+  delete copiedResponse.opcDaTags;
   expect(mockAPI.post).toHaveBeenCalledWith(API_NAME, '/connections', {
     body: copiedResponse
   });
@@ -418,8 +450,8 @@ test('tests handleConnection function - OPC DA with update failure', async () =>
     ...opcDaResponse,
     control: ConnectionControl.UPDATE
   };
-  delete copiedResponse.listTags;
-  delete copiedResponse.tags;
+  delete copiedResponse.opcDaListTags;
+  delete copiedResponse.opcDaTags;
   expect(mockAPI.post).toHaveBeenCalledWith(API_NAME, '/connections', {
     body: copiedResponse
   });
@@ -546,4 +578,86 @@ test('tests handleConnection function - OPC UA failure to get server name', asyn
     queryStringParameters: { nextToken: undefined }
   });
   expect(mockAPI.get).toHaveBeenNthCalledWith(2, API_NAME, `/sitewise/${encodeURIComponent('duplicate')}`, {});
+});
+
+test('tests handleConnection function - OSI PI without errors', async () => {
+  mockAPI.get.mockResolvedValueOnce(osiPiResponse);
+  mockAPI.post.mockResolvedValueOnce({ connectionName: osiPiResponse.connectionName });
+  render(
+    <MemoryRouter initialEntries={[`/connection/${osiPiResponse.connectionName}`]}>
+      <Routes>
+        <Route path="/connection/:connectionName" element={<ConnectionForm />} />
+      </Routes>
+    </MemoryRouter>
+  );
+
+  const connectionName = (await screen.findByPlaceholderText(
+    I18n.get('placeholder.connection.name')
+  )) as HTMLInputElement;
+  expect(connectionName.value).toEqual('mock-connection-id');
+  expect(await screen.findByText(I18n.get('update'))).not.toBeNull();
+
+  userEvent.click(screen.getByText(I18n.get('update')));
+  expect(await screen.findByText(/info.message.update.connection.confirm/)).not.toBeNull();
+
+  userEvent.click(screen.getByText(I18n.get('confirm')));
+  expect(await screen.findByText(/info.message.background.running/)).not.toBeNull();
+
+  userEvent.click(screen.getByText(I18n.get('ok')));
+
+  expect(mockAPI.get).toHaveBeenCalledTimes(1);
+  expect(mockAPI.get).toHaveBeenCalledWith(
+    API_NAME,
+    `/connections/${encodeURIComponent(osiPiResponse.connectionName)}`,
+    {}
+  );
+  expect(mockAPI.post).toHaveBeenCalledTimes(1);
+  const copiedResponse = {
+    ...osiPiResponse,
+    control: ConnectionControl.UPDATE
+  };
+  delete copiedResponse.osiPiTags;
+  expect(mockAPI.post).toHaveBeenCalledWith(API_NAME, '/connections', {
+    body: copiedResponse
+  });
+});
+
+test('tests handleConnection function - OSI PI with update failure', async () => {
+  mockAPI.get.mockResolvedValueOnce(osiPiResponse);
+  mockAPI.post.mockRejectedValueOnce({ message: 'POST failure' });
+  render(
+    <MemoryRouter initialEntries={[`/connection/${osiPiResponse.connectionName}`]}>
+      <Routes>
+        <Route path="/connection/:connectionName" element={<ConnectionForm />} />
+      </Routes>
+    </MemoryRouter>
+  );
+
+  const connectionName = (await screen.findByPlaceholderText(
+    I18n.get('placeholder.connection.name')
+  )) as HTMLInputElement;
+  expect(connectionName.value).toEqual('mock-connection-id');
+  expect(await screen.findByText(I18n.get('update'))).not.toBeNull();
+
+  userEvent.click(screen.getByText(I18n.get('update')));
+  expect(await screen.findByText(/info.message.update.connection.confirm/)).not.toBeNull();
+
+  userEvent.click(screen.getByText(I18n.get('confirm')));
+  expect(await screen.findByText(/error.message.update.connection/)).not.toBeNull();
+
+  expect(mockAPI.get).toHaveBeenCalledTimes(1);
+  expect(mockAPI.get).toHaveBeenCalledWith(
+    API_NAME,
+    `/connections/${encodeURIComponent(osiPiResponse.connectionName)}`,
+    {}
+  );
+  expect(mockAPI.post).toHaveBeenCalledTimes(1);
+  const copiedResponse = {
+    ...osiPiResponse,
+    control: ConnectionControl.UPDATE
+  };
+  delete copiedResponse.osiPiTags;
+  expect(mockAPI.post).toHaveBeenCalledWith(API_NAME, '/connections', {
+    body: copiedResponse
+  });
 });

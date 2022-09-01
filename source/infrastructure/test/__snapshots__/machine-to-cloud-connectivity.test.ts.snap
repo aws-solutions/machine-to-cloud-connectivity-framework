@@ -2957,6 +2957,44 @@ Object {
             },
             "PolicyName": "S3Policy",
           },
+          Object {
+            "PolicyDocument": Object {
+              "Statement": Array [
+                Object {
+                  "Action": Array [
+                    "secretsmanager:CreateSecret",
+                    "secretsmanager:DeleteSecret",
+                    "secretsmanager:PutSecretValue",
+                    "secretsmanager:UpdateSecret",
+                    "secretsmanager:RestoreSecret",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": Object {
+                    "Fn::Join": Array [
+                      "",
+                      Array [
+                        "arn:",
+                        Object {
+                          "Ref": "AWS::Partition",
+                        },
+                        ":secretsmanager:",
+                        Object {
+                          "Ref": "AWS::Region",
+                        },
+                        ":",
+                        Object {
+                          "Ref": "AWS::AccountId",
+                        },
+                        ":secret:*",
+                      ],
+                    ],
+                  },
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "SecretsManagerPolicy",
+          },
         ],
       },
       "Type": "AWS::IAM::Role",
@@ -3298,6 +3336,7 @@ Object {
       "Properties": Object {
         "Artifacts": Object {
           "OpcDaConnectorArtifact": "m2c2_opcda_connector.zip",
+          "OsiPiConnectorArtifact": "m2c2_osipi_connector.zip",
           "PublisherArtifact": "m2c2_publisher.zip",
         },
         "DestinationBucket": Object {
@@ -4617,6 +4656,38 @@ Object {
               "Version": "2012-10-17",
             },
             "PolicyName": "S3Policy",
+          },
+          Object {
+            "PolicyDocument": Object {
+              "Statement": Array [
+                Object {
+                  "Action": "secretsmanager:GetSecretValue",
+                  "Effect": "Allow",
+                  "Resource": Object {
+                    "Fn::Join": Array [
+                      "",
+                      Array [
+                        "arn:",
+                        Object {
+                          "Ref": "AWS::Partition",
+                        },
+                        ":secretsmanager:",
+                        Object {
+                          "Ref": "AWS::Region",
+                        },
+                        ":",
+                        Object {
+                          "Ref": "AWS::AccountId",
+                        },
+                        ":secret:*",
+                      ],
+                    ],
+                  },
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "SecretsManagerPolicy",
           },
         ],
       },

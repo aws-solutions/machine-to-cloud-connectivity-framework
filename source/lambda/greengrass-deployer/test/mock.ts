@@ -14,6 +14,7 @@ export const mockValues = {
   deploymentId: 'mock-deployment-id',
   machineIp: '127.0.0.1',
   machineName: 'machine',
+  logLevel: undefined,
   opcDaServerName: 'mock-opcda-server',
   opcUaServerName: 'mock-opcua-server',
   process: 'process',

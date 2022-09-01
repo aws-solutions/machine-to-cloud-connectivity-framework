@@ -164,6 +164,7 @@ find $machine_connector_dir -type f -name '.coverage' -delete
 
 declare -a machine_connector_packages=(
   "m2c2_opcda_connector"
+  "m2c2_osipi_connector"
   "m2c2_publisher"
 )
 
@@ -200,6 +201,12 @@ fi
 
 mkdir $build_dist_dir/ui
 cp -r ./build/* $build_dist_dir/ui
+
+#if using aws-exports file for development, remove it so that it does not get exported to release
+if [ -f "$build_dist_dir/ui/aws-exports.js" ] 
+then
+    rm -f "$build_dist_dir/ui/aws-exports.js"
+fi
 
 echo "------------------------------------------------------------------------------"
 echo "[Create] UI manifest"

@@ -57,6 +57,7 @@ export default class DynamoDBHandler {
       connections.push({
         connectionName: item.connectionName,
         machineName: item.machineName,
+        logLevel: item.logLevel,
         protocol: item.protocol,
         status: item.control,
         sendDataToIoTSiteWise: item.sendDataToIoTSiteWise,
@@ -178,6 +179,7 @@ export default class DynamoDBHandler {
         area: connectionDefinition.area,
         machineName: connectionDefinition.machineName,
         process: connectionDefinition.process,
+        logLevel: connectionDefinition.logLevel,
         sendDataToIoTSiteWise: !!connectionDefinition.sendDataToIoTSiteWise,
         sendDataToIoTTopic: !!connectionDefinition.sendDataToIoTTopic,
         sendDataToKinesisDataStreams:
@@ -197,6 +199,9 @@ export default class DynamoDBHandler {
       case MachineProtocol.OPCUA:
         params.Item.opcUa = connectionDefinition.opcUa;
         break;
+      case MachineProtocol.OSIPI:
+        params.Item.osiPi = connectionDefinition.osiPi;
+        break;
       default:
         throw new LambdaError({
           message: `Unsupported protocol: ${connectionDefinition.protocol}`,
@@ -214,7 +219,8 @@ export default class DynamoDBHandler {
       sendDataToIoTTopic: params.Item.sendDataToIoTTopic,
       sendDataToKinesisDataStreams: params.Item.sendDataToKinesisDataStreams,
       sendDataToTimestream: params.Item.sendDataToTimestream,
-      machineName: params.Item.machineName
+      machineName: params.Item.machineName,
+      logLevel: params.Item.logLevel
     };
   }
 

@@ -16,7 +16,7 @@ from utils.constants import WORK_BASE_DIR
 
 
 class AWSEndpointClient:
-    CONFIG_FILE_NAME = "opc-da-config.json"
+    CONFIG_FILE_NAME = "connector-config.json"
 
     def __init__(self):
         # class general variables

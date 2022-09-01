@@ -5,13 +5,14 @@ import json
 import pytest
 import sys
 from unittest import mock
+import tempfile
 
 awsiot_mock = mock.MagicMock()
 sys.modules["awsiot"] = awsiot_mock
 sys.modules["awsiot.greengrasscoreipc"] = awsiot_mock
 sys.modules["awsiot.greengrasscoreipc.model"] = awsiot_mock
 
-TEMP_TEST_PATH = "/tmp/test/path"
+TEMP_TEST_PATH = tempfile.NamedTemporaryFile().name
 BUILT_INS_OPEN = "builtins.open"
 TEST_KEY_TEST_VALUE = {"test_key1": "test_value1"}
 JSON_LOAD = "json.load"

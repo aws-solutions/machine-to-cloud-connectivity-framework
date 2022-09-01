@@ -46,6 +46,15 @@ const response: ListConnectionsResponse = {
       sendDataToIoTSiteWise: true,
       sendDataToIoTTopic: false,
       sendDataToKinesisDataStreams: true
+    },
+    {
+      connectionName: 'mock-connection-3',
+      machineName: 'mock-machine-3',
+      protocol: MachineProtocol.OSIPI,
+      status: ConnectionControl.STOP,
+      sendDataToIoTSiteWise: true,
+      sendDataToIoTTopic: false,
+      sendDataToKinesisDataStreams: true
     }
   ]
 };

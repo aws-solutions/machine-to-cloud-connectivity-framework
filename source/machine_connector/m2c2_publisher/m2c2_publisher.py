@@ -94,7 +94,7 @@ def retrieve_checkpoints():
         trailing_cp, primary_cp = checkpoint_client.retrieve_checkpoints(
             CONNECTION_GG_STREAM_NAME
         )
-        return(trailing_cp, primary_cp)
+        return (trailing_cp, primary_cp)
     except Exception as err:
         logger.error(
             "There was an issue retrieving checkpoints for stream {}: {}".format(

@@ -88,22 +88,22 @@ export default function OpcDaForm(props: FormProps): JSX.Element {
           <Form.Group>
             <Form.Label>{I18n.get('read.list.tags')}</Form.Label>
             <Form.Control
-              id="listTags"
+              id="opcDaListTags"
               as="textarea"
               placeholder={I18n.get('placeholder.list.tags')}
               onChange={onChange}
-              defaultValue={connection.listTags}
+              defaultValue={connection.opcDaListTags}
               isInvalid={!!errors.tags}
             />
           </Form.Group>
           <Form.Group>
             <Form.Label>{I18n.get('read.tags')}</Form.Label>
             <Form.Control
-              id="tags"
+              id="opcDaTags"
               as="textarea"
               placeholder={I18n.get('placeholder.tags')}
               onChange={onChange}
-              defaultValue={connection.tags}
+              defaultValue={connection.opcDaTags}
               isInvalid={!!errors.tags}
             />
             <Form.Control.Feedback type="invalid">{errors.tags}</Form.Control.Feedback>

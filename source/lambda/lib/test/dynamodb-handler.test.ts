@@ -24,6 +24,7 @@ const createFakeConnectionItems = (loop: number): any[] => {
       machineName: `connection-${i}-machine`,
       protocol: i % 2 === 0 ? 'opcda' : 'opcua',
       control: i % 2 === 0 ? 'start' : 'stop',
+      logLevel: undefined,
       sendDataToIoTSiteWise: false,
       sendDataToIoTTopic: true,
       sendDataToKinesisDataStreams: false,
@@ -47,6 +48,7 @@ const convertFakeConnectionItems = (items: any[]): any[] => {
     connections.push({
       connectionName: item.connectionName,
       machineName: item.machineName,
+      logLevel: undefined,
       protocol: item.protocol,
       status: item.control,
       sendDataToIoTSiteWise: item.sendDataToIoTSiteWise,
@@ -368,6 +370,7 @@ describe('Unit tests of addConnection() function', () => {
         area: undefined,
         machineName: undefined,
         process: undefined,
+        logLevel: undefined,
         sendDataToIoTSiteWise: false,
         sendDataToIoTTopic: false,
         sendDataToKinesisDataStreams: true,
@@ -385,7 +388,8 @@ describe('Unit tests of addConnection() function', () => {
       sendDataToIoTTopic: false,
       sendDataToKinesisDataStreams: true,
       sendDataToTimestream: false,
-      machineName: undefined
+      machineName: undefined,
+      logLevel: undefined
     });
   });
 
@@ -395,6 +399,7 @@ describe('Unit tests of addConnection() function', () => {
     connectionDefinition.machineName = 'machine';
     connectionDefinition.process = 'process';
     connectionDefinition.siteName = 'site';
+    connectionDefinition.logLevel = undefined;
 
     mockAwsDynamoDB.put.mockImplementationOnce(() => ({
       promise() {
@@ -413,6 +418,7 @@ describe('Unit tests of addConnection() function', () => {
         area: 'area',
         machineName: 'machine',
         process: 'process',
+        logLevel: undefined,
         sendDataToIoTSiteWise: false,
         sendDataToIoTTopic: false,
         sendDataToKinesisDataStreams: true,
@@ -430,7 +436,8 @@ describe('Unit tests of addConnection() function', () => {
       sendDataToIoTTopic: false,
       sendDataToKinesisDataStreams: true,
       sendDataToTimestream: false,
-      machineName: 'machine'
+      machineName: 'machine',
+      logLevel: undefined
     });
   });
 
@@ -453,6 +460,7 @@ describe('Unit tests of addConnection() function', () => {
         area: 'area',
         machineName: 'machine',
         process: 'process',
+        logLevel: undefined,
         sendDataToIoTSiteWise: true,
         sendDataToIoTTopic: false,
         sendDataToKinesisDataStreams: true,
@@ -470,7 +478,8 @@ describe('Unit tests of addConnection() function', () => {
       sendDataToIoTTopic: false,
       sendDataToKinesisDataStreams: true,
       sendDataToTimestream: false,
-      machineName: 'machine'
+      machineName: 'machine',
+      logLevel: undefined
     });
   });
 
@@ -493,6 +502,7 @@ describe('Unit tests of addConnection() function', () => {
         area: 'area',
         machineName: 'machine',
         process: 'process',
+        logLevel: undefined,
         sendDataToIoTSiteWise: true,
         sendDataToIoTTopic: true,
         sendDataToKinesisDataStreams: true,
@@ -510,7 +520,8 @@ describe('Unit tests of addConnection() function', () => {
       sendDataToIoTTopic: true,
       sendDataToKinesisDataStreams: true,
       sendDataToTimestream: false,
-      machineName: 'machine'
+      machineName: 'machine',
+      logLevel: undefined
     });
   });
 
@@ -533,6 +544,7 @@ describe('Unit tests of addConnection() function', () => {
         area: 'area',
         machineName: 'machine',
         process: 'process',
+        logLevel: undefined,
         sendDataToIoTSiteWise: true,
         sendDataToIoTTopic: true,
         sendDataToKinesisDataStreams: false,
@@ -550,7 +562,8 @@ describe('Unit tests of addConnection() function', () => {
       sendDataToIoTTopic: true,
       sendDataToKinesisDataStreams: false,
       sendDataToTimestream: false,
-      machineName: 'machine'
+      machineName: 'machine',
+      logLevel: undefined
     });
   });
 
@@ -573,6 +586,7 @@ describe('Unit tests of addConnection() function', () => {
         area: 'area',
         machineName: 'machine',
         process: 'process',
+        logLevel: undefined,
         sendDataToIoTSiteWise: true,
         sendDataToIoTTopic: true,
         sendDataToKinesisDataStreams: false,
@@ -590,7 +604,8 @@ describe('Unit tests of addConnection() function', () => {
       sendDataToIoTTopic: true,
       sendDataToKinesisDataStreams: false,
       sendDataToTimestream: true,
-      machineName: 'machine'
+      machineName: 'machine',
+      logLevel: undefined
     });
   });
 

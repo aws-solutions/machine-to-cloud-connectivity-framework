@@ -48,7 +48,7 @@ class StreamManagerHelperClient:
     def list_streams(self):
         try:
             existing_streams = self.client.list_streams()
-            return(existing_streams)
+            return (existing_streams)
         except Exception as err:
             self.logger.error(
                 "There was an error listing Greengrass streams: %s", str(err))
@@ -88,7 +88,7 @@ class StreamManagerHelperClient:
                                                  )
                                                  )
             self.logger.info("Message read from stream: {}".format(self.msg))
-            return(self.msg)
+            return (self.msg)
         except NotEnoughMessagesException as err:
             self.logger.info(
                 "Encountered an error when reading from stream {}: {}".format(stream_name, err))
@@ -97,7 +97,7 @@ class StreamManagerHelperClient:
                 self.logger.info("Trying to read sequence number {}. Current last sequence number in stream is {}".format(
                     sequence,
                     self.get_latest_sequence_number(stream_name)))
-            return(self.msg)
+            return (self.msg)
         except Exception as err:
             # TODO: Retry reading
             self.error_msg = "Encountered an error when trying to read from stream {}: {}".format(
@@ -122,7 +122,7 @@ class StreamManagerHelperClient:
         try:
             self.oldest_seq_num = self.client.describe_message_stream(
                 stream_name).storage_status.oldest_sequence_number
-            return(self.oldest_seq_num)
+            return (self.oldest_seq_num)
         except Exception as err:
             self.error_msg = "Encountered an error when reading oldest sequence number from stream {}: {}".format(
                 stream_name, err)
@@ -133,7 +133,7 @@ class StreamManagerHelperClient:
         try:
             self.newest_seq_num = self.client.describe_message_stream(
                 stream_name).storage_status.newest_sequence_number
-            return(self.newest_seq_num)
+            return (self.newest_seq_num)
         except Exception as err:
             self.error_msg = "Encountered an error when reading newest sequence number from stream {}: {}".format(
                 stream_name, err)

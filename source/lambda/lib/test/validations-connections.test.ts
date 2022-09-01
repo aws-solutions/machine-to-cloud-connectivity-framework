@@ -101,9 +101,9 @@ test('When `protocol` is invalid, it throws an error', () => {
 
   expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
     new LambdaError({
-      message: `"protocol" is invalid from the connection definition. It should be one of these: ${Object.values(
-        MachineProtocol
-      )}.`,
+      message: `"protocol" (${
+        connectionDefinition.protocol
+      }) is invalid from the connection definition. It should be one of these: ${Object.values(MachineProtocol)}.`,
       name: 'ValidationError',
       statusCode: 400
     })
@@ -671,6 +671,7 @@ describe('Test OPC DA', () => {
       area: 'area',
       greengrassCoreDeviceName: 'mock-greengrass-core',
       machineName: 'machine',
+      logLevel: undefined,
       opcDa: {
         machineIp: '10.10.10.10',
         serverName: 'OPC.DA.Server',
@@ -699,6 +700,7 @@ describe('Test OPC DA', () => {
       area: 'area',
       greengrassCoreDeviceName: 'mock-greengrass-core',
       machineName: 'machine',
+      logLevel: undefined,
       opcDa: {
         machineIp: '10.10.10.10',
         serverName: 'OPC.DA.Server',
@@ -726,6 +728,7 @@ describe('Test OPC DA', () => {
       area: 'area',
       greengrassCoreDeviceName: 'mock-greengrass-core',
       machineName: 'machine',
+      logLevel: undefined,
       opcDa: {
         machineIp: '10.10.10.10',
         serverName: 'OPC.DA.Server',
@@ -842,6 +845,7 @@ describe('Test OPC UA', () => {
       control: 'update',
       area: 'area',
       machineName: 'machine',
+      logLevel: undefined,
       opcUa: {
         machineIp: '10.10.10.10',
         serverName: 'OPC.UA.Server'
@@ -901,6 +905,7 @@ describe('Test OPC UA', () => {
       control: 'update',
       area: 'area',
       machineName: 'machine',
+      logLevel: undefined,
       opcUa: {
         machineIp: '10.10.10.10',
         serverName: 'OPC.UA.Server',

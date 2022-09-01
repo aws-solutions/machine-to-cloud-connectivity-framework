@@ -253,6 +253,7 @@ Object {
       "Properties": Object {
         "Artifacts": Object {
           "OpcDaConnectorArtifact": "m2c2_opcda_connector.zip",
+          "OsiPiConnectorArtifact": "m2c2_osipi_connector.zip",
           "PublisherArtifact": "m2c2_publisher.zip",
         },
         "DestinationBucket": "test-greengrass-v2-resource-bucket",

@@ -70,7 +70,8 @@ test('Test when deployment status changes from ACTIVE to COMPLETED', async () =>
     iotThingArn: getGreengrassCoreDevice.iotThingArn,
     deletedComponents: [mockValues.componentName.publisher],
     newComponents: [],
-    updatedComponents: {}
+    updatedComponents: {},
+    secretManagement: []
   });
   expect(mockGreengrassV2Handler.getDeployment).toHaveBeenCalledTimes(2);
   expect(mockGreengrassV2Handler.getDeployment).toHaveBeenNthCalledWith(1, mockValues.deploymentId);
@@ -109,7 +110,8 @@ test('Test when deployment status is CANCELED', async () => {
     iotThingArn: getGreengrassCoreDevice.iotThingArn,
     deletedComponents: [mockValues.componentName.publisher],
     newComponents: [],
-    updatedComponents: {}
+    updatedComponents: {},
+    secretManagement: []
   });
   expect(mockGreengrassV2Handler.getDeployment).toHaveBeenCalledTimes(1);
   expect(mockGreengrassV2Handler.getDeployment).toHaveBeenCalledWith(mockValues.deploymentId);
@@ -154,7 +156,8 @@ test('Test when deployment status is FAILED', async () => {
     iotThingArn: getGreengrassCoreDevice.iotThingArn,
     deletedComponents: [mockValues.componentName.publisher],
     newComponents: [],
-    updatedComponents: {}
+    updatedComponents: {},
+    secretManagement: []
   });
   expect(mockGreengrassV2Handler.getDeployment).toHaveBeenCalledTimes(1);
   expect(mockGreengrassV2Handler.getDeployment).toHaveBeenCalledWith(mockValues.deploymentId);

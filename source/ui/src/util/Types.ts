@@ -27,7 +27,8 @@ export enum LogType {
 
 export enum MachineProtocol {
   OPCDA = 'opcda',
-  OPCUA = 'opcua'
+  OPCUA = 'opcua',
+  OSIPI = 'osipi'
 }
 
 export enum MessageModalType {
@@ -48,6 +49,13 @@ export enum CreatedBy {
 export enum GreengrassCoreDeviceControl {
   CREATE = 'create',
   DELETE = 'delete'
+}
+
+export enum OsiPiAuthMode {
+  ANONYMOUS = 'ANONYMOUS',
+  BASIC = 'BASIC'
+  //TODO: Figure out how to support Kerberos auth
+  // KERBEROS = 'KERBEROS'
 }
 
 export interface AmplifyConfigurationInput {
@@ -87,12 +95,14 @@ export interface ConnectionDefinition {
   machineName?: string;
   opcDa?: OpcDaDefinition;
   opcUa?: OpcUaDefinition;
+  osiPi?: OsiPiDefinition;
   process?: string;
   sendDataToIoTSiteWise?: boolean;
   sendDataToIoTTopic?: boolean;
   sendDataToKinesisDataStreams?: boolean;
   sendDataToTimestream?: boolean;
   siteName?: string;
+  logLevel?: string;
 }
 
 export interface CommonDefinition {
@@ -109,6 +119,20 @@ export interface OpcDaDefinition extends CommonDefinition {
 
 export interface OpcUaDefinition extends CommonDefinition {
   port?: number | string;
+}
+
+export interface OsiPiDefinition {
+  apiUrl: string;
+  serverName: string;
+  authMode: OsiPiAuthMode;
+  verifySSL: boolean;
+  username?: string;
+  password?: string;
+  tags: string[];
+  requestFrequency: number | string;
+  catchupFrequency: number | string;
+  maxRequestDuration: number | string;
+  queryOffset: number | string;
 }
 
 export interface ListConnectionsItem {
@@ -163,12 +187,15 @@ export interface GetConnectionResponse {
   sendDataToTimestream: boolean;
   area?: string;
   machineName?: string;
+  logLevel?: string;
   opcDa?: OpcDaDefinition;
   opcUa?: OpcUaDefinition;
+  osiPi?: OsiPiDefinition;
   process?: string;
   siteName?: string;
-  listTags?: string;
-  tags?: string;
+  opcDaListTags?: string;
+  opcDaTags?: string;
+  osiPiTags?: string;
 }
 
 export interface FormProps {

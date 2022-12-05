@@ -145,8 +145,16 @@ export async function handler(event: ConnectionDefinition): Promise<void> {
         }
       }
 
+      await dynamoDbHandler.updateGreengrassCoreDevice({ name: greengrassCoreDeviceName, increment: true });
+
       await dynamoDbHandler.addConnection(event);
-      newComponents.push(...(await createComponents({ ...event, gatewayId: iotSiteWiseGatewayId })));
+      newComponents.push(
+        ...(await createComponents({
+          ...event,
+          gatewayId: iotSiteWiseGatewayId,
+          osPlatform: greengrassCoreDevice.osPlatform
+        }))
+      );
       futureStatus = ConnectionControl.START;
 
       break;
@@ -175,11 +183,9 @@ export async function handler(event: ConnectionDefinition): Promise<void> {
       }
     });
 
-    throw new LambdaError({
-      message: errorMessage,
-      name: 'DeploymentFailure',
-      statusCode: 500
-    });
+    futureStatus = ConnectionControl.FAIL;
+
+    logger.log(LoggingLevel.ERROR, `The greengrass deployment failed for ${connectionName}`);
   }
 
   await postDeployment({
@@ -223,7 +229,10 @@ async function createComponents(connectionDefinition: ConnectionDefinition): Pro
     sendDataToIoTTopic,
     sendDataToKinesisDataStreams,
     sendDataToTimestream,
-    siteName
+    sendDataToHistorian,
+    historianKinesisDatastreamName,
+    siteName,
+    osPlatform
   } = connectionDefinition;
 
   try {
@@ -236,10 +245,16 @@ async function createComponents(connectionDefinition: ConnectionDefinition): Pro
       process: process,
       siteName: siteName,
       logLevel: logLevel,
-      protocol: protocol
+      protocol: protocol,
+      historianKinesisDatastreamName: historianKinesisDatastreamName,
+      osPlatform: osPlatform
     };
 
-    if (protocol === MachineProtocol.OPCDA || protocol === MachineProtocol.OSIPI) {
+    if (
+      protocol === MachineProtocol.OPCDA ||
+      protocol === MachineProtocol.OSIPI ||
+      protocol === MachineProtocol.MODBUSTCP
+    ) {
       /**
        * When the protocol is OPC DA, create a collector component.
        */
@@ -265,6 +280,8 @@ async function createComponents(connectionDefinition: ConnectionDefinition): Pro
     createComponentParameters.sendDataToIoTTopic = sendDataToIoTTopic;
     createComponentParameters.sendDataToKinesisStreams = sendDataToKinesisDataStreams;
     createComponentParameters.sendDataToTimestream = sendDataToTimestream;
+    createComponentParameters.sendDataToHistorian = sendDataToHistorian;
+    createComponentParameters.historianKinesisDatastreamName = historianKinesisDatastreamName;
 
     const publisherComponentResponse = await greengrassV2Handler.createComponent(createComponentParameters);
     newComponents.push(publisherComponentResponse.componentName);
@@ -317,7 +334,11 @@ async function deleteComponents(params: DeleteComponentRequest): Promise<string[
     const deletedComponents: string[] = [];
     let componentName = `m2c2-${connectionName}`;
 
-    if (protocol === MachineProtocol.OPCDA || protocol === MachineProtocol.OSIPI) {
+    if (
+      protocol === MachineProtocol.OPCDA ||
+      protocol === MachineProtocol.OSIPI ||
+      protocol === MachineProtocol.MODBUSTCP
+    ) {
       await iotHandler.publishIoTTopicMessage({
         connectionName,
         type: IoTMessageTypes.JOB,
@@ -390,7 +411,9 @@ function updateComponents(connectionDefinition: ConnectionDefinition): Record<st
     sendDataToIoTTopic,
     sendDataToIoTSiteWise,
     sendDataToKinesisDataStreams,
-    sendDataToTimestream
+    sendDataToTimestream,
+    sendDataToHistorian,
+    historianKinesisDatastreamName
   } = connectionDefinition;
   const connectionMetadata: ComponentConnectionMetadata = {
     area,
@@ -403,7 +426,11 @@ function updateComponents(connectionDefinition: ConnectionDefinition): Record<st
   };
   const updatedComponents: Record<string, string> = {};
 
-  if (protocol === MachineProtocol.OPCDA || protocol === MachineProtocol.OSIPI) {
+  if (
+    protocol === MachineProtocol.OPCDA ||
+    protocol === MachineProtocol.OSIPI ||
+    protocol === MachineProtocol.MODBUSTCP
+  ) {
     updatedComponents[`m2c2-${connectionName}`] = JSON.stringify({ connectionMetadata });
   }
 
@@ -411,6 +438,10 @@ function updateComponents(connectionDefinition: ConnectionDefinition): Record<st
   connectionMetadata.sendDataToIoTSiteWise = sendDataToIoTSiteWise ? 'Yes' : '';
   connectionMetadata.sendDataToKinesisStreams = sendDataToKinesisDataStreams ? 'Yes' : '';
   connectionMetadata.sendDataToTimestream = sendDataToTimestream ? 'Yes' : '';
+  connectionMetadata.sendDataToHistorian = sendDataToHistorian ? 'Yes' : '';
+  connectionMetadata.historianKinesisDatastreamName = historianKinesisDatastreamName
+    ? historianKinesisDatastreamName
+    : '';
   updatedComponents[`m2c2-${connectionName}-publisher`] = JSON.stringify({ connectionMetadata });
 
   return updatedComponents;
@@ -536,7 +567,11 @@ async function postDeployment(params: PostDeploymentRequest): Promise<void> {
   const { connectionName, control, greengrassCoreDeviceName, protocol } = connectionDefinition;
 
   // Sometimes it takes time to deploy the components, so it gives a term.
-  if (protocol === MachineProtocol.OPCDA || protocol === MachineProtocol.OSIPI) {
+  if (
+    protocol === MachineProtocol.OPCDA ||
+    protocol === MachineProtocol.OSIPI ||
+    protocol === MachineProtocol.MODBUSTCP
+  ) {
     if (control === ConnectionControl.DEPLOY) {
       await sleep(30);
       await startComponentBasedConnection(connectionDefinition);
@@ -556,7 +591,7 @@ async function postDeployment(params: PostDeploymentRequest): Promise<void> {
     }
   }
 
-  if ([ConnectionControl.DEPLOY, ConnectionControl.UPDATE].includes(control)) {
+  if ([ConnectionControl.DEPLOY, ConnectionControl.UPDATE, ConnectionControl.FAIL].includes(control)) {
     const promises: Promise<unknown>[] = [
       dynamoDbHandler.updateConnection({
         connectionName,
@@ -567,19 +602,18 @@ async function postDeployment(params: PostDeploymentRequest): Promise<void> {
         opcDa: connectionDefinition.opcDa,
         opcUa: connectionDefinition.opcUa,
         osiPi: connectionDefinition.osiPi,
+        modbusTcp: connectionDefinition.modbusTcp,
         process: connectionDefinition.process,
         sendDataToIoTSiteWise: connectionDefinition.sendDataToIoTSiteWise,
         sendDataToIoTTopic: connectionDefinition.sendDataToIoTTopic,
         sendDataToKinesisDataStreams: connectionDefinition.sendDataToKinesisDataStreams,
         sendDataToTimestream: connectionDefinition.sendDataToTimestream,
+        sendDataToHistorian: connectionDefinition.sendDataToHistorian,
+        historianKinesisDatastreamName: connectionDefinition.historianKinesisDatastreamName,
         siteName: connectionDefinition.siteName,
         logLevel: connectionDefinition.logLevel
       })
     ];
-
-    if (control === ConnectionControl.DEPLOY) {
-      promises.push(dynamoDbHandler.updateGreengrassCoreDevice({ name: greengrassCoreDeviceName, increment: true }));
-    }
 
     await Promise.all(promises);
   } else {
@@ -626,6 +660,9 @@ function createMetricsData(data: MetricData, connectionDefinition: ConnectionDef
     data.interval = osiPi.requestFrequency;
     data.iterations = 1;
     data.numberOfTags = osiPi.tags ? osiPi.tags.length : 0;
+  } else if (protocol === MachineProtocol.MODBUSTCP) {
+    const { modbusTcp } = connectionDefinition;
+    data.numberOfTags = modbusTcp.modbusSlavesConfig ? modbusTcp.modbusSlavesConfig.length : 0;
   }
 }
 

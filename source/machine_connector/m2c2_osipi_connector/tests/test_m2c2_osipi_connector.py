@@ -127,53 +127,6 @@ class TestOsiPiConnector(TestCase):
 
         mock_secret_get_result.result.return_value = secret_value_response
 
-    def test_form_map(self):
-        self.assertDictEqual(self.connector.form_map(), {
-            "name": "test-connection",
-            "site_name": "test-site",
-            "area": "test-area",
-            "process": "test-process",
-            "machine_name": "test-machine-name"
-        })
-
-    def test_validate_schema(self):
-        with patch("validations.message_validation.MessageValidation.__init__") as mock_message_validation:
-            self.connector.MessageValidation = mock_message_validation.MagicMock()
-            self.connector.MessageValidation.validate_schema = mock_message_validation.MagicMock()
-
-            try:
-                self.connector.validate_schema(self.message)
-            except Exception:
-                self.fail("The exception shouldn't happen.")
-
-            self.connector.MessageValidation.validate_schema.side_effect = Exception(
-                "Failure")
-            with self.assertRaises(ConnectorException):
-                self.connector.validate_schema("")
-
-    def test_m2c2_stream_required_format(self):
-        message = copy.deepcopy(self.message)
-        del message["messages"][0]["name"]
-
-        self.assertDictEqual(
-            self.connector.m2c2_stream_required_format(self.tag, message["messages"]), self.message)
-
-    def test_info_or_error_format(self):
-        message = "Mock message."
-        post_type = "info"
-
-        topic, user_message = self.connector.info_or_error_format(
-            message, post_type)
-        self.assertEqual(
-            topic, "m2c2/info/{name}".format(name=self.connection_name))
-        self.assertDictEqual(user_message, {
-            "siteName": os.environ["SITE_NAME"],
-            "area": os.environ["AREA"],
-            "process": os.environ["PROCESS"],
-            "machineName": os.environ["MACHINE_NAME"],
-            "message": message
-        })
-
     def test_basic_auth(self):
 
         # Test: Should read username/password from GG IOT Secret Reader
@@ -200,78 +153,12 @@ class TestOsiPiConnector(TestCase):
             self.assertRaises(
                 KeyError, lambda: self.connector.create_pi_config(self.connection_data))
 
-    def test_post_to_user(self):
-        with patch("utils.StreamManagerHelperClient.__init__") as mock_stream_manager_client, \
-                patch("validations.message_validation.MessageValidation.__init__") as mock_message_validation:
-            self.connector.MessageValidation = mock_message_validation.MagicMock()
-            self.connector.MessageValidation.validate_schema = MagicMock()
-            self.connector.smh_client = mock_stream_manager_client
-            message = self.machine_message
-
-            # Test sending data when a stream is not available.
-            self.connector.smh_client.create_stream = MagicMock()
-            self.connector.smh_client.write_to_stream = MagicMock()
-            self.connector.smh_client.list_streams = MagicMock(
-                return_value=[])
-
-            self.connector.post_to_user("data", message)
-            self.connector.smh_client.list_streams.assert_called()
-            self.connector.smh_client.create_stream.assert_called()
-            self.connector.smh_client.write_to_stream.assert_called()
-            self.connector.smh_client.write_to_stream.assert_called_with(
-                os.environ["CONNECTION_GG_STREAM_NAME"], self.message)
-
-            # Test sending data when a stream is available.
-            self.connector.smh_client.list_streams.reset_mock()
-            self.connector.smh_client.create_stream.reset_mock()
-            self.connector.smh_client.write_to_stream.reset_mock()
-            self.connector.smh_client.list_streams = MagicMock(
-                return_value=[os.environ["CONNECTION_GG_STREAM_NAME"]])
-
-            self.connector.post_to_user("data", message)
-            self.connector.smh_client.list_streams.assert_called()
-            self.connector.smh_client.create_stream.assert_not_called()
-            self.connector.smh_client.write_to_stream.assert_called()
-            self.connector.smh_client.write_to_stream.assert_called_with(
-                os.environ["CONNECTION_GG_STREAM_NAME"], self.message)
-
-            # Test sending other message.
-            self.connector.connector_client.publish_message_to_iot_topic.reset_mock()
-
-            self.connector.post_to_user("error", "Failure")
-            self.connector.connector_client.publish_message_to_iot_topic.assert_called()
-            self.connector.connector_client.publish_message_to_iot_topic.assert_called_with(
-                "m2c2/error/{name}".format(name=self.connection_name),  {
-                    "siteName": os.environ["SITE_NAME"],
-                    "area": os.environ["AREA"],
-                    "process": os.environ["PROCESS"],
-                    "machineName": os.environ["MACHINE_NAME"],
-                    "message": "Failure"
-                }
-            )
-
-            # Test exception
-            self.connector.smh_client.list_streams.reset_mock()
-            self.connector.smh_client.list_streams.side_effect = Exception(
-                "Failure")
-
-            with self.assertRaises(Exception):
-                self.connector.post_to_user("data", message)
-
     def test_send_osipi_data(self):
-        with patch("utils.StreamManagerHelperClient.__init__") as mock_stream_manager_client, \
-                patch("validations.message_validation.MessageValidation.__init__") as mock_message_validation:
-            self.connector.MessageValidation = mock_message_validation.MagicMock()
-            self.connector.MessageValidation.validate_schema = MagicMock()
-            self.connector.smh_client = mock_stream_manager_client
-            self.connector.smh_client.create_stream = MagicMock()
-            self.connector.smh_client.write_to_stream = MagicMock()
-            self.connector.smh_client.list_streams = MagicMock(
-                return_value=[])
+        with patch("boilerplate.messaging.message_sender.MessageSender.post_message_batch") as mock_post_message_batch:
 
             self.connector.send_osi_pi_data(self.osi_pi_response_message)
 
-            self.connector.smh_client.write_to_stream.assert_called()
+            mock_post_message_batch.assert_called()
 
     def test_device_connect(self):
         # with patch("pi_connector_sdk.osi_pi_connector.OsiPiConnector.__init__") as mock_osipi:
@@ -315,7 +202,7 @@ class TestOsiPiConnector(TestCase):
 
     def test_handle_get_data_error(self):
         with patch("m2c2_osipi_connector.m2c2_osipi_connector.device_connect") as mock_device_connect, \
-                patch("m2c2_osipi_connector.m2c2_osipi_connector.post_to_user") as mock_post_to_user:
+                patch("boilerplate.messaging.message_sender.MessageSender.post_error_message") as mock_post_error_message:
 
             # When error count is less then retry count.
             self.connector.control = "start"
@@ -324,7 +211,7 @@ class TestOsiPiConnector(TestCase):
             self.assertEqual(error_count, 2)
             self.assertEqual(self.connector.control, "start")
             mock_device_connect.assert_not_called()
-            mock_post_to_user.assert_not_called()
+            mock_post_error_message.assert_not_called()
 
             # When error count is equal to the retry count.
             error_count = self.connector.handle_get_data_error(
@@ -332,14 +219,14 @@ class TestOsiPiConnector(TestCase):
             self.assertEqual(error_count, 6)
             self.assertEqual(self.connector.control, "stop")
             mock_device_connect.assert_not_called()
-            mock_post_to_user.assert_called()
+            mock_post_error_message.assert_called()
 
     def test_data_collection_control(self):
         with patch("m2c2_osipi_connector.m2c2_osipi_connector.OsiPiConnector") as mock_osipi, \
                 patch("m2c2_osipi_connector.m2c2_osipi_connector.osi_pi_connector") as mock_osipi_connector, \
                 patch("m2c2_osipi_connector.m2c2_osipi_connector.send_osi_pi_data") as mock_send_osi_pi_data, \
                 patch("m2c2_osipi_connector.m2c2_osipi_connector.handle_get_data_error") as mock_handle_get_data_error, \
-                patch("m2c2_osipi_connector.m2c2_osipi_connector.post_to_user") as mock_post_to_user, \
+                patch("boilerplate.messaging.message_sender.MessageSender.post_message_batch") as mock_post_message_batch, \
                 patch("m2c2_osipi_connector.m2c2_osipi_connector.Timer.__init__") as mock_timer:
 
             mock_get_historical_data_batch = mock_osipi_connector.get_historical_data_batch
@@ -365,7 +252,7 @@ class TestOsiPiConnector(TestCase):
                 mock_get_historical_data_batch.reset_mock()
                 mock_send_osi_pi_data.reset_mock()
                 mock_handle_get_data_error.reset_mock()
-                mock_post_to_user.reset_mock()
+                mock_post_message_batch.reset_mock()
                 mock_timer.reset_mock()
 
             self.connector.control = "start"
@@ -421,13 +308,15 @@ class TestOsiPiConnector(TestCase):
         with patch("m2c2_osipi_connector.m2c2_osipi_connector.OsiPiConnector") as mock_osipi, \
                 patch("m2c2_osipi_connector.m2c2_osipi_connector.osi_pi_connector") as mock_osipi_connector, \
                 patch("m2c2_osipi_connector.m2c2_osipi_connector.send_osi_pi_data") as mock_send_osi_pi_data, \
-                patch("m2c2_osipi_connector.m2c2_osipi_connector.post_to_user") as mock_post_to_user, \
+                patch("utils.AWSEndpointClient.publish_message_to_iot_topic") as mock_aws_endpoint_client, \
+                patch("boilerplate.messaging.message_sender.MessageSender.post_info_message") as mock_post_info_message, \
+                patch("boilerplate.messaging.message_sender.MessageSender.post_error_message") as mock_post_error_message, \
                 patch("m2c2_osipi_connector.m2c2_osipi_connector.device_connect") as mock_device_connect, \
                 patch("m2c2_osipi_connector.m2c2_osipi_connector.data_collection_control") as mock_data_collection_control, \
                 patch("m2c2_osipi_connector.m2c2_osipi_connector.time") as mock_time:
 
             def reset_all_mocks():
-                mock_post_to_user.reset_mock()
+                mock_post_info_message.reset_mock()
                 mock_device_connect.reset_mock()
                 mock_data_collection_control.reset_mock()
 
@@ -437,7 +326,7 @@ class TestOsiPiConnector(TestCase):
             self.connector.connector_client.is_running = True
             self.connector.control_switch().get("start")(self.connection_data)
 
-            mock_post_to_user.assert_called()
+            mock_post_info_message.assert_called()
             self.connector.connector_client.start_client.assert_not_called()
             mock_device_connect.assert_not_called()
             mock_data_collection_control.assert_not_called()
@@ -467,7 +356,7 @@ class TestOsiPiConnector(TestCase):
             reset_all_mocks()
             self.connector.control_switch().get("stop")()
 
-            mock_post_to_user.assert_called()
+            mock_post_info_message.assert_called()
             self.connector.connector_client.read_local_connection_configuration.assert_not_called()
             self.connector.connector_client.write_local_connection_configuration_file.assert_not_called()
 
@@ -483,7 +372,7 @@ class TestOsiPiConnector(TestCase):
             self.connector.connector_client.write_local_connection_configuration_file.assert_called()
             self.connector.connector_client.write_local_connection_configuration_file.assert_called_with(
                 connection_name=self.connection_name, connection_configuration=self.connection_data)
-            mock_post_to_user.assert_called()
+            mock_post_info_message.assert_called()
 
             # Stop failure
             reset_all_mocks()
@@ -501,8 +390,8 @@ class TestOsiPiConnector(TestCase):
             self.connector.connector_client.read_local_connection_configuration.assert_called()
             self.connector.connector_client.read_local_connection_configuration.assert_called_with(
                 self.connection_name)
-            mock_post_to_user.assert_called()
-            mock_post_to_user.assert_called_with("info", self.connection_data)
+            mock_post_info_message.assert_called()
+            mock_post_info_message.assert_called_with(self.connection_data)
 
             # Pull local connection configuration not existing
             reset_all_mocks()
@@ -512,9 +401,9 @@ class TestOsiPiConnector(TestCase):
             self.connector.connector_client.read_local_connection_configuration.assert_called()
             self.connector.connector_client.read_local_connection_configuration.assert_called_with(
                 self.connection_name)
-            mock_post_to_user.assert_called()
-            mock_post_to_user.assert_called_with(
-                "error", messages.ERR_MSG_NO_CONNECTION_FILE.format(self.connection_name))
+            mock_post_error_message.assert_called()
+            mock_post_error_message.assert_called_with(
+                messages.ERR_MSG_NO_CONNECTION_FILE.format(self.connection_name))
 
             # Pull failure
             reset_all_mocks()
@@ -525,15 +414,15 @@ class TestOsiPiConnector(TestCase):
             self.connector.connector_client.read_local_connection_configuration.assert_called()
             self.connector.connector_client.read_local_connection_configuration.assert_called_with(
                 self.connection_name)
-            mock_post_to_user.assert_called()
-            mock_post_to_user.assert_called_with(
-                "error", messages.ERR_MSG_FAIL_SERVER_NAME.format("Failure"))
+            mock_post_error_message.assert_called()
+            mock_post_error_message.assert_called_with(
+                messages.ERR_MSG_FAIL_SERVER_NAME.format("Failure"))
 
             # Push success
             reset_all_mocks()
             self.connector.control_switch().get("push")(self.connection_data)
 
-            mock_post_to_user.assert_called()
+            mock_post_info_message.assert_called()
 
             # Push failure
             reset_all_mocks()
@@ -544,12 +433,12 @@ class TestOsiPiConnector(TestCase):
                     "Failure")
                 self.connector.control_switch().get("push")(self.connection_data)
 
-            mock_post_to_user.assert_called()
-            mock_post_to_user.assert_called_with(
-                "error", messages.ERR_MSG_FAIL_SERVER_NAME.format("Failure"))
+            mock_post_error_message.assert_called()
+            mock_post_error_message.assert_called_with(
+                messages.ERR_MSG_FAIL_SERVER_NAME.format("Failure"))
 
     def test_message_handler(self):
-        with patch("m2c2_osipi_connector.m2c2_osipi_connector.post_to_user") as mock_post_to_user, \
+        with patch("boilerplate.messaging.message_sender.MessageSender.post_error_message") as mock_post_error_message, \
                 patch("m2c2_osipi_connector.m2c2_osipi_connector.control_switch") as mock_control_switch:
             def foo(input):
                 print("foo", input)
@@ -558,7 +447,7 @@ class TestOsiPiConnector(TestCase):
                 print("bar")
 
             def reset_all_mock():
-                mock_post_to_user.reset_mock()
+                mock_post_error_message.reset_mock()
                 mock_control_switch.reset_mock()
 
             mock_control_switch.return_value = {
@@ -572,7 +461,7 @@ class TestOsiPiConnector(TestCase):
             self.assertTrue(self.connector.lock)
 
             mock_control_switch.assert_not_called()
-            mock_post_to_user.assert_not_called()
+            mock_post_error_message.assert_not_called()
 
             # Success to handle start control
             reset_all_mock()
@@ -580,23 +469,23 @@ class TestOsiPiConnector(TestCase):
             self.connector.message_handler({"control": "start"})
 
             mock_control_switch.assert_called()
-            mock_post_to_user.assert_not_called()
+            mock_post_error_message.assert_not_called()
 
             # Success to handle stop control
             reset_all_mock()
             self.connector.message_handler({"control": "stop"})
 
             mock_control_switch.assert_called()
-            mock_post_to_user.assert_not_called()
+            mock_post_error_message.assert_not_called()
 
             # Success to handle invalid control
             reset_all_mock()
             self.connector.message_handler({"control": "invalid"})
 
             mock_control_switch.assert_called()
-            mock_post_to_user.assert_called()
-            mock_post_to_user.assert_called_with(
-                "error", messages.ERR_MSG_FAIL_UNKNOWN_CONTROL.format("invalid"))
+            mock_post_error_message.assert_called()
+            mock_post_error_message.assert_called_with(
+                messages.ERR_MSG_FAIL_UNKNOWN_CONTROL.format("invalid"))
 
             # When "KeyError" error occurs
             reset_all_mock()
@@ -606,7 +495,7 @@ class TestOsiPiConnector(TestCase):
                 self.connector.message_handler({"control": "stop"})
 
             mock_control_switch.assert_called()
-            mock_post_to_user.assert_not_called()
+            mock_post_error_message.assert_not_called()
             self.connector.connector_client.stop_client.assert_called()
 
             # When other error occurs
@@ -617,7 +506,7 @@ class TestOsiPiConnector(TestCase):
                 self.connector.message_handler({"control": "stop"})
 
             mock_control_switch.assert_called()
-            mock_post_to_user.assert_called()
-            mock_post_to_user.assert_called_with(
-                "error", "Failed to run the connection: Failure")
+            mock_post_error_message.assert_called()
+            mock_post_error_message.assert_called_with(
+                "Failed to run the connection: Failure")
             self.connector.connector_client.stop_client.assert_called()

@@ -210,6 +210,7 @@ export default class GreengrassV2Handler {
         secretConfigList = existingSecretConfig['cloudSecrets'];
       }
 
+      // TODO: this needs to be unit tested, was skipped when osi pi was implemented
       for (const secretInfo of secretManagement) {
         const secretArnIndex = secretConfigList.findIndex(x => x.arn === secretInfo.secretArn);
 

@@ -17,7 +17,8 @@ export enum ConnectionControl {
   UPDATE = 'update',
   DELETE = 'delete',
   PUSH = 'push',
-  PULL = 'pull'
+  PULL = 'pull',
+  FAIL = 'fail'
 }
 
 export enum LogType {
@@ -28,7 +29,8 @@ export enum LogType {
 export enum MachineProtocol {
   OPCDA = 'opcda',
   OPCUA = 'opcua',
-  OSIPI = 'osipi'
+  OSIPI = 'osipi',
+  MODBUSTCP = 'modbustcp'
 }
 
 export enum MessageModalType {
@@ -44,6 +46,11 @@ export enum PaginationType {
 export enum CreatedBy {
   SYSTEM = 'System',
   USER = 'User'
+}
+
+export enum OsPlatform {
+  LINUX = 'linux',
+  WINDOWS = 'windows'
 }
 
 export enum GreengrassCoreDeviceControl {
@@ -96,11 +103,14 @@ export interface ConnectionDefinition {
   opcDa?: OpcDaDefinition;
   opcUa?: OpcUaDefinition;
   osiPi?: OsiPiDefinition;
+  modbusTcp?: ModbusTcpDefinition;
   process?: string;
   sendDataToIoTSiteWise?: boolean;
   sendDataToIoTTopic?: boolean;
   sendDataToKinesisDataStreams?: boolean;
   sendDataToTimestream?: boolean;
+  sendDataToHistorian?: boolean;
+  historianKinesisDatastreamName?: string;
   siteName?: string;
   logLevel?: string;
 }
@@ -135,6 +145,37 @@ export interface OsiPiDefinition {
   queryOffset: number | string;
 }
 
+export interface ModbusTcpDefinition {
+  host: string;
+  hostPort: number | string;
+  hostTag: string;
+  modbusSlavesConfigSerialized: string;
+  modbusSlavesConfig: ModbusTcpSlaveDefinition[];
+}
+
+export interface ModbusTcpSlaveDefinition {
+  slaveAddress: number | string;
+  frequencyInSeconds: number;
+  commandConfig: ModbusTcpSlaveCommandConfig;
+}
+
+export interface ModbusTcpSlaveCommandConfig {
+  readCoils?: ModbusTcpSlaveCommandReadCoilsConfig;
+  readDiscreteInputs?: ModbusTcpSlaveCommandReadDiscreteInputsConfig;
+  readHoldingRegisters?: ModbusTcpSlaveCommandReadHoldingRegistersConfig;
+  readInputRegisters?: ModbusTcpSlaveCommandReadInputRegistersConfig;
+}
+
+export interface ModbusTcpSlaveCommandIndividualConfig {
+  address: number | string;
+  count?: number | string;
+}
+
+export type ModbusTcpSlaveCommandReadCoilsConfig = ModbusTcpSlaveCommandIndividualConfig;
+export type ModbusTcpSlaveCommandReadDiscreteInputsConfig = ModbusTcpSlaveCommandIndividualConfig;
+export type ModbusTcpSlaveCommandReadHoldingRegistersConfig = ModbusTcpSlaveCommandIndividualConfig;
+export type ModbusTcpSlaveCommandReadInputRegistersConfig = ModbusTcpSlaveCommandIndividualConfig;
+
 export interface ListConnectionsItem {
   connectionName: string;
   machineName: string;
@@ -143,6 +184,7 @@ export interface ListConnectionsItem {
   sendDataToIoTSiteWise: boolean;
   sendDataToIoTTopic: boolean;
   sendDataToKinesisDataStreams: boolean;
+  sendDataToHistorian: boolean;
 }
 
 export interface ListConnectionsResponse {
@@ -185,17 +227,20 @@ export interface GetConnectionResponse {
   sendDataToIoTTopic: boolean;
   sendDataToKinesisDataStreams: boolean;
   sendDataToTimestream: boolean;
+  sendDataToHistorian: boolean;
   area?: string;
   machineName?: string;
   logLevel?: string;
   opcDa?: OpcDaDefinition;
   opcUa?: OpcUaDefinition;
   osiPi?: OsiPiDefinition;
+  modbusTcp?: ModbusTcpDefinition;
   process?: string;
   siteName?: string;
   opcDaListTags?: string;
   opcDaTags?: string;
   osiPiTags?: string;
+  historianKinesisDatastreamName?: string;
 }
 
 export interface FormProps {
@@ -250,6 +295,7 @@ export interface ListGreengrassCoreDevicesItem {
   name: string;
   createdBy: CreatedBy;
   numberOfConnections: number;
+  osPlatform: string;
 }
 
 export interface UserGreengrassCoreDeviceResponse {
@@ -269,4 +315,5 @@ export interface GreengrassCoreDevicePostResponse {
 export interface GreengrassCoreDeviceDomIds {
   category: string;
   greengrassCoreDeviceName: string;
+  osPlatform: string;
 }

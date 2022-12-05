@@ -13,19 +13,23 @@ const loggingLevel = 'ERROR';
 const solutionId = 'SO0070-Test';
 const solutionVersion = 'v0.0.1-test';
 const sourceCodePrefix = `machine-to-cloud-connectivity-framework/${solutionVersion}`;
+const uuid = 'test-uuid';
 
 test('M2C2 Timestream test snapshot and default values', () => {
   const stack = new Stack();
   const sourceCodeBucket = Bucket.fromBucketName(stack, 'SourceCodeBucket', 'test-bucket-region');
   const timestream = new TimestreamConstruct(stack, 'TestTimestream', {
-    databaseName: '',
+    existingDatabaseName: '',
     solutionConfig: {
       loggingLevel,
       solutionId,
       solutionVersion,
       sourceCodeBucket,
-      sourceCodePrefix
-    }
+      sourceCodePrefix,
+      uuid
+    },
+    customResourcesFunctionArn: '',
+    shouldTeardownData: new CfnCondition(stack, 'TestCondition')
   });
   const table = <CfnTable>timestream.node.findChild('Table');
   table.overrideLogicalId('TestTable');
@@ -42,7 +46,7 @@ test('M2C2 Timestream test snapshot and default values', () => {
       }
     },
     Handler: 'timestream-writer/index.handler',
-    Runtime: 'nodejs14.x',
+    Runtime: 'nodejs16.x',
     Timeout: 30
   });
   expect(stack).toHaveResourceLike('AWS::IAM::Policy', {
@@ -72,14 +76,17 @@ test('M2C2 Timestream test when Timestream database name parameter is provided',
   const stack = new Stack();
   const sourceCodeBucket = Bucket.fromBucketName(stack, 'SourceCodeBucket', 'test-bucket-region');
   const timestream = new TimestreamConstruct(stack, 'TestTimestream', {
-    databaseName: 'test-database',
+    existingDatabaseName: 'test-database',
     solutionConfig: {
       loggingLevel,
       solutionId,
       solutionVersion,
       sourceCodeBucket,
-      sourceCodePrefix
-    }
+      sourceCodePrefix,
+      uuid
+    },
+    customResourcesFunctionArn: '',
+    shouldTeardownData: new CfnCondition(stack, 'TestCondition')
   });
   const database = <CfnDatabase>timestream.node.findChild('Database');
   database.overrideLogicalId('TestDatabase');
@@ -103,14 +110,17 @@ test('M2C2 Timestream test when Timestream database name parameter is empty', ()
   const stack = new Stack();
   const sourceCodeBucket = Bucket.fromBucketName(stack, 'SourceCodeBucket', 'test-bucket-region');
   const timestream = new TimestreamConstruct(stack, 'TestTimestream', {
-    databaseName: '',
+    existingDatabaseName: '',
     solutionConfig: {
       loggingLevel,
       solutionId,
       solutionVersion,
       sourceCodeBucket,
-      sourceCodePrefix
-    }
+      sourceCodePrefix,
+      uuid
+    },
+    customResourcesFunctionArn: '',
+    shouldTeardownData: new CfnCondition(stack, 'TestCondition')
   });
   const database = <CfnDatabase>timestream.node.findChild('Database');
   database.overrideLogicalId('TestDatabase');

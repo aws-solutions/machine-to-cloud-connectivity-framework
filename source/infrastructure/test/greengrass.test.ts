@@ -3,7 +3,7 @@
 
 import '@aws-cdk/assert/jest';
 import { SynthUtils } from '@aws-cdk/assert';
-import { Stack } from 'aws-cdk-lib';
+import { CfnCondition, Stack } from 'aws-cdk-lib';
 import { Bucket, CfnBucket } from 'aws-cdk-lib/aws-s3';
 import { GreengrassConstruct } from '../lib/greengrass/greengrass';
 
@@ -19,7 +19,9 @@ test('M2C2 greengrass resource creation test', () => {
       solutionVersion: 'v0.0.1-test',
       uuid: 'test-uuid'
     },
-    timestreamKinesisStreamArn: 'arn:of:timestream:kinesis:stream'
+    timestreamKinesisStreamArn: 'arn:of:timestream:kinesis:stream',
+    customResourcesFunctionArn: 'test-arn',
+    shouldTeardownData: new CfnCondition(stack, 'TestCondition')
   });
 
   expect(SynthUtils.toCloudFormation(stack)).toMatchSnapshot();
@@ -27,12 +29,4 @@ test('M2C2 greengrass resource creation test', () => {
   expect(greengrass.iotCredentialsRoleArn).toBeDefined();
   expect(greengrass.iotPolicyName).toBeDefined();
   expect(greengrass.iotRoleAliasName).toBeDefined();
-  expect(stack).toHaveResourceLike('AWS::S3::Bucket', {
-    LoggingConfiguration: {
-      DestinationBucketName: {
-        Ref: 'TestLoggingBucket'
-      },
-      LogFilePrefix: 'm2c2/'
-    }
-  });
 });

@@ -97,6 +97,9 @@ echo "--------------------------------------------------------------------------
 export BUCKET_NAME_PLACEHOLDER=$1
 export SOLUTION_NAME_PLACEHOLDER=$2
 export VERSION_PLACEHOLDER=$3
+# check if arg is null, if so set to default
+if [ -z "$4" ]; then export SHOULD_SEND_ANONYMOUS_METRICS=Yes; else export SHOULD_SEND_ANONYMOUS_METRICS=$4; fi
+if [ -z "$5" ]; then export SHOULD_TEARDOWN_DATA_ON_DESTROY=No; else export SHOULD_TEARDOWN_DATA_ON_DESTROY=$5; fi
 export overrideWarningsEnabled=false
 
 cd $source_dir/infrastructure
@@ -165,6 +168,7 @@ find $machine_connector_dir -type f -name '.coverage' -delete
 declare -a machine_connector_packages=(
   "m2c2_opcda_connector"
   "m2c2_osipi_connector"
+  "m2c2_modbus_tcp_connector"
   "m2c2_publisher"
 )
 
@@ -178,6 +182,7 @@ do
 
   rsync -avrq ./ package --exclude package --exclude tests
   rsync -avrq $machine_connector_dir/utils/ package/utils --exclude tests
+  rsync -avrq $machine_connector_dir/boilerplate/ package/boilerplate --exclude tests
 
   cd package
   zip -r $build_dist_dir/$machine_connector_package.zip ./

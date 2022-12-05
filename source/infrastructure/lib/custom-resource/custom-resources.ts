@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { CfnCondition, CfnCustomResource, CustomResource, Duration, Stack } from 'aws-cdk-lib';
+import { CfnCondition, CfnCustomResource, CustomResource, Duration, Stack, ArnFormat, Aws } from 'aws-cdk-lib';
 import { Effect, Policy, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { CfnPolicyPrincipalAttachment } from 'aws-cdk-lib/aws-iot';
 import { Code, Function as LambdaFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
@@ -89,11 +89,48 @@ export class CustomResourcesConstruct extends Construct {
                   resourceName: '*'
                 })
               ]
+            }),
+            new PolicyStatement({
+              actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
+              effect: Effect.ALLOW,
+              resources: [
+                Stack.of(this).formatArn({
+                  service: 'logs',
+                  resource: 'log-group',
+                  resourceName: '*',
+                  arnFormat: ArnFormat.COLON_RESOURCE_NAME
+                })
+              ]
+            })
+          ]
+        }),
+        TeardownPolicy: new PolicyDocument({
+          statements: [
+            new PolicyStatement({
+              actions: ['s3:List*', 's3:GetObject', 's3:GetObjectVersion', 's3:PutObject', 's3:Delete*'],
+              effect: Effect.ALLOW,
+              resources: [`arn:aws:s3:::${Aws.STACK_NAME}*`]
+            }),
+            new PolicyStatement({
+              actions: [
+                'timestream:DescribeEndpoints',
+                'timestream:ListTables',
+                'timestream:DescribeTable',
+                'timestream:DeleteTable',
+                'timestream:DeleteDatabase',
+                'timestream:DescribeDatabase'
+              ],
+              effect: Effect.ALLOW,
+              // access denied on describe endpoints when doing teardown happens
+              // everytime unless we put a wildcard, even prefix doesn't work
+              // also, tables aren't named with prefix
+              resources: ['*']
             })
           ]
         })
       }
     });
+
     addCfnSuppressRules(this.customResourceFunctionRole, [
       { id: 'W11', reason: 'IoT actions cannot specify the resource.' }
     ]);
@@ -101,7 +138,7 @@ export class CustomResourcesConstruct extends Construct {
     this.customResourceFunction = new LambdaFunction(this, 'CustomResourceFunction', {
       description: 'Machine to Cloud Connectivity custom resource function',
       handler: 'custom-resource/index.handler',
-      runtime: Runtime.NODEJS_14_X,
+      runtime: Runtime.NODEJS_16_X,
       code: Code.fromBucket(this.sourceCodeBucket, `${this.sourceCodePrefix}/custom-resource.zip`),
       timeout: Duration.seconds(240),
       role: this.customResourceFunctionRole,
@@ -224,6 +261,7 @@ export class CustomResourcesConstruct extends Construct {
         Artifacts: {
           OpcDaConnectorArtifact: 'm2c2_opcda_connector.zip',
           OsiPiConnectorArtifact: 'm2c2_osipi_connector.zip',
+          ModbusTcpConnectorArtifact: 'm2c2_modbus_tcp_connector.zip',
           PublisherArtifact: 'm2c2_publisher.zip'
         },
         DestinationBucket: props.greengrassV2ResourceBucket.bucketName,

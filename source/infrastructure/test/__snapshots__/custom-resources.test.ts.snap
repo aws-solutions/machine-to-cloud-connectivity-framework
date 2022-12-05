@@ -28,7 +28,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs14.x",
+        "Runtime": "nodejs16.x",
         "Timeout": 240,
       },
       "Type": "AWS::Lambda::Function",
@@ -121,10 +121,80 @@ Object {
                     ],
                   },
                 },
+                Object {
+                  "Action": Array [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": Object {
+                    "Fn::Join": Array [
+                      "",
+                      Array [
+                        "arn:",
+                        Object {
+                          "Ref": "AWS::Partition",
+                        },
+                        ":logs:",
+                        Object {
+                          "Ref": "AWS::Region",
+                        },
+                        ":",
+                        Object {
+                          "Ref": "AWS::AccountId",
+                        },
+                        ":log-group:*",
+                      ],
+                    ],
+                  },
+                },
               ],
               "Version": "2012-10-17",
             },
             "PolicyName": "GreengrassIoTPolicy",
+          },
+          Object {
+            "PolicyDocument": Object {
+              "Statement": Array [
+                Object {
+                  "Action": Array [
+                    "s3:List*",
+                    "s3:GetObject",
+                    "s3:GetObjectVersion",
+                    "s3:PutObject",
+                    "s3:Delete*",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": Object {
+                    "Fn::Join": Array [
+                      "",
+                      Array [
+                        "arn:aws:s3:::",
+                        Object {
+                          "Ref": "AWS::StackName",
+                        },
+                        "*",
+                      ],
+                    ],
+                  },
+                },
+                Object {
+                  "Action": Array [
+                    "timestream:DescribeEndpoints",
+                    "timestream:ListTables",
+                    "timestream:DescribeTable",
+                    "timestream:DeleteTable",
+                    "timestream:DeleteDatabase",
+                    "timestream:DescribeDatabase",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "*",
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "TeardownPolicy",
           },
         ],
       },
@@ -252,6 +322,7 @@ Object {
       "DeletionPolicy": "Delete",
       "Properties": Object {
         "Artifacts": Object {
+          "ModbusTcpConnectorArtifact": "m2c2_modbus_tcp_connector.zip",
           "OpcDaConnectorArtifact": "m2c2_opcda_connector.zip",
           "OsiPiConnectorArtifact": "m2c2_osipi_connector.zip",
           "PublisherArtifact": "m2c2_publisher.zip",
@@ -323,7 +394,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs14.x",
+        "Runtime": "nodejs16.x",
         "Timeout": 240,
       },
       "Type": "AWS::Lambda::Function",
@@ -416,10 +487,80 @@ Object {
                     ],
                   },
                 },
+                Object {
+                  "Action": Array [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": Object {
+                    "Fn::Join": Array [
+                      "",
+                      Array [
+                        "arn:",
+                        Object {
+                          "Ref": "AWS::Partition",
+                        },
+                        ":logs:",
+                        Object {
+                          "Ref": "AWS::Region",
+                        },
+                        ":",
+                        Object {
+                          "Ref": "AWS::AccountId",
+                        },
+                        ":log-group:*",
+                      ],
+                    ],
+                  },
+                },
               ],
               "Version": "2012-10-17",
             },
             "PolicyName": "GreengrassIoTPolicy",
+          },
+          Object {
+            "PolicyDocument": Object {
+              "Statement": Array [
+                Object {
+                  "Action": Array [
+                    "s3:List*",
+                    "s3:GetObject",
+                    "s3:GetObjectVersion",
+                    "s3:PutObject",
+                    "s3:Delete*",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": Object {
+                    "Fn::Join": Array [
+                      "",
+                      Array [
+                        "arn:aws:s3:::",
+                        Object {
+                          "Ref": "AWS::StackName",
+                        },
+                        "*",
+                      ],
+                    ],
+                  },
+                },
+                Object {
+                  "Action": Array [
+                    "timestream:DescribeEndpoints",
+                    "timestream:ListTables",
+                    "timestream:DescribeTable",
+                    "timestream:DeleteTable",
+                    "timestream:DeleteDatabase",
+                    "timestream:DescribeDatabase",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "*",
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "TeardownPolicy",
           },
         ],
       },
@@ -784,7 +925,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs14.x",
+        "Runtime": "nodejs16.x",
         "Timeout": 240,
       },
       "Type": "AWS::Lambda::Function",
@@ -877,10 +1018,80 @@ Object {
                     ],
                   },
                 },
+                Object {
+                  "Action": Array [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": Object {
+                    "Fn::Join": Array [
+                      "",
+                      Array [
+                        "arn:",
+                        Object {
+                          "Ref": "AWS::Partition",
+                        },
+                        ":logs:",
+                        Object {
+                          "Ref": "AWS::Region",
+                        },
+                        ":",
+                        Object {
+                          "Ref": "AWS::AccountId",
+                        },
+                        ":log-group:*",
+                      ],
+                    ],
+                  },
+                },
               ],
               "Version": "2012-10-17",
             },
             "PolicyName": "GreengrassIoTPolicy",
+          },
+          Object {
+            "PolicyDocument": Object {
+              "Statement": Array [
+                Object {
+                  "Action": Array [
+                    "s3:List*",
+                    "s3:GetObject",
+                    "s3:GetObjectVersion",
+                    "s3:PutObject",
+                    "s3:Delete*",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": Object {
+                    "Fn::Join": Array [
+                      "",
+                      Array [
+                        "arn:aws:s3:::",
+                        Object {
+                          "Ref": "AWS::StackName",
+                        },
+                        "*",
+                      ],
+                    ],
+                  },
+                },
+                Object {
+                  "Action": Array [
+                    "timestream:DescribeEndpoints",
+                    "timestream:ListTables",
+                    "timestream:DescribeTable",
+                    "timestream:DeleteTable",
+                    "timestream:DeleteDatabase",
+                    "timestream:DescribeDatabase",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "*",
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "TeardownPolicy",
           },
         ],
       },

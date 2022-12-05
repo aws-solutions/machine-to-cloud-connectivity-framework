@@ -35,6 +35,7 @@ import {
 import { INIT_CONNECTION, buildConnectionDefinition, getConditionalValue, getErrorMessage } from '../../util/utils';
 import { ConnectionHook } from '../../hooks/ConnectionHook';
 import OsiPiForm from './OsiPiForm';
+import ModbusTcpForm from './ModbusTcpForm';
 
 const logger = new Logger('ConnectionForm');
 
@@ -111,6 +112,8 @@ export default function ConnectionForm(): JSX.Element {
         sendDataToIoTTopic: connection.sendDataToIoTTopic,
         sendDataToKinesisDataStreams: connection.sendDataToKinesisDataStreams,
         sendDataToTimestream: connection.sendDataToTimestream,
+        sendDataToHistorian: connection.sendDataToHistorian,
+        historianKinesisDatastreamName: connection.historianKinesisDatastreamName,
         siteName: connection.siteName,
         logLevel: connection.logLevel
       };
@@ -306,9 +309,10 @@ export default function ConnectionForm(): JSX.Element {
                   type="checkbox"
                   id="sendDataToIoTSiteWise"
                   label={I18n.get('iot.sitewise')}
-                  checked={connection.sendDataToIoTSiteWise}
+                  checked={connection.sendDataToIoTSiteWise && connection.protocol !== MachineProtocol.MODBUSTCP}
                   onChange={change}
                   isInvalid={!!errors.sendDataTo}
+                  disabled={connection.protocol === MachineProtocol.MODBUSTCP}
                 />
                 <EmptyCol />
                 <Form.Check
@@ -336,13 +340,38 @@ export default function ConnectionForm(): JSX.Element {
                   type="checkbox"
                   id="sendDataToTimestream"
                   label={I18n.get('timestream')}
-                  checked={connection.sendDataToTimestream}
+                  checked={connection.sendDataToTimestream && connection.protocol !== MachineProtocol.MODBUSTCP}
+                  onChange={change}
+                  isInvalid={!!errors.sendDataTo}
+                  disabled={connection.protocol === MachineProtocol.MODBUSTCP}
+                />
+                <EmptyCol />
+                <Form.Check
+                  inline
+                  type="checkbox"
+                  id="sendDataToHistorian"
+                  label={I18n.get('historian')}
+                  checked={connection.sendDataToHistorian}
                   onChange={change}
                   isInvalid={!!errors.sendDataTo}
                 />
                 <Form.Control.Feedback type="invalid">{errors.sendDataTo}</Form.Control.Feedback>
               </Form.Group>
             </Form.Group>
+            {connection.sendDataToHistorian && (
+              <Form.Group>
+                <Form.Text muted>{I18n.get('description.historian.kinesisStream.name')}</Form.Text>
+                <Form.Control
+                  id="historianKinesisDatastreamName"
+                  type="text"
+                  required
+                  defaultValue={connection.historianKinesisDatastreamName}
+                  placeholder={I18n.get('placeholder.historian.kinesisStream.name')}
+                  onChange={change}
+                  isInvalid={!!errors.historianKinesisDatastreamName}
+                />
+              </Form.Group>
+            )}
             <Form.Group>
               <Form.Label>
                 {I18n.get('protocol')} <span className="red-text">*</span>
@@ -357,6 +386,7 @@ export default function ConnectionForm(): JSX.Element {
                 <option value={MachineProtocol.OPCDA}>OPC DA</option>
                 <option value={MachineProtocol.OPCUA}>OPC UA</option>
                 <option value={MachineProtocol.OSIPI}>OSI PI</option>
+                <option value={MachineProtocol.MODBUSTCP}>Modbus TCP</option>
               </Form.Control>
             </Form.Group>
             {connection.protocol === MachineProtocol.OPCDA && (
@@ -367,6 +397,9 @@ export default function ConnectionForm(): JSX.Element {
             )}
             {connection.protocol === MachineProtocol.OSIPI && (
               <OsiPiForm connection={{ ...connection }} onChange={change} errors={errors} />
+            )}
+            {connection.protocol === MachineProtocol.MODBUSTCP && (
+              <ModbusTcpForm connection={{ ...connection }} onChange={change} errors={errors} />
             )}
             <EmptyRow />
             <Row>

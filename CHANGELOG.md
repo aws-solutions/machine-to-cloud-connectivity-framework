@@ -4,7 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-## [4.1.0] - 2022-09-01
+
+## [4.2.0] - 2022-12-05
+
+### Added
+
+- Greengrass core device on Windows support
+- Connector destination for the solution Cloud Historian on AWS
+- Modbus TCP connector support
+- Configurable automatic teardown
+- Added failed connection state
+- CORS security update
+
+## [4.1.0] - 2022-07-15
 
 ### Added
 
@@ -16,11 +28,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - A bug fix was made to the greengrass deployer lambda function and the baked-in greengrass core install script
 
-## [4.0.1] - 2022-07-27
-
-### Changed
-
-- A bug fix was made to the greengrass deployer lambda function and the baked-in greengrass core install script
 ## [4.0.0] - 2022-05-12
 
 ⚠ BREAKING CHANGES
@@ -98,7 +105,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Creates Kinesis Data Firehose to take OPC DA data messages, batches the messages into gzip artifacts, and forwards the artifacts to the S3 data bucket
 - Adds the Kinesis Data Firehose connector in Greengrass and creates the appropriate subscriptions to send the OPC DA data from the Greengrass edge device to the Kinesis Data Firehose in the user's account
 
-### Changes
+### Changed
 
 - OPC DA telemetry data published on IoT topic m2c2/job/<job-name>/<site-name>/<area>/<process>/<machine-name>/<tag-name>
 

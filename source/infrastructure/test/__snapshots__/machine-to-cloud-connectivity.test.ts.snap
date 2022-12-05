@@ -24,6 +24,18 @@ Object {
         "Yes",
       ],
     },
+    "ShouldTeardownDataOnDestroy": Object {
+      "Fn::Equals": Array [
+        Object {
+          "Fn::FindInMap": Array [
+            "Solution",
+            "Config",
+            "ShouldTeardownDataOnDestroy",
+          ],
+        },
+        "Yes",
+      ],
+    },
     "TimestreamCreateTimestreamDatabaseA7576C71": Object {
       "Fn::Equals": Array [
         Object {
@@ -40,7 +52,9 @@ Object {
         "KeyPrefix": "machine-to-cloud-connectivity-framework/vTest",
         "S3Bucket": "test-bucket",
         "SendAnonymousUsage": "Yes",
+        "ShouldTeardownDataOnDestroy": "No",
         "SolutionId": "SO0070",
+        "SolutionName": "machine-to-cloud-connectivity-framework",
         "Version": "vTest",
       },
     },
@@ -84,6 +98,33 @@ Object {
     },
   },
   "Outputs": Object {
+    "APIGatewayDomainName": Object {
+      "Description": "The API Gateway domain name",
+      "Value": Object {
+        "Fn::Join": Array [
+          "",
+          Array [
+            "https://",
+            Object {
+              "Ref": "ApiRestApiE35FEAFE",
+            },
+            ".execute-api.",
+            Object {
+              "Ref": "AWS::Region",
+            },
+            ".",
+            Object {
+              "Ref": "AWS::URLSuffix",
+            },
+            "/",
+            Object {
+              "Ref": "ApiRestApiDeploymentStageprodE828476C",
+            },
+            "/",
+          ],
+        ],
+      },
+    },
     "ConnectionControlRequestTopic": Object {
       "Description": "IoT Topic where connection controls need to be submitted",
       "Value": "m2c2/job/{connectionName}",
@@ -176,7 +217,7 @@ Object {
             "https://",
             Object {
               "Fn::GetAtt": Array [
-                "UiCloudFrontToS3CloudFrontDistribution05269C12",
+                "CloudFrontCloudFrontToS3CloudFrontDistribution057B07F7",
                 "DomainName",
               ],
             },
@@ -343,7 +384,7 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "ApiRestApiDeploymentDC05A82Dc49cf41308fccf96bb7b39f217756f1f": Object {
+    "ApiRestApiDeploymentDC05A82D7c6b0166987993f80e0b9665706a2d8d": Object {
       "DependsOn": Array [
         "ApiApiRequestValidator8CB359D9",
         "ApiRestApiconnectionsconnectionNameGET68E4CF44",
@@ -456,7 +497,7 @@ Object {
           "Format": "{\\"requestId\\":\\"$context.requestId\\",\\"ip\\":\\"$context.identity.sourceIp\\",\\"user\\":\\"$context.identity.user\\",\\"caller\\":\\"$context.identity.caller\\",\\"requestTime\\":\\"$context.requestTime\\",\\"httpMethod\\":\\"$context.httpMethod\\",\\"resourcePath\\":\\"$context.resourcePath\\",\\"status\\":\\"$context.status\\",\\"protocol\\":\\"$context.protocol\\",\\"responseLength\\":\\"$context.responseLength\\"}",
         },
         "DeploymentId": Object {
-          "Ref": "ApiRestApiDeploymentDC05A82Dc49cf41308fccf96bb7b39f217756f1f",
+          "Ref": "ApiRestApiDeploymentDC05A82D7c6b0166987993f80e0b9665706a2d8d",
         },
         "MethodSettings": Array [
           Object {
@@ -540,7 +581,22 @@ Object {
               "ResponseParameters": Object {
                 "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,X-Amz-Date,X-Amz-Security-Token,X-Api-Key'",
                 "method.response.header.Access-Control-Allow-Methods": "'GET,POST,OPTIONS'",
-                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Origin": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "'https://",
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "CloudFrontCloudFrontToS3CloudFrontDistribution057B07F7",
+                          "DomainName",
+                        ],
+                      },
+                      "'",
+                    ],
+                  ],
+                },
+                "method.response.header.Vary": "'Origin'",
               },
               "StatusCode": "200",
             },
@@ -556,6 +612,7 @@ Object {
               "method.response.header.Access-Control-Allow-Headers": true,
               "method.response.header.Access-Control-Allow-Methods": true,
               "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Vary": true,
             },
             "StatusCode": "200",
           },
@@ -727,7 +784,22 @@ Object {
               "ResponseParameters": Object {
                 "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,X-Amz-Date,X-Amz-Security-Token,X-Api-Key'",
                 "method.response.header.Access-Control-Allow-Methods": "'GET,POST,OPTIONS'",
-                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Origin": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "'https://",
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "CloudFrontCloudFrontToS3CloudFrontDistribution057B07F7",
+                          "DomainName",
+                        ],
+                      },
+                      "'",
+                    ],
+                  ],
+                },
+                "method.response.header.Vary": "'Origin'",
               },
               "StatusCode": "200",
             },
@@ -743,6 +815,7 @@ Object {
               "method.response.header.Access-Control-Allow-Headers": true,
               "method.response.header.Access-Control-Allow-Methods": true,
               "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Vary": true,
             },
             "StatusCode": "200",
           },
@@ -988,7 +1061,22 @@ Object {
               "ResponseParameters": Object {
                 "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,X-Amz-Date,X-Amz-Security-Token,X-Api-Key'",
                 "method.response.header.Access-Control-Allow-Methods": "'GET,POST,OPTIONS'",
-                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Origin": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "'https://",
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "CloudFrontCloudFrontToS3CloudFrontDistribution057B07F7",
+                          "DomainName",
+                        ],
+                      },
+                      "'",
+                    ],
+                  ],
+                },
+                "method.response.header.Vary": "'Origin'",
               },
               "StatusCode": "200",
             },
@@ -1004,6 +1092,7 @@ Object {
               "method.response.header.Access-Control-Allow-Headers": true,
               "method.response.header.Access-Control-Allow-Methods": true,
               "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Vary": true,
             },
             "StatusCode": "200",
           },
@@ -1172,7 +1261,22 @@ Object {
               "ResponseParameters": Object {
                 "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,X-Amz-Date,X-Amz-Security-Token,X-Api-Key'",
                 "method.response.header.Access-Control-Allow-Methods": "'GET,POST,OPTIONS'",
-                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Origin": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "'https://",
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "CloudFrontCloudFrontToS3CloudFrontDistribution057B07F7",
+                          "DomainName",
+                        ],
+                      },
+                      "'",
+                    ],
+                  ],
+                },
+                "method.response.header.Vary": "'Origin'",
               },
               "StatusCode": "200",
             },
@@ -1188,6 +1292,7 @@ Object {
               "method.response.header.Access-Control-Allow-Headers": true,
               "method.response.header.Access-Control-Allow-Methods": true,
               "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Vary": true,
             },
             "StatusCode": "200",
           },
@@ -1427,7 +1532,22 @@ Object {
               "ResponseParameters": Object {
                 "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,X-Amz-Date,X-Amz-Security-Token,X-Api-Key'",
                 "method.response.header.Access-Control-Allow-Methods": "'GET,POST,OPTIONS'",
-                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Origin": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "'https://",
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "CloudFrontCloudFrontToS3CloudFrontDistribution057B07F7",
+                          "DomainName",
+                        ],
+                      },
+                      "'",
+                    ],
+                  ],
+                },
+                "method.response.header.Vary": "'Origin'",
               },
               "StatusCode": "200",
             },
@@ -1443,6 +1563,7 @@ Object {
               "method.response.header.Access-Control-Allow-Headers": true,
               "method.response.header.Access-Control-Allow-Methods": true,
               "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Vary": true,
             },
             "StatusCode": "200",
           },
@@ -1611,7 +1732,22 @@ Object {
               "ResponseParameters": Object {
                 "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,X-Amz-Date,X-Amz-Security-Token,X-Api-Key'",
                 "method.response.header.Access-Control-Allow-Methods": "'GET,POST,OPTIONS'",
-                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Origin": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "'https://",
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "CloudFrontCloudFrontToS3CloudFrontDistribution057B07F7",
+                          "DomainName",
+                        ],
+                      },
+                      "'",
+                    ],
+                  ],
+                },
+                "method.response.header.Vary": "'Origin'",
               },
               "StatusCode": "200",
             },
@@ -1627,6 +1763,7 @@ Object {
               "method.response.header.Access-Control-Allow-Headers": true,
               "method.response.header.Access-Control-Allow-Methods": true,
               "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Vary": true,
             },
             "StatusCode": "200",
           },
@@ -1794,7 +1931,22 @@ Object {
               "ResponseParameters": Object {
                 "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,X-Amz-Date,X-Amz-Security-Token,X-Api-Key'",
                 "method.response.header.Access-Control-Allow-Methods": "'GET,POST,OPTIONS'",
-                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Origin": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "'https://",
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "CloudFrontCloudFrontToS3CloudFrontDistribution057B07F7",
+                          "DomainName",
+                        ],
+                      },
+                      "'",
+                    ],
+                  ],
+                },
+                "method.response.header.Vary": "'Origin'",
               },
               "StatusCode": "200",
             },
@@ -1810,6 +1962,7 @@ Object {
               "method.response.header.Access-Control-Allow-Headers": true,
               "method.response.header.Access-Control-Allow-Methods": true,
               "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Vary": true,
             },
             "StatusCode": "200",
           },
@@ -1892,7 +2045,22 @@ Object {
               "ResponseParameters": Object {
                 "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,X-Amz-Date,X-Amz-Security-Token,X-Api-Key'",
                 "method.response.header.Access-Control-Allow-Methods": "'GET,POST,OPTIONS'",
-                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Origin": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "'https://",
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "CloudFrontCloudFrontToS3CloudFrontDistribution057B07F7",
+                          "DomainName",
+                        ],
+                      },
+                      "'",
+                    ],
+                  ],
+                },
+                "method.response.header.Vary": "'Origin'",
               },
               "StatusCode": "200",
             },
@@ -1908,6 +2076,7 @@ Object {
               "method.response.header.Access-Control-Allow-Headers": true,
               "method.response.header.Access-Control-Allow-Methods": true,
               "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Vary": true,
             },
             "StatusCode": "200",
           },
@@ -2073,7 +2242,22 @@ Object {
               "ResponseParameters": Object {
                 "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,X-Amz-Date,X-Amz-Security-Token,X-Api-Key'",
                 "method.response.header.Access-Control-Allow-Methods": "'GET,POST,OPTIONS'",
-                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Origin": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "'https://",
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "CloudFrontCloudFrontToS3CloudFrontDistribution057B07F7",
+                          "DomainName",
+                        ],
+                      },
+                      "'",
+                    ],
+                  ],
+                },
+                "method.response.header.Vary": "'Origin'",
               },
               "StatusCode": "200",
             },
@@ -2089,6 +2273,7 @@ Object {
               "method.response.header.Access-Control-Allow-Headers": true,
               "method.response.header.Access-Control-Allow-Methods": true,
               "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Vary": true,
             },
             "StatusCode": "200",
           },
@@ -2102,28 +2287,142 @@ Object {
       },
       "Type": "AWS::ApiGateway::Method",
     },
-    "CommonResourcesLogBucketFC1ABCC9": Object {
-      "DeletionPolicy": "Retain",
+    "CloudFrontCloudFrontToS3CloudFrontDistribution057B07F7": Object {
       "Metadata": Object {
         "cdk_nag": Object {
           "rules_to_suppress": Array [
             Object {
-              "id": "AwsSolutions-S1",
-              "reason": "This bucket is to store S3 logs, so it does not require access logs.",
+              "id": "AwsSolutions-CFR1",
+              "reason": "The solution does not control geo restriction.",
+            },
+            Object {
+              "id": "AwsSolutions-CFR2",
+              "reason": "No need to enable WAF.",
+            },
+            Object {
+              "id": "AwsSolutions-CFR4",
+              "reason": "No contorl on the solution side as it is using the CloudFront default certificate.",
             },
           ],
         },
         "cfn_nag": Object {
           "rules_to_suppress": Array [
             Object {
-              "id": "W35",
-              "reason": "This bucket is to store S3 logs, so it does not require access logs.",
+              "id": "W70",
+              "reason": "Since the distribution uses the CloudFront domain name, CloudFront automatically sets the security policy to TLSv1 regardless of the value of MinimumProtocolVersion",
             },
           ],
         },
       },
       "Properties": Object {
-        "AccessControl": "LogDeliveryWrite",
+        "DistributionConfig": Object {
+          "Comment": "Machine to Cloud Connectivity Framework Distribution",
+          "CustomErrorResponses": Array [
+            Object {
+              "ErrorCode": 403,
+              "ResponseCode": 200,
+              "ResponsePagePath": "/index.html",
+            },
+            Object {
+              "ErrorCode": 404,
+              "ResponseCode": 200,
+              "ResponsePagePath": "/index.html",
+            },
+          ],
+          "DefaultCacheBehavior": Object {
+            "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
+            "Compress": true,
+            "TargetOriginId": "TestStackCloudFrontCloudFrontToS3CloudFrontDistributionOrigin1CE3C5A01",
+            "ViewerProtocolPolicy": "redirect-to-https",
+          },
+          "DefaultRootObject": "index.html",
+          "Enabled": true,
+          "HttpVersion": "http2",
+          "IPV6Enabled": true,
+          "Logging": Object {
+            "Bucket": Object {
+              "Fn::GetAtt": Array [
+                "LoggingBucketLogBucket34BFFCE4",
+                "RegionalDomainName",
+              ],
+            },
+            "Prefix": "ui-cf/",
+          },
+          "Origins": Array [
+            Object {
+              "DomainName": Object {
+                "Fn::GetAtt": Array [
+                  "CloudFrontCloudFrontToS3S3Bucket7D24549E",
+                  "RegionalDomainName",
+                ],
+              },
+              "Id": "TestStackCloudFrontCloudFrontToS3CloudFrontDistributionOrigin1CE3C5A01",
+              "S3OriginConfig": Object {
+                "OriginAccessIdentity": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "origin-access-identity/cloudfront/",
+                      Object {
+                        "Ref": "CloudFrontCloudFrontToS3CloudFrontDistributionOrigin1S3OriginA6611E24",
+                      },
+                    ],
+                  ],
+                },
+              },
+            },
+          ],
+        },
+      },
+      "Type": "AWS::CloudFront::Distribution",
+    },
+    "CloudFrontCloudFrontToS3CloudFrontDistributionOrigin1S3OriginA6611E24": Object {
+      "Metadata": Object {
+        "cdk_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "AwsSolutions-CFR1",
+              "reason": "The solution does not control geo restriction.",
+            },
+            Object {
+              "id": "AwsSolutions-CFR2",
+              "reason": "No need to enable WAF.",
+            },
+            Object {
+              "id": "AwsSolutions-CFR4",
+              "reason": "No contorl on the solution side as it is using the CloudFront default certificate.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "CloudFrontOriginAccessIdentityConfig": Object {
+          "Comment": "Identity for TestStackCloudFrontCloudFrontToS3CloudFrontDistributionOrigin1CE3C5A01",
+        },
+      },
+      "Type": "AWS::CloudFront::CloudFrontOriginAccessIdentity",
+    },
+    "CloudFrontCloudFrontToS3S3Bucket7D24549E": Object {
+      "DeletionPolicy": "Retain",
+      "Metadata": Object {
+        "cdk_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "AwsSolutions-CFR1",
+              "reason": "The solution does not control geo restriction.",
+            },
+            Object {
+              "id": "AwsSolutions-CFR2",
+              "reason": "No need to enable WAF.",
+            },
+            Object {
+              "id": "AwsSolutions-CFR4",
+              "reason": "No contorl on the solution side as it is using the CloudFront default certificate.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
         "BucketEncryption": Object {
           "ServerSideEncryptionConfiguration": Array [
             Object {
@@ -2133,20 +2432,83 @@ Object {
             },
           ],
         },
+        "BucketName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "-",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              "-ui",
+            ],
+          ],
+        },
+        "LifecycleConfiguration": Object {
+          "Rules": Array [
+            Object {
+              "NoncurrentVersionTransitions": Array [
+                Object {
+                  "StorageClass": "GLACIER",
+                  "TransitionInDays": 90,
+                },
+              ],
+              "Status": "Enabled",
+            },
+          ],
+        },
+        "LoggingConfiguration": Object {
+          "DestinationBucketName": Object {
+            "Ref": "LoggingBucketLogBucket34BFFCE4",
+          },
+          "LogFilePrefix": "ui-s3/",
+        },
         "PublicAccessBlockConfiguration": Object {
           "BlockPublicAcls": true,
           "BlockPublicPolicy": true,
           "IgnorePublicAcls": true,
           "RestrictPublicBuckets": true,
         },
+        "VersioningConfiguration": Object {
+          "Status": "Enabled",
+        },
       },
       "Type": "AWS::S3::Bucket",
       "UpdateReplacePolicy": "Retain",
     },
-    "CommonResourcesLogBucketPolicy61ABA6C2": Object {
+    "CloudFrontCloudFrontToS3S3BucketPolicy8C26E73C": Object {
+      "Metadata": Object {
+        "cdk_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "AwsSolutions-CFR1",
+              "reason": "The solution does not control geo restriction.",
+            },
+            Object {
+              "id": "AwsSolutions-CFR2",
+              "reason": "No need to enable WAF.",
+            },
+            Object {
+              "id": "AwsSolutions-CFR4",
+              "reason": "No contorl on the solution side as it is using the CloudFront default certificate.",
+            },
+          ],
+        },
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "F16",
+              "reason": "Public website bucket policy requires a wildcard principal",
+            },
+          ],
+        },
+      },
       "Properties": Object {
         "Bucket": Object {
-          "Ref": "CommonResourcesLogBucketFC1ABCC9",
+          "Ref": "CloudFrontCloudFrontToS3S3Bucket7D24549E",
         },
         "PolicyDocument": Object {
           "Statement": Array [
@@ -2164,7 +2526,7 @@ Object {
               "Resource": Array [
                 Object {
                   "Fn::GetAtt": Array [
-                    "CommonResourcesLogBucketFC1ABCC9",
+                    "CloudFrontCloudFrontToS3S3Bucket7D24549E",
                     "Arn",
                   ],
                 },
@@ -2174,7 +2536,7 @@ Object {
                     Array [
                       Object {
                         "Fn::GetAtt": Array [
-                          "CommonResourcesLogBucketFC1ABCC9",
+                          "CloudFrontCloudFrontToS3S3Bucket7D24549E",
                           "Arn",
                         ],
                       },
@@ -2184,11 +2546,55 @@ Object {
                 },
               ],
             },
+            Object {
+              "Action": "s3:GetObject",
+              "Effect": "Allow",
+              "Principal": Object {
+                "CanonicalUser": Object {
+                  "Fn::GetAtt": Array [
+                    "CloudFrontCloudFrontToS3CloudFrontDistributionOrigin1S3OriginA6611E24",
+                    "S3CanonicalUserId",
+                  ],
+                },
+              },
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    Object {
+                      "Fn::GetAtt": Array [
+                        "CloudFrontCloudFrontToS3S3Bucket7D24549E",
+                        "Arn",
+                      ],
+                    },
+                    "/*",
+                  ],
+                ],
+              },
+            },
           ],
           "Version": "2012-10-17",
         },
       },
       "Type": "AWS::S3::BucketPolicy",
+    },
+    "CloudFrontTeardownCloudfrontBucket808C2E27": Object {
+      "Condition": "ShouldTeardownDataOnDestroy",
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "BucketName": Object {
+          "Ref": "CloudFrontCloudFrontToS3S3Bucket7D24549E",
+        },
+        "Resource": "DeleteS3Bucket",
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "CustomResourcesCustomResourceFunction1AA6557C",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
     },
     "ConnectionBuilderConnectionBuilderPolicy5A32FBC5": Object {
       "Metadata": Object {
@@ -2571,6 +2977,17 @@ Object {
             "ARTIFACT_BUCKET": Object {
               "Ref": "GreengrassResourcesGreengrassResourceBucketC4A4CE77",
             },
+            "COLLECTOR_ID": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "SO0070-",
+                  Object {
+                    "Ref": "AWS::StackName",
+                  },
+                ],
+              ],
+            },
             "COMPONENT_VERSION": Object {
               "Fn::Select": Array [
                 1,
@@ -2654,7 +3071,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs14.x",
+        "Runtime": "nodejs16.x",
         "Timeout": 600,
       },
       "Type": "AWS::Lambda::Function",
@@ -2985,7 +3402,7 @@ Object {
                         Object {
                           "Ref": "AWS::AccountId",
                         },
-                        ":secret:*",
+                        ":secret:m2c2-*",
                       ],
                     ],
                   },
@@ -3083,7 +3500,6 @@ Object {
                 ],
               ],
             },
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "CONNECTION_DYNAMODB_TABLE": Object {
               "Ref": "ConnectionBuilderDynamoTableD71800CE",
             },
@@ -3151,7 +3567,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs14.x",
+        "Runtime": "nodejs16.x",
         "Timeout": 60,
         "TracingConfig": Object {
           "Mode": "Active",
@@ -3335,6 +3751,7 @@ Object {
       "DeletionPolicy": "Delete",
       "Properties": Object {
         "Artifacts": Object {
+          "ModbusTcpConnectorArtifact": "m2c2_modbus_tcp_connector.zip",
           "OpcDaConnectorArtifact": "m2c2_opcda_connector.zip",
           "OsiPiConnectorArtifact": "m2c2_osipi_connector.zip",
           "PublisherArtifact": "m2c2_publisher.zip",
@@ -3381,7 +3798,7 @@ Object {
       "DeletionPolicy": "Delete",
       "Properties": Object {
         "DestinationBucket": Object {
-          "Ref": "UiCloudFrontToS3S3BucketAA5A6B78",
+          "Ref": "CloudFrontCloudFrontToS3S3Bucket7D24549E",
         },
         "ManifestFile": "manifest.json",
         "Resource": "CopyUIAssets",
@@ -3483,7 +3900,7 @@ Object {
         },
         "ConfigFileName": "aws-exports.js",
         "DestinationBucket": Object {
-          "Ref": "UiCloudFrontToS3S3BucketAA5A6B78",
+          "Ref": "CloudFrontCloudFrontToS3S3Bucket7D24549E",
         },
         "IdentityPoolId": Object {
           "Ref": "UiIdentityPool51844CCB",
@@ -3580,7 +3997,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs14.x",
+        "Runtime": "nodejs16.x",
         "Timeout": 240,
       },
       "Type": "AWS::Lambda::Function",
@@ -3696,10 +4113,80 @@ Object {
                     ],
                   },
                 },
+                Object {
+                  "Action": Array [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": Object {
+                    "Fn::Join": Array [
+                      "",
+                      Array [
+                        "arn:",
+                        Object {
+                          "Ref": "AWS::Partition",
+                        },
+                        ":logs:",
+                        Object {
+                          "Ref": "AWS::Region",
+                        },
+                        ":",
+                        Object {
+                          "Ref": "AWS::AccountId",
+                        },
+                        ":log-group:*",
+                      ],
+                    ],
+                  },
+                },
               ],
               "Version": "2012-10-17",
             },
             "PolicyName": "GreengrassIoTPolicy",
+          },
+          Object {
+            "PolicyDocument": Object {
+              "Statement": Array [
+                Object {
+                  "Action": Array [
+                    "s3:List*",
+                    "s3:GetObject",
+                    "s3:GetObjectVersion",
+                    "s3:PutObject",
+                    "s3:Delete*",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": Object {
+                    "Fn::Join": Array [
+                      "",
+                      Array [
+                        "arn:aws:s3:::",
+                        Object {
+                          "Ref": "AWS::StackName",
+                        },
+                        "*",
+                      ],
+                    ],
+                  },
+                },
+                Object {
+                  "Action": Array [
+                    "timestream:DescribeEndpoints",
+                    "timestream:ListTables",
+                    "timestream:DescribeTable",
+                    "timestream:DeleteTable",
+                    "timestream:DeleteDatabase",
+                    "timestream:DescribeDatabase",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "*",
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "TeardownPolicy",
           },
         ],
       },
@@ -3867,7 +4354,7 @@ Object {
                   Array [
                     Object {
                       "Fn::GetAtt": Array [
-                        "UiCloudFrontToS3S3BucketAA5A6B78",
+                        "CloudFrontCloudFrontToS3S3Bucket7D24549E",
                         "Arn",
                       ],
                     },
@@ -4187,6 +4674,21 @@ Object {
             },
           ],
         },
+        "BucketName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "-",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              "-gg",
+            ],
+          ],
+        },
         "CorsConfiguration": Object {
           "CorsRules": Array [
             Object {
@@ -4204,7 +4706,7 @@ Object {
                       "https://",
                       Object {
                         "Fn::GetAtt": Array [
-                          "UiCloudFrontToS3CloudFrontDistribution05269C12",
+                          "CloudFrontCloudFrontToS3CloudFrontDistribution057B07F7",
                           "DomainName",
                         ],
                       },
@@ -4219,9 +4721,6 @@ Object {
           ],
         },
         "LoggingConfiguration": Object {
-          "DestinationBucketName": Object {
-            "Ref": "CommonResourcesLogBucketFC1ABCC9",
-          },
           "LogFilePrefix": "m2c2/",
         },
         "PublicAccessBlockConfiguration": Object {
@@ -4573,7 +5072,10 @@ Object {
             "PolicyDocument": Object {
               "Statement": Array [
                 Object {
-                  "Action": "kinesis:PutRecords",
+                  "Action": Array [
+                    "kinesis:PutRecords",
+                    "kinesis:PutRecord",
+                  ],
                   "Effect": "Allow",
                   "Resource": Array [
                     Object {
@@ -4679,7 +5181,7 @@ Object {
                         Object {
                           "Ref": "AWS::AccountId",
                         },
-                        ":secret:*",
+                        ":secret:m2c2-*",
                       ],
                     ],
                   },
@@ -5091,6 +5593,24 @@ Object {
       },
       "Type": "AWS::IoT::Policy",
     },
+    "GreengrassResourcesTeardownGreengrassResourcesBucketFD2D5392": Object {
+      "Condition": "ShouldTeardownDataOnDestroy",
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "BucketName": Object {
+          "Ref": "GreengrassResourcesGreengrassResourceBucketC4A4CE77",
+        },
+        "Resource": "DeleteS3Bucket",
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "CustomResourcesCustomResourceFunction1AA6557C",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
+    },
     "KinesisDataStreamKinesisFirehoseToS3KinesisFirehoseFC793760": Object {
       "Condition": "CreateKinesisResources",
       "Metadata": Object {
@@ -5332,6 +5852,21 @@ Object {
             },
           ],
         },
+        "BucketName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "-",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              "-kds",
+            ],
+          ],
+        },
         "LifecycleConfiguration": Object {
           "Rules": Array [
             Object {
@@ -5347,7 +5882,7 @@ Object {
         },
         "LoggingConfiguration": Object {
           "DestinationBucketName": Object {
-            "Ref": "CommonResourcesLogBucketFC1ABCC9",
+            "Ref": "LoggingBucketLogBucket34BFFCE4",
           },
           "LogFilePrefix": "m2c2data/",
         },
@@ -5611,6 +6146,127 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
+    "KinesisTeardownKinesisBucket8EB05EB7": Object {
+      "Condition": "CreateKinesisResources",
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "BucketName": Object {
+          "Ref": "KinesisDataStreamKinesisFirehoseToS3S3Bucket7191FF90",
+        },
+        "Resource": "DeleteS3Bucket",
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "CustomResourcesCustomResourceFunction1AA6557C",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "LoggingBucketLogBucket34BFFCE4": Object {
+      "DeletionPolicy": "Retain",
+      "Metadata": Object {
+        "cdk_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "AwsSolutions-S1",
+              "reason": "This bucket is to store S3 logs, so it does not require access logs.",
+            },
+          ],
+        },
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "W35",
+              "reason": "This bucket is to store S3 logs, so it does not require access logs.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "AccessControl": "LogDeliveryWrite",
+        "BucketEncryption": Object {
+          "ServerSideEncryptionConfiguration": Array [
+            Object {
+              "ServerSideEncryptionByDefault": Object {
+                "SSEAlgorithm": "AES256",
+              },
+            },
+          ],
+        },
+        "BucketName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "-",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              "-log",
+            ],
+          ],
+        },
+        "PublicAccessBlockConfiguration": Object {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true,
+        },
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "LoggingBucketLogBucketPolicy95173867": Object {
+      "Properties": Object {
+        "Bucket": Object {
+          "Ref": "LoggingBucketLogBucket34BFFCE4",
+        },
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "s3:*",
+              "Condition": Object {
+                "Bool": Object {
+                  "aws:SecureTransport": "false",
+                },
+              },
+              "Effect": "Deny",
+              "Principal": Object {
+                "AWS": "*",
+              },
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "LoggingBucketLogBucket34BFFCE4",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "LoggingBucketLogBucket34BFFCE4",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::S3::BucketPolicy",
+    },
     "SQSMessageConsumerErrorLogsRuleIotTopicRule59B8BAD2": Object {
       "Properties": Object {
         "TopicRulePayload": Object {
@@ -5830,7 +6486,6 @@ Object {
         "Description": "Machine to Cloud Connectivity SQS message consumer function",
         "Environment": Object {
           "Variables": Object {
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "LOGGING_LEVEL": Object {
               "Ref": "LoggingLevel",
             },
@@ -5860,7 +6515,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs14.x",
+        "Runtime": "nodejs16.x",
         "Timeout": 60,
         "TracingConfig": Object {
           "Mode": "Active",
@@ -6341,6 +6996,24 @@ Object {
       },
       "Type": "AWS::SQS::QueuePolicy",
     },
+    "TeardownS3LoggingBucket": Object {
+      "Condition": "ShouldTeardownDataOnDestroy",
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "BucketName": Object {
+          "Ref": "LoggingBucketLogBucket34BFFCE4",
+        },
+        "Resource": "DeleteS3Bucket",
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "CustomResourcesCustomResourceFunction1AA6557C",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
+    },
     "TimestreamDatabase8FA26A4B": Object {
       "Condition": "TimestreamCreateTimestreamDatabaseA7576C71",
       "DeletionPolicy": "Retain",
@@ -6351,6 +7024,25 @@ Object {
               "id": "AwsSolutions-TS3",
               "reason": "The default KMS is used by default.",
             },
+          ],
+        },
+      },
+      "Properties": Object {
+        "DatabaseName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "-",
+              Object {
+                "Fn::GetAtt": Array [
+                  "CustomResourcesUUID1685434C",
+                  "UUID",
+                ],
+              },
+            ],
           ],
         },
       },
@@ -6511,7 +7203,6 @@ Object {
         "Description": "Machine to Cloud Connectivity Framework Timestream data writer function",
         "Environment": Object {
           "Variables": Object {
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "LOGGING_LEVEL": Object {
               "Ref": "LoggingLevel",
             },
@@ -6555,7 +7246,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs14.x",
+        "Runtime": "nodejs16.x",
         "Timeout": 30,
         "TracingConfig": Object {
           "Mode": "Active",
@@ -6940,281 +7631,31 @@ Object {
       },
       "Type": "AWS::IAM::Policy",
     },
-    "UiCloudFrontToS3CloudFrontDistribution05269C12": Object {
-      "Metadata": Object {
-        "cdk_nag": Object {
-          "rules_to_suppress": Array [
-            Object {
-              "id": "AwsSolutions-CFR1",
-              "reason": "The solution does not control geo restriction.",
-            },
-            Object {
-              "id": "AwsSolutions-CFR2",
-              "reason": "No need to enable WAF.",
-            },
-            Object {
-              "id": "AwsSolutions-CFR4",
-              "reason": "No contorl on the solution side as it is using the CloudFront default certificate.",
-            },
-          ],
-        },
-        "cfn_nag": Object {
-          "rules_to_suppress": Array [
-            Object {
-              "id": "W70",
-              "reason": "Since the distribution uses the CloudFront domain name, CloudFront automatically sets the security policy to TLSv1 regardless of the value of MinimumProtocolVersion",
-            },
-          ],
-        },
-      },
+    "TimestreamteardownTimestreamDatabaseA467782A": Object {
+      "Condition": "ShouldTeardownDataOnDestroy",
+      "DeletionPolicy": "Delete",
       "Properties": Object {
-        "DistributionConfig": Object {
-          "Comment": "Machine to Cloud Connectivity Framework Distribution",
-          "CustomErrorResponses": Array [
+        "DatabaseName": Object {
+          "Fn::If": Array [
+            "TimestreamCreateTimestreamDatabaseA7576C71",
             Object {
-              "ErrorCode": 403,
-              "ResponseCode": 200,
-              "ResponsePagePath": "/index.html",
+              "Ref": "TimestreamDatabase8FA26A4B",
             },
             Object {
-              "ErrorCode": 404,
-              "ResponseCode": 200,
-              "ResponsePagePath": "/index.html",
+              "Ref": "ExistingTimestreamDatabaseName",
             },
           ],
-          "DefaultCacheBehavior": Object {
-            "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
-            "Compress": true,
-            "TargetOriginId": "TestStackUiCloudFrontToS3CloudFrontDistributionOrigin1A691CFA1",
-            "ViewerProtocolPolicy": "redirect-to-https",
-          },
-          "DefaultRootObject": "index.html",
-          "Enabled": true,
-          "HttpVersion": "http2",
-          "IPV6Enabled": true,
-          "Logging": Object {
-            "Bucket": Object {
-              "Fn::GetAtt": Array [
-                "CommonResourcesLogBucketFC1ABCC9",
-                "RegionalDomainName",
-              ],
-            },
-            "Prefix": "ui-cf/",
-          },
-          "Origins": Array [
-            Object {
-              "DomainName": Object {
-                "Fn::GetAtt": Array [
-                  "UiCloudFrontToS3S3BucketAA5A6B78",
-                  "RegionalDomainName",
-                ],
-              },
-              "Id": "TestStackUiCloudFrontToS3CloudFrontDistributionOrigin1A691CFA1",
-              "S3OriginConfig": Object {
-                "OriginAccessIdentity": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "origin-access-identity/cloudfront/",
-                      Object {
-                        "Ref": "UiCloudFrontToS3CloudFrontDistributionOrigin1S3Origin00D6EF4A",
-                      },
-                    ],
-                  ],
-                },
-              },
-            },
+        },
+        "Resource": "DeleteTimestreamDatabase",
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "CustomResourcesCustomResourceFunction1AA6557C",
+            "Arn",
           ],
         },
       },
-      "Type": "AWS::CloudFront::Distribution",
-    },
-    "UiCloudFrontToS3CloudFrontDistributionOrigin1S3Origin00D6EF4A": Object {
-      "Metadata": Object {
-        "cdk_nag": Object {
-          "rules_to_suppress": Array [
-            Object {
-              "id": "AwsSolutions-CFR1",
-              "reason": "The solution does not control geo restriction.",
-            },
-            Object {
-              "id": "AwsSolutions-CFR2",
-              "reason": "No need to enable WAF.",
-            },
-            Object {
-              "id": "AwsSolutions-CFR4",
-              "reason": "No contorl on the solution side as it is using the CloudFront default certificate.",
-            },
-          ],
-        },
-      },
-      "Properties": Object {
-        "CloudFrontOriginAccessIdentityConfig": Object {
-          "Comment": "Identity for TestStackUiCloudFrontToS3CloudFrontDistributionOrigin1A691CFA1",
-        },
-      },
-      "Type": "AWS::CloudFront::CloudFrontOriginAccessIdentity",
-    },
-    "UiCloudFrontToS3S3BucketAA5A6B78": Object {
-      "DeletionPolicy": "Retain",
-      "Metadata": Object {
-        "cdk_nag": Object {
-          "rules_to_suppress": Array [
-            Object {
-              "id": "AwsSolutions-CFR1",
-              "reason": "The solution does not control geo restriction.",
-            },
-            Object {
-              "id": "AwsSolutions-CFR2",
-              "reason": "No need to enable WAF.",
-            },
-            Object {
-              "id": "AwsSolutions-CFR4",
-              "reason": "No contorl on the solution side as it is using the CloudFront default certificate.",
-            },
-          ],
-        },
-      },
-      "Properties": Object {
-        "BucketEncryption": Object {
-          "ServerSideEncryptionConfiguration": Array [
-            Object {
-              "ServerSideEncryptionByDefault": Object {
-                "SSEAlgorithm": "AES256",
-              },
-            },
-          ],
-        },
-        "LifecycleConfiguration": Object {
-          "Rules": Array [
-            Object {
-              "NoncurrentVersionTransitions": Array [
-                Object {
-                  "StorageClass": "GLACIER",
-                  "TransitionInDays": 90,
-                },
-              ],
-              "Status": "Enabled",
-            },
-          ],
-        },
-        "LoggingConfiguration": Object {
-          "DestinationBucketName": Object {
-            "Ref": "CommonResourcesLogBucketFC1ABCC9",
-          },
-          "LogFilePrefix": "ui-s3/",
-        },
-        "PublicAccessBlockConfiguration": Object {
-          "BlockPublicAcls": true,
-          "BlockPublicPolicy": true,
-          "IgnorePublicAcls": true,
-          "RestrictPublicBuckets": true,
-        },
-        "VersioningConfiguration": Object {
-          "Status": "Enabled",
-        },
-      },
-      "Type": "AWS::S3::Bucket",
-      "UpdateReplacePolicy": "Retain",
-    },
-    "UiCloudFrontToS3S3BucketPolicy4A5BC740": Object {
-      "Metadata": Object {
-        "cdk_nag": Object {
-          "rules_to_suppress": Array [
-            Object {
-              "id": "AwsSolutions-CFR1",
-              "reason": "The solution does not control geo restriction.",
-            },
-            Object {
-              "id": "AwsSolutions-CFR2",
-              "reason": "No need to enable WAF.",
-            },
-            Object {
-              "id": "AwsSolutions-CFR4",
-              "reason": "No contorl on the solution side as it is using the CloudFront default certificate.",
-            },
-          ],
-        },
-        "cfn_nag": Object {
-          "rules_to_suppress": Array [
-            Object {
-              "id": "F16",
-              "reason": "Public website bucket policy requires a wildcard principal",
-            },
-          ],
-        },
-      },
-      "Properties": Object {
-        "Bucket": Object {
-          "Ref": "UiCloudFrontToS3S3BucketAA5A6B78",
-        },
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "s3:*",
-              "Condition": Object {
-                "Bool": Object {
-                  "aws:SecureTransport": "false",
-                },
-              },
-              "Effect": "Deny",
-              "Principal": Object {
-                "AWS": "*",
-              },
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "UiCloudFrontToS3S3BucketAA5A6B78",
-                    "Arn",
-                  ],
-                },
-                Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      Object {
-                        "Fn::GetAtt": Array [
-                          "UiCloudFrontToS3S3BucketAA5A6B78",
-                          "Arn",
-                        ],
-                      },
-                      "/*",
-                    ],
-                  ],
-                },
-              ],
-            },
-            Object {
-              "Action": "s3:GetObject",
-              "Effect": "Allow",
-              "Principal": Object {
-                "CanonicalUser": Object {
-                  "Fn::GetAtt": Array [
-                    "UiCloudFrontToS3CloudFrontDistributionOrigin1S3Origin00D6EF4A",
-                    "S3CanonicalUserId",
-                  ],
-                },
-              },
-              "Resource": Object {
-                "Fn::Join": Array [
-                  "",
-                  Array [
-                    Object {
-                      "Fn::GetAtt": Array [
-                        "UiCloudFrontToS3S3BucketAA5A6B78",
-                        "Arn",
-                      ],
-                    },
-                    "/*",
-                  ],
-                ],
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-      },
-      "Type": "AWS::S3::BucketPolicy",
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
     },
     "UiIdentityPool51844CCB": Object {
       "Properties": Object {
@@ -7421,7 +7862,7 @@ Object {
             https://",
                   Object {
                     "Fn::GetAtt": Array [
-                      "UiCloudFrontToS3CloudFrontDistribution05269C12",
+                      "CloudFrontCloudFrontToS3CloudFrontDistribution057B07F7",
                       "DomainName",
                     ],
                   },

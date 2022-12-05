@@ -36,7 +36,8 @@ const response: ListConnectionsResponse = {
       status: ConnectionControl.START,
       sendDataToIoTSiteWise: false,
       sendDataToIoTTopic: true,
-      sendDataToKinesisDataStreams: false
+      sendDataToKinesisDataStreams: false,
+      sendDataToHistorian: false
     },
     {
       connectionName: 'mock-connection-2',
@@ -45,7 +46,8 @@ const response: ListConnectionsResponse = {
       status: ConnectionControl.STOP,
       sendDataToIoTSiteWise: true,
       sendDataToIoTTopic: false,
-      sendDataToKinesisDataStreams: true
+      sendDataToKinesisDataStreams: true,
+      sendDataToHistorian: false
     },
     {
       connectionName: 'mock-connection-3',
@@ -54,7 +56,8 @@ const response: ListConnectionsResponse = {
       status: ConnectionControl.STOP,
       sendDataToIoTSiteWise: true,
       sendDataToIoTTopic: false,
-      sendDataToKinesisDataStreams: true
+      sendDataToKinesisDataStreams: true,
+      sendDataToHistorian: false
     }
   ]
 };
@@ -66,6 +69,7 @@ const updateResponse: GetConnectionResponse = {
   sendDataToIoTTopic: true,
   sendDataToKinesisDataStreams: true,
   sendDataToTimestream: true,
+  sendDataToHistorian: true,
   area: 'mock-area',
   machineName: 'mock-machine',
   opcDa: {

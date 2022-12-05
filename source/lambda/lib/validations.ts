@@ -2,7 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { LambdaError } from './errors';
-import { GreengrassCoreDeviceControl, PostGreengrassRequestBodyInput } from './types/connection-builder-types';
+import {
+  GreengrassCoreDeviceControl,
+  GreengrassCoreDeviceOsPlatform,
+  PostGreengrassRequestBodyInput
+} from './types/connection-builder-types';
 import { CreatedBy } from './types/dynamodb-handler-types';
 import {
   ConnectionControl,
@@ -13,6 +17,7 @@ import {
   OsiPiAuthMode,
   OsiPiDefinition
 } from './types/solution-common-types';
+import { ModbusTcpDefinition, ModbusTcpSlaveDefinition } from './types/modbus-types';
 
 const EMPTY_TYPES = [undefined, null];
 export const ValidationsLimit = {
@@ -103,7 +108,8 @@ function validateDetailedConnectionDefinition(connectionDefinition: ConnectionDe
     sendDataToIoTSiteWise,
     sendDataToIoTTopic,
     sendDataToKinesisDataStreams,
-    sendDataToTimestream
+    sendDataToTimestream,
+    sendDataToHistorian
   } = connectionDefinition;
 
   // Validates if sending data to at least one destination
@@ -111,11 +117,18 @@ function validateDetailedConnectionDefinition(connectionDefinition: ConnectionDe
   validateDestinationValue(sendDataToIoTTopic, 'sendDataToIoTTopic');
   validateDestinationValue(sendDataToKinesisDataStreams, 'sendDataToKinesisDataStreams');
   validateDestinationValue(sendDataToTimestream, 'sendDataToTimestream');
+  validateDestinationValue(sendDataToHistorian, 'sendDataToHistorian');
 
-  if (!sendDataToIoTSiteWise && !sendDataToIoTTopic && !sendDataToKinesisDataStreams && !sendDataToTimestream) {
+  if (
+    !sendDataToIoTSiteWise &&
+    !sendDataToIoTTopic &&
+    !sendDataToKinesisDataStreams &&
+    !sendDataToTimestream &&
+    !sendDataToHistorian
+  ) {
     throw new LambdaError({
       message:
-        'At least one data destination should be set: sendDataToIoTSiteWise, sendDataToIoTTopic, sendDataToKinesisDataStreams, sendDataToTimestream.',
+        'At least one data destination should be set: sendDataToIoTSiteWise, sendDataToIoTTopic, sendDataToKinesisDataStreams, sendDataToTimestream, sendDataToHistorian.',
       name: 'ValidationError',
       statusCode: 400
     });
@@ -137,6 +150,9 @@ function validateDetailedConnectionDefinition(connectionDefinition: ConnectionDe
   } else if (protocol === MachineProtocol.OSIPI) {
     // OSI PI
     validateOsiPiConnectionDefinition(connectionDefinition.osiPi);
+  } else if (protocol === MachineProtocol.MODBUSTCP) {
+    // Modbus TCP
+    validateModbusTcpConnectionDefinition(connectionDefinition.modbusTcp);
   }
 }
 
@@ -258,6 +274,22 @@ function validateStringValue(value: string, name: string) {
       name: 'ValidationError',
       statusCode: 400
     });
+  }
+}
+
+/**
+ * Validates that port is in right range
+ * @param port the port number
+ */
+function validatePort(port: number) {
+  if (!EMPTY_TYPES.includes(port)) {
+    if (!Number.isInteger(port) || port < ValidationsLimit.MIN_PORT || port > ValidationsLimit.MAX_PORT) {
+      throw new LambdaError({
+        message: `"port" is invalid from the connection definition. It should be an integer number between ${ValidationsLimit.MIN_PORT} and ${ValidationsLimit.MAX_PORT}.`,
+        name: 'ValidationError',
+        statusCode: 400
+      });
+    }
   }
 }
 
@@ -384,16 +416,116 @@ function validateOpcUaConnectionDefinition(opcUa: OpcUaDefinition) {
   }
 
   if (!EMPTY_TYPES.includes(port)) {
-    if (!Number.isInteger(port) || port < ValidationsLimit.MIN_PORT || port > ValidationsLimit.MAX_PORT) {
-      throw new LambdaError({
-        message: `"port" is invalid from the connection definition. It should be an integer number between ${ValidationsLimit.MIN_PORT} and ${ValidationsLimit.MAX_PORT}.`,
-        name: 'ValidationError',
-        statusCode: 400
-      });
+    validatePort(port);
+  }
+}
+
+/**
+ * Validates the Modbus TCP connection definition.
+ * @param modbusTcp The Modbus TCP connection definition
+ * @throws `ValidationError` when the Modbus TCP connection definition is invalid
+ */
+function validateModbusTcpConnectionDefinition(modbusTcp: ModbusTcpDefinition) {
+  // Since the type of array is also `object`, it checks if the value is an array.
+  if (typeof modbusTcp !== 'object' || Array.isArray(modbusTcp) || Object.keys(modbusTcp).length === 0) {
+    throw new LambdaError({
+      message: '"modbusTcp" is missing or invalid from the connection definition. See the implementation guide.',
+      name: 'ValidationError',
+      statusCode: 400
+    });
+  }
+
+  const { host, hostPort, hostTag, modbusSlavesConfig } = modbusTcp;
+
+  validateStringValue(host, 'host');
+  validatePort(hostPort);
+  validateStringValue(hostTag, 'hostTag');
+
+  if (modbusSlavesConfig.length === 0) {
+    throw new LambdaError({
+      message: '"modbusTcp" slave config cannot be empty',
+      name: 'ValidationError',
+      statusCode: 400
+    });
+  } else {
+    for (const modbusSlaveConfig of modbusSlavesConfig) {
+      validateModbusSlaveConfig(modbusSlaveConfig);
     }
   }
 }
 
+/**
+ * Validates individual slave configs
+ * @param modbusSlaveConfig the individual slave config for modbus
+ */
+function validateModbusSlaveConfig(modbusSlaveConfig: ModbusTcpSlaveDefinition) {
+  let failureCondition = '';
+  if (!Number.isInteger(modbusSlaveConfig.frequencyInSeconds)) {
+    failureCondition = 'Frequency in seconds must be number';
+  }
+
+  if (!Number.isInteger(modbusSlaveConfig.slaveAddress)) {
+    failureCondition = 'Slave address must be number';
+  }
+
+  // read coils
+  if (modbusSlaveConfig.commandConfig.readCoils !== undefined) {
+    if (!Number.isInteger(modbusSlaveConfig.commandConfig.readCoils.address)) {
+      failureCondition = 'Read coils address must be a number';
+    }
+    if (modbusSlaveConfig.commandConfig.readCoils.count !== undefined) {
+      if (!Number.isInteger(modbusSlaveConfig.commandConfig.readCoils.count)) {
+        failureCondition = 'Read coils count must be a number';
+      }
+    }
+  }
+
+  // discrete inputs
+  if (modbusSlaveConfig.commandConfig.readDiscreteInputs !== undefined) {
+    if (!Number.isInteger(modbusSlaveConfig.commandConfig.readDiscreteInputs.address)) {
+      failureCondition = 'Read discrete inputs address must be a number';
+    }
+    if (modbusSlaveConfig.commandConfig.readDiscreteInputs.count !== undefined) {
+      if (!Number.isInteger(modbusSlaveConfig.commandConfig.readDiscreteInputs.count)) {
+        failureCondition = 'Read discrete inputs count must be a number';
+      }
+    }
+  }
+
+  // holding registers
+  if (modbusSlaveConfig.commandConfig.readHoldingRegisters !== undefined) {
+    if (!Number.isInteger(modbusSlaveConfig.commandConfig.readHoldingRegisters.address)) {
+      failureCondition = 'Read holding registers address must be a number';
+    }
+    if (modbusSlaveConfig.commandConfig.readHoldingRegisters.count !== undefined) {
+      if (!Number.isInteger(modbusSlaveConfig.commandConfig.readHoldingRegisters.count)) {
+        failureCondition = 'Read holding registers count must be a number';
+      }
+    }
+  }
+
+  // input registers
+  if (modbusSlaveConfig.commandConfig.readInputRegisters !== undefined) {
+    if (!Number.isInteger(modbusSlaveConfig.commandConfig.readInputRegisters.address)) {
+      failureCondition = 'Read input registers address must be a number';
+    }
+    if (modbusSlaveConfig.commandConfig.readInputRegisters.count !== undefined) {
+      if (!Number.isInteger(modbusSlaveConfig.commandConfig.readInputRegisters.count)) {
+        failureCondition = 'Read input registers count must be a number';
+      }
+    }
+  }
+
+  if (failureCondition.length > 0) {
+    throw new LambdaError({
+      message: `"modbusTcp" slave definition failed validation: ${failureCondition}`,
+      name: 'ValidationError',
+      statusCode: 400
+    });
+  }
+}
+
+// TODO: this needs to be unit tested, was skipped when osi pi was implemented
 /**
  * Validates the OSI PI connection definition.
  * @param osiPi The OSI PI connection definition
@@ -403,7 +535,7 @@ function validateOsiPiConnectionDefinition(osiPi: OsiPiDefinition) {
   // Since the type of array is also `object`, it checks if the value is an array.
   if (typeof osiPi !== 'object' || Array.isArray(osiPi) || Object.keys(osiPi).length === 0) {
     throw new LambdaError({
-      message: '"opcDa" is missing or invalid from the connection definition. See the implementation guide.',
+      message: '"osiPi" is missing or invalid from the connection definition. See the implementation guide.',
       name: 'ValidationError',
       statusCode: 400
     });
@@ -543,7 +675,7 @@ function validateOsiPiQueryOffsetValue(queryOffset: number) {
  * @throws `ValidationError` when the input is invalid
  */
 export function validateGreengrassCoreDeviceRequest(input: PostGreengrassRequestBodyInput): void {
-  const { name, control, createdBy } = input;
+  const { name, control, createdBy, osPlatform } = input;
 
   // The name can be up to 128 characters. Valid characters: a-z, A-Z, 0-9, colon (:), underscore (_), and hyphen (-).
   if (typeof name !== 'string' || !/^[a-zA-Z0-9-_:]{1,128}$/.test(name)) {
@@ -567,6 +699,15 @@ export function validateGreengrassCoreDeviceRequest(input: PostGreengrassRequest
   if (!createdByValues.includes(createdBy)) {
     throw new LambdaError({
       message: `Only "System" and "User" are valid for "createdBy".`,
+      name: 'ValidationError',
+      statusCode: 400
+    });
+  }
+
+  const osPlatformValues = Object.values(GreengrassCoreDeviceOsPlatform);
+  if (!osPlatformValues.includes(osPlatform)) {
+    throw new LambdaError({
+      message: `Only "linux" and "windows" are valid for "osPlatform".`,
       name: 'ValidationError',
       statusCode: 400
     });

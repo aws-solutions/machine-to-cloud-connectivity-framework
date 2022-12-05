@@ -240,6 +240,21 @@ Object {
             },
           ],
         },
+        "BucketName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "-",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              "-kds",
+            ],
+          ],
+        },
         "LifecycleConfiguration": Object {
           "Rules": Array [
             Object {
@@ -511,6 +526,19 @@ Object {
         ],
       },
       "Type": "AWS::IAM::Role",
+    },
+    "TestKinesisTeardownKinesisBucketD269F9E0": Object {
+      "Condition": "TestCondition",
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "BucketName": Object {
+          "Ref": "TestKinesisDataStreamKinesisFirehoseToS3S3BucketBAAD035E",
+        },
+        "Resource": "DeleteS3Bucket",
+        "ServiceToken": "",
+      },
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
     },
     "TestLoggingBucket": Object {
       "DeletionPolicy": "Retain",

@@ -1,10 +1,13 @@
 {
   "name": "machine-to-cloud-connectivity-framework-source",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "description": "Machine to Cloud Connectivity Framework ESLint and prettier",
   "private": true,
   "license": "Apache-2.0",
-  "author": "AWS Solutions Builders",
+  "author": {
+    "name": "Amazon Web Services",
+    "url": "https://aws.amazon.com/solutions"
+  },
   "scripts": {
     "clean": "rm -rf node_modules yarn.lock package-lock.json",
     "clean:install": "yarn clean && yarn install",

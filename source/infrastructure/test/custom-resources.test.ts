@@ -39,7 +39,6 @@ test('M2C2 custom resources test', () => {
   expect(customResource.customResourceFunctionRole).toBeDefined();
   expect(customResource.iotCredentialProviderEndpoint).toBeDefined();
   expect(customResource.iotDataAtsEndpoint).toBeDefined();
-  expect(customResource.uuid).toBeDefined();
 });
 
 test('M2C2 setup UI custom resource test', () => {

@@ -3,7 +3,7 @@
 
 import '@aws-cdk/assert/jest';
 import { SynthUtils } from '@aws-cdk/assert';
-import { Stack } from 'aws-cdk-lib';
+import { Stack, CfnCondition } from 'aws-cdk-lib';
 import { Bucket, CfnBucket } from 'aws-cdk-lib/aws-s3';
 import { KinesisDataStreamConstruct } from '../lib/data-flow/kinesis-data-stream';
 
@@ -11,7 +11,11 @@ test('M2C2 data stream test', () => {
   const stack = new Stack();
   const s3LoggingBucket = new Bucket(stack, 'TestLoggingBucket');
   (<CfnBucket>s3LoggingBucket.node.defaultChild).overrideLogicalId('TestLoggingBucket');
-  const dataStream = new KinesisDataStreamConstruct(stack, 'TestKinesisDataStream', { s3LoggingBucket });
+  const dataStream = new KinesisDataStreamConstruct(stack, 'TestKinesisDataStream', {
+    s3LoggingBucket,
+    customResourcesFunctionArn: '',
+    shouldTeardownData: new CfnCondition(stack, 'TestCondition')
+  });
 
   expect(SynthUtils.toCloudFormation(stack)).toMatchSnapshot();
   expect(dataStream.kinesisStreamName).toBeDefined();

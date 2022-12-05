@@ -7,14 +7,16 @@ import json
 
 from targets.iot_topic_target import IoTTopicTarget
 from targets.kinesis_target import KinesisTarget
+from targets.historian_target import HistorianTarget
 from targets.sitewise_target import SiteWiseTarget
+from boilerplate.logging.logger import get_logger
 
 
 class PayloadRouter:
     def __init__(self, protocol: str, connection_name: str, hierarchy: dict, destinations: dict,
-                 destination_streams: dict, max_stream_size: int, kinesis_data_stream: str, timestream_kinesis_data_stream: str):
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.setLevel(logging.INFO)
+                 destination_streams: dict, max_stream_size: int, kinesis_data_stream: str,
+                 timestream_kinesis_data_stream: str, historian_data_stream: str, collector_id: str):
+        self.logger = get_logger(self.__class__.__name__)
 
         self.destinations = destinations
         self.iot_client = IoTTopicTarget(
@@ -43,11 +45,24 @@ class PayloadRouter:
             kinesis_data_stream=timestream_kinesis_data_stream,
             is_timestream_kinesis=True
         )
+        self.historian_client = HistorianTarget(
+            connection_name=connection_name,
+            protocol=protocol,
+            hierarchy=hierarchy,
+            # need to have separate GG stream per historian, due to unique kinesis streams each needing
+            # different export config name
+            historian_sm_stream=f"historian_{connection_name}",
+            max_stream_size=max_stream_size,
+            historian_data_stream=historian_data_stream,
+            collector_id=collector_id
+        )
 
     def route_payload(self, message):
         """
         The payload router routes telemetry data based on set destinations in the destinations dictionary
         """
+        if message.payload is None:
+            raise Exception("Message is missing payload attribute")
         try:
             payload = json.loads(message.payload)
             message_sequence_number = message.sequence_number
@@ -68,6 +83,12 @@ class PayloadRouter:
                 timestream_payload = copy.deepcopy(payload)
                 self.timestream_kinesis_client.send_to_kinesis(
                     timestream_payload
+                )
+
+            if self.destinations["send_to_historian"]:
+                historian_payload = copy.deepcopy(payload)
+                self.historian_client.send_to_kinesis(
+                    historian_payload
                 )
 
             return message_sequence_number

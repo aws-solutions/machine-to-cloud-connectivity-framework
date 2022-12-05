@@ -192,7 +192,6 @@ Object {
         "Description": "Machine to Cloud Connectivity SQS message consumer function",
         "Environment": Object {
           "Variables": Object {
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "LOGGING_LEVEL": "ERROR",
             "LOGS_DYNAMODB_TABLE": Object {
               "Ref": "TestSQSMessageConsumerLogsDynamoDBDynamoTableAA33559F",
@@ -208,7 +207,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs14.x",
+        "Runtime": "nodejs16.x",
         "Timeout": 60,
         "TracingConfig": Object {
           "Mode": "Active",

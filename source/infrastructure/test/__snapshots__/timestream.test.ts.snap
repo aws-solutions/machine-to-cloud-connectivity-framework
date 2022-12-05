@@ -43,6 +43,19 @@ Object {
           ],
         },
       },
+      "Properties": Object {
+        "DatabaseName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "-test-uuid",
+            ],
+          ],
+        },
+      },
       "Type": "AWS::Timestream::Database",
     },
     "TestTimestreamKinesisLambdaKinesisStreamD9ACCC8B": Object {
@@ -170,7 +183,6 @@ Object {
         "Description": "Machine to Cloud Connectivity Framework Timestream data writer function",
         "Environment": Object {
           "Variables": Object {
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "LOGGING_LEVEL": "ERROR",
             "SOLUTION_ID": "SO0070-Test",
             "SOLUTION_VERSION": "v0.0.1-test",
@@ -198,7 +210,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs14.x",
+        "Runtime": "nodejs16.x",
         "Timeout": 30,
         "TracingConfig": Object {
           "Mode": "Active",
@@ -561,6 +573,25 @@ Object {
         ],
       },
       "Type": "AWS::IAM::Policy",
+    },
+    "TestTimestreamteardownTimestreamDatabase098BBBB7": Object {
+      "Condition": "TestCondition",
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "DatabaseName": Object {
+          "Fn::If": Array [
+            "TestTimestreamCreateTimestreamDatabaseDCDEE72E",
+            Object {
+              "Ref": "TestTimestreamDatabaseD9B9FB32",
+            },
+            "",
+          ],
+        },
+        "Resource": "DeleteTimestreamDatabase",
+        "ServiceToken": "",
+      },
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
     },
   },
 }

@@ -11,6 +11,8 @@ import {
   OsiPiDefinition
 } from './solution-common-types';
 
+import { ModbusTcpDefinition } from './modbus-types';
+
 export type PageItems = GetConnectionResponse[] | LogItem[] | GreengrassCoreDeviceItem[];
 
 export interface GetConnectionsItem {
@@ -21,8 +23,10 @@ export interface GetConnectionsItem {
   sendDataToIoTTopic: boolean;
   sendDataToKinesisDataStreams: boolean;
   sendDataToTimestream: boolean;
+  sendDataToHistorian: boolean;
   machineName?: string;
   logLevel: string;
+  historianKinesisDatastreamName: string;
 }
 
 export interface GetConnectionsResponse {
@@ -45,14 +49,17 @@ export interface GetConnectionResponse {
   sendDataToIoTTopic: boolean;
   sendDataToKinesisDataStreams: boolean;
   sendDataToTimestream: boolean;
+  sendDataToHistorian: boolean;
   area?: string;
   machineName?: string;
   opcDa?: OpcDaDefinition;
   opcUa?: OpcUaDefinition;
   osiPi?: OsiPiDefinition;
+  modbusTcp?: ModbusTcpDefinition;
   process?: string;
   siteName?: string;
   logLevel: string;
+  historianKinesisDatastreamName?: string;
 }
 
 export interface UpdateConnectionsRequest {
@@ -65,11 +72,14 @@ export interface UpdateConnectionsRequest {
   opcDa?: OpcDaDefinition;
   opcUa?: OpcUaDefinition;
   osiPi?: OsiPiDefinition;
+  modbusTcp?: ModbusTcpDefinition;
   process?: string;
   sendDataToIoTSiteWise?: boolean;
   sendDataToIoTTopic?: boolean;
   sendDataToKinesisDataStreams?: boolean;
   sendDataToTimestream?: boolean;
+  sendDataToHistorian?: boolean;
+  historianKinesisDatastreamName?: string;
   siteName?: string;
 }
 
@@ -102,6 +112,7 @@ export interface GreengrassCoreDeviceItem {
   numberOfConnections: number;
   iotThingArn: string;
   iotSiteWiseGatewayId?: string;
+  osPlatform: string;
 }
 
 export interface GetGreengrassCoreDevicesResponse {

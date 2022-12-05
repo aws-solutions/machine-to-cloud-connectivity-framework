@@ -2,7 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { createUuid, describeIoTEndpoints, sendAnonymousMetrics } from './general-custom-resources';
+import {
+  createUuid,
+  describeIoTEndpoints,
+  sendAnonymousMetrics,
+  deleteS3Bucket,
+  deleteTimestreamDatabase
+} from './general-custom-resources';
 import {
   copyGreengrassComponentsArtifact,
   createGreengrassInstallationScripts,
@@ -24,7 +30,9 @@ import {
   ManageIoTRoleAliasProperties,
   ResourceTypes,
   SendAnonymousMetricProperties,
-  StatusTypes
+  StatusTypes,
+  DeleteTimestreamDatabaseProperties,
+  DeleteS3BucketProperties
 } from '../lib/types/custom-resource-types';
 
 const { LOGGING_LEVEL } = process.env;
@@ -99,6 +107,20 @@ export async function handler(event: EventRequest, context: LambdaContext): Prom
         await deleteIoTCertificate({
           requestType: RequestType,
           resourceProperties: <DeleteIoTCertificateProperties>ResourceProperties
+        });
+        break;
+      }
+      case ResourceTypes.DELETE_TIMESTREAM_DATABASE: {
+        await deleteTimestreamDatabase({
+          requestType: RequestType,
+          resourceProperties: <DeleteTimestreamDatabaseProperties>ResourceProperties
+        });
+        break;
+      }
+      case ResourceTypes.DELETE_S3_BUCKET: {
+        await deleteS3Bucket({
+          requestType: RequestType,
+          resourceProperties: <DeleteS3BucketProperties>ResourceProperties
         });
         break;
       }

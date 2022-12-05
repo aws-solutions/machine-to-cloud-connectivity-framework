@@ -71,3 +71,9 @@ OpenOPC-Python3x under the GNU GENERAL PUBLIC License Version 2
 Pyro4 under the Massachusetts Institute of Technology (MIT) License
 python-dateutil under the Apache 2.0 License and the 3-Clause BSD License
 dcbark01/PI-Web-API-Client-Python under the Apache 2.0 License
+twisted under the Massachusetts Institute of Technology (MIT) License
+pymodbus 3-Clause BSD License
+pyserial BSD License
+pyserial-asyncio BSD License
+dateutil under the Apache License 2.0
+requests_ntlm under the ISC License

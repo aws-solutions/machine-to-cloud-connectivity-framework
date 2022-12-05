@@ -69,6 +69,11 @@ export enum GreengrassCoreDeviceControl {
   DELETE = 'delete'
 }
 
+export enum GreengrassCoreDeviceOsPlatform {
+  LINUX = 'linux',
+  WINDOWS = 'windows'
+}
+
 export enum GreengrassCoreDeviceEventTypes {
   CREATE = 'CreateGreengrassCoreDevice',
   DELETE = 'DeleteGreengrassCoreDevice'
@@ -78,6 +83,7 @@ export interface PostGreengrassRequestBodyInput {
   name: string;
   control: GreengrassCoreDeviceControl;
   createdBy: CreatedBy;
+  osPlatform: GreengrassCoreDeviceOsPlatform;
 }
 
 export interface ProcessGreengrassCoreDeviceResponse {

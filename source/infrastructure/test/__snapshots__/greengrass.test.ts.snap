@@ -101,10 +101,22 @@ Object {
             },
           ],
         },
+        "BucketName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "-",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              "-gg",
+            ],
+          ],
+        },
         "LoggingConfiguration": Object {
-          "DestinationBucketName": Object {
-            "Ref": "TestLoggingBucket",
-          },
           "LogFilePrefix": "m2c2/",
         },
         "PublicAccessBlockConfiguration": Object {
@@ -456,7 +468,10 @@ Object {
             "PolicyDocument": Object {
               "Statement": Array [
                 Object {
-                  "Action": "kinesis:PutRecords",
+                  "Action": Array [
+                    "kinesis:PutRecords",
+                    "kinesis:PutRecord",
+                  ],
                   "Effect": "Allow",
                   "Resource": Array [
                     Object {
@@ -546,7 +561,7 @@ Object {
                         Object {
                           "Ref": "AWS::AccountId",
                         },
-                        ":secret:*",
+                        ":secret:m2c2-*",
                       ],
                     ],
                   },
@@ -952,11 +967,21 @@ Object {
       },
       "Type": "AWS::IoT::Policy",
     },
+    "TestGreengrassTeardownGreengrassResourcesBucket94AE96EB": Object {
+      "Condition": "TestCondition",
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "BucketName": Object {
+          "Ref": "TestGreengrassGreengrassResourceBucketB85DC1F7",
+        },
+        "Resource": "DeleteS3Bucket",
+        "ServiceToken": "test-arn",
+      },
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
+    },
     "TestLoggingBucket": Object {
       "DeletionPolicy": "Retain",
-      "Properties": Object {
-        "AccessControl": "LogDeliveryWrite",
-      },
       "Type": "AWS::S3::Bucket",
       "UpdateReplacePolicy": "Retain",
     },

@@ -371,6 +371,25 @@ exports[`renders the connection form component for the new connection 1`] = `
                   timestream
                 </label>
               </div>
+              <span>
+                 
+              </span>
+              <div
+                class="form-check form-check-inline"
+              >
+                <input
+                  class="form-check-input"
+                  id="sendDataToHistorian"
+                  type="checkbox"
+                />
+                <label
+                  class="form-check-label"
+                  for="sendDataToHistorian"
+                  title=""
+                >
+                  historian
+                </label>
+              </div>
               <div
                 class="invalid-feedback"
               />
@@ -413,6 +432,11 @@ exports[`renders the connection form component for the new connection 1`] = `
                 value="osipi"
               >
                 OSI PI
+              </option>
+              <option
+                value="modbustcp"
+              >
+                Modbus TCP
               </option>
             </select>
           </div>
@@ -1018,10 +1042,46 @@ exports[`renders the connection form component for the update OPC DA connection 
                   timestream
                 </label>
               </div>
+              <span>
+                 
+              </span>
+              <div
+                class="form-check form-check-inline"
+              >
+                <input
+                  class="form-check-input"
+                  id="sendDataToHistorian"
+                  type="checkbox"
+                />
+                <label
+                  class="form-check-label"
+                  for="sendDataToHistorian"
+                  title=""
+                >
+                  historian
+                </label>
+              </div>
               <div
                 class="invalid-feedback"
               />
             </div>
+          </div>
+          <div
+            class="form-group"
+          >
+            <small
+              class="form-text text-muted"
+            >
+              description.historian.kinesisStream.name
+            </small>
+            <input
+              class="form-control"
+              id="historianKinesisDatastreamName"
+              placeholder="placeholder.historian.kinesisStream.name"
+              required=""
+              type="text"
+              value=""
+            />
           </div>
           <div
             class="form-group"
@@ -1061,6 +1121,11 @@ exports[`renders the connection form component for the update OPC DA connection 
                 value="osipi"
               >
                 OSI PI
+              </option>
+              <option
+                value="modbustcp"
+              >
+                Modbus TCP
               </option>
             </select>
           </div>
@@ -1672,10 +1737,46 @@ exports[`renders the connection form component for the update OPC UA connection 
                   timestream
                 </label>
               </div>
+              <span>
+                 
+              </span>
+              <div
+                class="form-check form-check-inline"
+              >
+                <input
+                  class="form-check-input"
+                  id="sendDataToHistorian"
+                  type="checkbox"
+                />
+                <label
+                  class="form-check-label"
+                  for="sendDataToHistorian"
+                  title=""
+                >
+                  historian
+                </label>
+              </div>
               <div
                 class="invalid-feedback"
               />
             </div>
+          </div>
+          <div
+            class="form-group"
+          >
+            <small
+              class="form-text text-muted"
+            >
+              description.historian.kinesisStream.name
+            </small>
+            <input
+              class="form-control"
+              id="historianKinesisDatastreamName"
+              placeholder="placeholder.historian.kinesisStream.name"
+              required=""
+              type="text"
+              value=""
+            />
           </div>
           <div
             class="form-group"
@@ -1715,6 +1816,11 @@ exports[`renders the connection form component for the update OPC UA connection 
                 value="osipi"
               >
                 OSI PI
+              </option>
+              <option
+                value="modbustcp"
+              >
+                Modbus TCP
               </option>
             </select>
           </div>

@@ -14,7 +14,7 @@ describe('ConditionAspect', () => {
     const lambdaFunction = new LambdaFunction(stack, 'TestLambdaFunction', {
       code: Code.fromInline(`console.log('Hello world!');`),
       handler: 'index.handler',
-      runtime: Runtime.NODEJS_14_X
+      runtime: Runtime.NODEJS_16_X
     });
     Aspects.of(stack).add(new ConditionAspect(condition));
 

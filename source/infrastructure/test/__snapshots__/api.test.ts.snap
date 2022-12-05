@@ -154,7 +154,7 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "TestApiRestApiDeployment8035F65Bb6165541c7eef92cf42c1b63405d5474": Object {
+    "TestApiRestApiDeployment8035F65Bd561fe27d48fdff9e1089d5e9ca6ed70": Object {
       "DependsOn": Array [
         "TestApiApiRequestValidator315FFB8E",
         "TestApiRestApiconnectionsconnectionNameGETB76D4BC9",
@@ -267,7 +267,7 @@ Object {
           "Format": "{\\"requestId\\":\\"$context.requestId\\",\\"ip\\":\\"$context.identity.sourceIp\\",\\"user\\":\\"$context.identity.user\\",\\"caller\\":\\"$context.identity.caller\\",\\"requestTime\\":\\"$context.requestTime\\",\\"httpMethod\\":\\"$context.httpMethod\\",\\"resourcePath\\":\\"$context.resourcePath\\",\\"status\\":\\"$context.status\\",\\"protocol\\":\\"$context.protocol\\",\\"responseLength\\":\\"$context.responseLength\\"}",
         },
         "DeploymentId": Object {
-          "Ref": "TestApiRestApiDeployment8035F65Bb6165541c7eef92cf42c1b63405d5474",
+          "Ref": "TestApiRestApiDeployment8035F65Bd561fe27d48fdff9e1089d5e9ca6ed70",
         },
         "MethodSettings": Array [
           Object {
@@ -1932,7 +1932,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs14.x",
+        "Runtime": "nodejs16.x",
       },
       "Type": "AWS::Lambda::Function",
     },

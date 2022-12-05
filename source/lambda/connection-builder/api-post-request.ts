@@ -16,7 +16,8 @@ import {
   PostApiRequestInput,
   PostGreengrassRequestBodyInput,
   ProcessConnectionResponse,
-  ProcessGreengrassCoreDeviceResponse
+  ProcessGreengrassCoreDeviceResponse,
+  GreengrassCoreDeviceOsPlatform
 } from '../lib/types/connection-builder-types';
 import { CreatedBy, UpdateConnectionsRequest } from '../lib/types/dynamodb-handler-types';
 import { IoTMessageTypes } from '../lib/types/iot-handler-types';
@@ -170,9 +171,13 @@ async function processConnection(connectionDefinition: ConnectionDefinition): Pr
     const newConnectionDefinition = await buildConnectionDefinition(connectionName, control, protocol);
 
     /**
-     * Currently, only supporting OPC DA, OPC UA, and OSI PI.
+     * Currently, only supporting OPC DA, OPC UA, OSI PI, and Modbus TCP.
      */
-    if (protocol === MachineProtocol.OPCDA || protocol === MachineProtocol.OSIPI) {
+    if (
+      protocol === MachineProtocol.OPCDA ||
+      protocol === MachineProtocol.OSIPI ||
+      protocol === MachineProtocol.MODBUSTCP
+    ) {
       await iotHandler.publishIoTTopicMessage({
         connectionName,
         type: IoTMessageTypes.JOB,
@@ -327,6 +332,8 @@ async function buildConnectionDefinition(
     newConnectionDefinition.opcUa = existingConnection.opcUa;
   } else if (newConnectionDefinition.protocol === MachineProtocol.OSIPI) {
     newConnectionDefinition.osiPi = existingConnection.osiPi;
+  } else if (newConnectionDefinition.protocol === MachineProtocol.MODBUSTCP) {
+    newConnectionDefinition.modbusTcp = existingConnection.modbusTcp;
   }
 
   return newConnectionDefinition;
@@ -380,7 +387,7 @@ async function handleGreengrassCoreDevice(
 async function createGreengrassCoreDevice(
   input: PostGreengrassRequestBodyInput
 ): Promise<ProcessGreengrassCoreDeviceResponse> {
-  const { name, createdBy } = input;
+  const { name, createdBy, osPlatform } = input;
   let message: string = `"${name}" Greengrass core device is created/registered.`;
 
   // Checks duplicated name in the Greengrass core device DynamoDB table.
@@ -421,16 +428,23 @@ async function createGreengrassCoreDevice(
       iotThingArn = await iotHandler.createThing(name);
       await iotHandler.attachThingPrincipal({ thingName: name, principal: IOT_CERTIFICATE_ARN });
 
+      let key = '';
+      if (osPlatform === GreengrassCoreDeviceOsPlatform.LINUX) {
+        key = 'm2c2-install.sh';
+      } else if (osPlatform === GreengrassCoreDeviceOsPlatform.WINDOWS) {
+        key = 'm2c2-install.ps1';
+      }
+
       const baseScript = await s3Handler.getObject({
         bucket: GREENGRASS_RESOURCE_BUCKET,
-        key: 'm2c2-install.sh'
+        key: key
       });
       const body = baseScript.Body.toString().replace('THING_NAME_PLACEHOLDER', name);
       await s3Handler.putObject({
         body,
         contentType: 'text/x-sh',
         destinationBucket: GREENGRASS_RESOURCE_BUCKET,
-        destinationKey: `public/${name}.sh`
+        destinationKey: osPlatform === GreengrassCoreDeviceOsPlatform.LINUX ? `public/${name}.sh` : `public/${name}.ps1`
       });
 
       const createGatewayResponse = await iotSiteWiseHandler.createGreengrassV2Gateway(name);
@@ -469,7 +483,7 @@ async function createGreengrassCoreDevice(
     message = `${message} You must add relative permissions on your Greengrass. Please refer to the implementation guide.`;
   }
 
-  await dynamoDbHandler.addGreengrassCoreDevice({ name, createdBy, iotSiteWiseGatewayId, iotThingArn });
+  await dynamoDbHandler.addGreengrassCoreDevice({ name, createdBy, iotSiteWiseGatewayId, iotThingArn, osPlatform });
 
   const { SEND_ANONYMOUS_METRIC } = process.env;
   if (SEND_ANONYMOUS_METRIC === 'Yes') {

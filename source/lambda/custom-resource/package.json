@@ -1,6 +1,6 @@
 {
   "name": "custom-resource",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "description": "The solution's custom resource function",
   "main": "index.js",
   "scripts": {
@@ -10,7 +10,7 @@
     "copy-modules": "yarn install --production --ignore-scripts --prefer-offline && rsync -avrq ./node_modules ./dist",
     "copy-script": "cp -rf ./greengrass-custom-resources/script ./dist/custom-resource/greengrass-custom-resources/",
     "package": "yarn build && yarn copy-modules && yarn copy-script && cd dist && zip -q -r9 package.zip * -x '**/test/*' && cd ..",
-    "test": "jest --config jestconfig.json --coverage --silent"
+    "test": "jest --coverage --silent"
   },
   "dependencies": {
     "axios": "~0.26.1",
@@ -23,10 +23,13 @@
     "@types/uuid": "^8.3.4",
     "aws-sdk": "2.1001.0",
     "jest": "^27.5.1",
-    "ts-jest": "^27.1.4",
+    "ts-jest": "^27.1.5",
     "ts-node": "^10.7.0",
     "typescript": "~4.6.3"
   },
-  "author": "AWS Solutions Builders",
+  "author": {
+    "name": "Amazon Web Services",
+    "url": "https://aws.amazon.com/solutions"
+  },
   "license": "Apache-2.0"
 }

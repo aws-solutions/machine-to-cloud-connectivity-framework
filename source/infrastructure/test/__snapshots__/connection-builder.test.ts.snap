@@ -346,6 +346,7 @@ Object {
         "Environment": Object {
           "Variables": Object {
             "ARTIFACT_BUCKET": "greengrass-bucket",
+            "COLLECTOR_ID": "test-collector-id",
             "COMPONENT_VERSION": "0.0.1-test",
             "CONNECTION_DYNAMODB_TABLE": Object {
               "Ref": "TestConnectionBuilderDynamoTable194EE541",
@@ -371,7 +372,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs14.x",
+        "Runtime": "nodejs16.x",
         "Timeout": 600,
       },
       "Type": "AWS::Lambda::Function",
@@ -683,7 +684,7 @@ Object {
                         Object {
                           "Ref": "AWS::AccountId",
                         },
-                        ":secret:*",
+                        ":secret:m2c2-*",
                       ],
                     ],
                   },
@@ -736,7 +737,6 @@ Object {
         "Description": "Machine to Cloud Connectivity connection builder function",
         "Environment": Object {
           "Variables": Object {
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "CONNECTION_DYNAMODB_TABLE": Object {
               "Ref": "TestConnectionBuilderDynamoTable194EE541",
             },
@@ -765,7 +765,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs14.x",
+        "Runtime": "nodejs16.x",
         "Timeout": 60,
         "TracingConfig": Object {
           "Mode": "Active",

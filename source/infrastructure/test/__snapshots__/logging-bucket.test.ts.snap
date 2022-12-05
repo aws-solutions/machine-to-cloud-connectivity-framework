@@ -1,9 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`M2C2 common resources test 1`] = `
+exports[`M2C2 logging bucket test 1`] = `
 Object {
   "Resources": Object {
-    "TestCommonResourcesLogBucket77572DDE": Object {
+    "LoggingBucketLogBucket34BFFCE4": Object {
       "DeletionPolicy": "Retain",
       "Metadata": Object {
         "cdk_nag": Object {
@@ -34,6 +34,21 @@ Object {
             },
           ],
         },
+        "BucketName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "-",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              "-log",
+            ],
+          ],
+        },
         "PublicAccessBlockConfiguration": Object {
           "BlockPublicAcls": true,
           "BlockPublicPolicy": true,
@@ -44,10 +59,10 @@ Object {
       "Type": "AWS::S3::Bucket",
       "UpdateReplacePolicy": "Retain",
     },
-    "TestCommonResourcesLogBucketPolicy0070CF44": Object {
+    "LoggingBucketLogBucketPolicy95173867": Object {
       "Properties": Object {
         "Bucket": Object {
-          "Ref": "TestCommonResourcesLogBucket77572DDE",
+          "Ref": "LoggingBucketLogBucket34BFFCE4",
         },
         "PolicyDocument": Object {
           "Statement": Array [
@@ -65,7 +80,7 @@ Object {
               "Resource": Array [
                 Object {
                   "Fn::GetAtt": Array [
-                    "TestCommonResourcesLogBucket77572DDE",
+                    "LoggingBucketLogBucket34BFFCE4",
                     "Arn",
                   ],
                 },
@@ -75,7 +90,7 @@ Object {
                     Array [
                       Object {
                         "Fn::GetAtt": Array [
-                          "TestCommonResourcesLogBucket77572DDE",
+                          "LoggingBucketLogBucket34BFFCE4",
                           "Arn",
                         ],
                       },

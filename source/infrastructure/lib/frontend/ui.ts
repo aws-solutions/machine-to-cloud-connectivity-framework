@@ -1,7 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { CloudFrontToS3 } from '@aws-solutions-constructs/aws-cloudfront-s3';
 import { Aws, Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import {
   CfnIdentityPool,
@@ -12,49 +11,27 @@ import {
   UserPoolClient
 } from 'aws-cdk-lib/aws-cognito';
 import { Effect, FederatedPrincipal, PolicyDocument, PolicyStatement, Role } from 'aws-cdk-lib/aws-iam';
-import { Bucket, CfnBucket, IBucket } from 'aws-cdk-lib/aws-s3';
+import { CfnBucket, IBucket } from 'aws-cdk-lib/aws-s3';
 import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
 
 export interface UiConstructProps {
   readonly apiId: string;
   readonly resourceBucket: IBucket;
-  readonly s3LoggingBucket: IBucket;
   readonly userEmail: string;
+  readonly cloudFrontDomainName: string;
 }
 
 /**
  * Creates a CloudFront distribution, an UI hosting S3 bucket, and Cognito resources.
  */
 export class UiConstruct extends Construct {
-  public cloudFrontDomainName: string;
   public identityPoolId: string;
-  public uiBucket: Bucket;
   public userPoolId: string;
   public webClientId: string;
 
   constructor(scope: Construct, id: string, props: UiConstructProps) {
     super(scope, id);
-
-    const cloudFrontToS3 = new CloudFrontToS3(this, 'CloudFrontToS3', {
-      bucketProps: {
-        serverAccessLogsBucket: props.s3LoggingBucket,
-        serverAccessLogsPrefix: 'ui-s3/'
-      },
-      cloudFrontDistributionProps: {
-        comment: 'Machine to Cloud Connectivity Framework Distribution',
-        enableLogging: true,
-        errorResponses: [
-          { httpStatus: 403, responseHttpStatus: 200, responsePagePath: '/index.html' },
-          { httpStatus: 404, responseHttpStatus: 200, responsePagePath: '/index.html' }
-        ],
-        logBucket: props.s3LoggingBucket,
-        logFilePrefix: 'ui-cf/'
-      },
-      insertHttpSecurityHeaders: false
-    });
-    this.cloudFrontDomainName = cloudFrontToS3.cloudFrontWebDistribution.domainName;
-    this.uiBucket = <Bucket>cloudFrontToS3.s3Bucket;
 
     const userPool = new UserPool(this, 'UserPool', {
       passwordPolicy: {
@@ -75,7 +52,7 @@ export class UiConstruct extends Construct {
         emailBody: `
           <p>
             You are invited to join Machine to Cloud Connectivity Framework.<br />
-            https://${this.cloudFrontDomainName}
+            https://${props.cloudFrontDomainName}
           </p>
           <p>
             Please sign in to Machine to Cloud Connectivity Framework using the temporary credentials below:<br />
@@ -162,25 +139,13 @@ export class UiConstruct extends Construct {
       corsRules: [
         {
           allowedMethods: ['GET'],
-          allowedOrigins: [`https://${this.cloudFrontDomainName}`],
+          allowedOrigins: [`https://${props.cloudFrontDomainName}`],
           allowedHeaders: ['*'],
           exposedHeaders: ['ETag']
         }
       ]
     };
 
-    NagSuppressions.addResourceSuppressions(
-      cloudFrontToS3,
-      [
-        { id: 'AwsSolutions-CFR1', reason: 'The solution does not control geo restriction.' },
-        { id: 'AwsSolutions-CFR2', reason: 'No need to enable WAF.' },
-        {
-          id: 'AwsSolutions-CFR4',
-          reason: 'No contorl on the solution side as it is using the CloudFront default certificate.'
-        }
-      ],
-      true
-    );
     NagSuppressions.addResourceSuppressions(userPool, [
       { id: 'AwsSolutions-COG2', reason: 'No need to enable MFA as that is option for users.' }
     ]);

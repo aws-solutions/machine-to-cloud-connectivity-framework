@@ -28,6 +28,7 @@ test('M2C2 connection builder test', () => {
   const loggingLevel = 'ERROR';
   const logsTableArn = 'arn:of:logs:dynamodb:table';
   const logsTableName = 'test-logs-table';
+  const collectorId = 'test-collector-id';
   const sendAnonymousUsage = 'Yes';
   const solutionId = 'SO0070-Test';
   const solutionVersion = 'v0.0.1-test';
@@ -44,6 +45,7 @@ test('M2C2 connection builder test', () => {
     kinesisStreamForTimestreamName,
     logsTableArn,
     logsTableName,
+    collectorId,
     solutionConfig: {
       loggingLevel,
       sendAnonymousUsage,

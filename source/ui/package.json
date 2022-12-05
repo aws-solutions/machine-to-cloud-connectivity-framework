@@ -2,7 +2,11 @@
   "name": "machine-to-cloud-connectivity-framework-ui",
   "license": "Apache-2.0",
   "description": "Machine to Cloud Connectivity Framework UI",
-  "version": "4.1.0",
+  "author": {
+    "name": "Amazon Web Services",
+    "url": "https://aws.amazon.com/solutions"
+  },
+  "version": "4.2.0",
   "private": true,
   "devDependencies": {
     "@aws-amplify/api": "4.0.40",

@@ -15,6 +15,7 @@ import {
   ListGreengrassCoreDevicesResponse,
   ListLogsResponse,
   MachineProtocol,
+  ModbusTcpDefinition,
   OpcDaDefinition,
   OpcUaDefinition,
   OsiPiAuthMode,
@@ -97,6 +98,8 @@ export function buildConnectionDefinition(params: ConnectionDefinition): Connect
     connectionDefinition.sendDataToIoTTopic = params.sendDataToIoTTopic;
     connectionDefinition.sendDataToKinesisDataStreams = params.sendDataToKinesisDataStreams;
     connectionDefinition.sendDataToTimestream = params.sendDataToTimestream;
+    connectionDefinition.sendDataToHistorian = params.sendDataToHistorian;
+    connectionDefinition.historianKinesisDatastreamName = params.historianKinesisDatastreamName;
 
     if (params.protocol === MachineProtocol.OPCDA) {
       connectionDefinition.opcDa = params.opcDa as OpcDaDefinition;
@@ -116,6 +119,12 @@ export function buildConnectionDefinition(params: ConnectionDefinition): Connect
       connectionDefinition.osiPi.catchupFrequency = Number(connectionDefinition.osiPi.catchupFrequency);
       connectionDefinition.osiPi.maxRequestDuration = Number(connectionDefinition.osiPi.maxRequestDuration);
       connectionDefinition.osiPi.queryOffset = Number(connectionDefinition.osiPi.queryOffset);
+    } else if (params.protocol === MachineProtocol.MODBUSTCP) {
+      connectionDefinition.modbusTcp = params.modbusTcp as ModbusTcpDefinition;
+      connectionDefinition.modbusTcp.hostPort = Number(connectionDefinition.modbusTcp.hostPort);
+      connectionDefinition.modbusTcp.modbusSlavesConfig = JSON.parse(
+        connectionDefinition.modbusTcp.modbusSlavesConfigSerialized
+      );
     }
   }
 
@@ -155,12 +164,65 @@ export const INIT_CONNECTION: GetConnectionResponse = {
     maxRequestDuration: 60,
     queryOffset: 0
   },
+  modbusTcp: {
+    host: '',
+    hostPort: 502,
+    hostTag: '',
+    modbusSlavesConfigSerialized: JSON.stringify(
+      [
+        {
+          slaveAddress: 1,
+          frequencyInSeconds: 30,
+          commandConfig: {
+            readCoils: {
+              address: 1,
+              count: 1
+            },
+            readDiscreteInputs: {
+              address: 1
+            },
+            readHoldingRegisters: {
+              address: 1
+            },
+            readInputRegisters: {
+              address: 1
+            }
+          }
+        }
+      ],
+      undefined,
+      4
+    ),
+    modbusSlavesConfig: [
+      {
+        slaveAddress: 1,
+        frequencyInSeconds: 30,
+        commandConfig: {
+          readCoils: {
+            address: 1,
+            count: 1
+          },
+          readDiscreteInputs: {
+            address: 1
+          },
+          readHoldingRegisters: {
+            address: 1
+          },
+          readInputRegisters: {
+            address: 1
+          }
+        }
+      }
+    ]
+  },
   process: '',
   protocol: MachineProtocol.OPCDA,
   sendDataToIoTSiteWise: false,
   sendDataToIoTTopic: false,
   sendDataToKinesisDataStreams: true,
   sendDataToTimestream: false,
+  sendDataToHistorian: false,
+  historianKinesisDatastreamName: '',
   siteName: '',
   opcDaListTags: '',
   opcDaTags: '',
@@ -277,9 +339,15 @@ export function setValue(obj: Record<string, unknown>, key: string, value: unkno
   if (Object.keys(obj).includes(key)) {
     if (
       typeof obj[key] === typeof value ||
-      ['interval', 'iterations', 'requestFrequency', 'catchupFrequency', 'maxRequestDuration', 'queryOffset'].includes(
-        key
-      )
+      [
+        'interval',
+        'iterations',
+        'requestFrequency',
+        'catchupFrequency',
+        'maxRequestDuration',
+        'queryOffset',
+        'hostPort'
+      ].includes(key)
     ) {
       obj[key] = value;
       return true;

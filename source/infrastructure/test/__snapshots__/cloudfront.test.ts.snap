@@ -1,0 +1,325 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`M2C2 Cloudfront test 1`] = `
+Object {
+  "Resources": Object {
+    "TestCFCloudFrontToS3CloudFrontDistribution37BBD3EE": Object {
+      "Metadata": Object {
+        "cdk_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "AwsSolutions-CFR1",
+              "reason": "The solution does not control geo restriction.",
+            },
+            Object {
+              "id": "AwsSolutions-CFR2",
+              "reason": "No need to enable WAF.",
+            },
+            Object {
+              "id": "AwsSolutions-CFR4",
+              "reason": "No contorl on the solution side as it is using the CloudFront default certificate.",
+            },
+          ],
+        },
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "W70",
+              "reason": "Since the distribution uses the CloudFront domain name, CloudFront automatically sets the security policy to TLSv1 regardless of the value of MinimumProtocolVersion",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "DistributionConfig": Object {
+          "Comment": "Machine to Cloud Connectivity Framework Distribution",
+          "CustomErrorResponses": Array [
+            Object {
+              "ErrorCode": 403,
+              "ResponseCode": 200,
+              "ResponsePagePath": "/index.html",
+            },
+            Object {
+              "ErrorCode": 404,
+              "ResponseCode": 200,
+              "ResponsePagePath": "/index.html",
+            },
+          ],
+          "DefaultCacheBehavior": Object {
+            "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
+            "Compress": true,
+            "TargetOriginId": "TestCFCloudFrontToS3CloudFrontDistributionOrigin19002C6E4",
+            "ViewerProtocolPolicy": "redirect-to-https",
+          },
+          "DefaultRootObject": "index.html",
+          "Enabled": true,
+          "HttpVersion": "http2",
+          "IPV6Enabled": true,
+          "Logging": Object {
+            "Bucket": Object {
+              "Fn::GetAtt": Array [
+                "TestLoggingBucket",
+                "RegionalDomainName",
+              ],
+            },
+            "Prefix": "ui-cf/",
+          },
+          "Origins": Array [
+            Object {
+              "DomainName": Object {
+                "Fn::GetAtt": Array [
+                  "TestCFCloudFrontToS3S3Bucket2764548A",
+                  "RegionalDomainName",
+                ],
+              },
+              "Id": "TestCFCloudFrontToS3CloudFrontDistributionOrigin19002C6E4",
+              "S3OriginConfig": Object {
+                "OriginAccessIdentity": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "origin-access-identity/cloudfront/",
+                      Object {
+                        "Ref": "TestCFCloudFrontToS3CloudFrontDistributionOrigin1S3Origin9082F7A6",
+                      },
+                    ],
+                  ],
+                },
+              },
+            },
+          ],
+        },
+      },
+      "Type": "AWS::CloudFront::Distribution",
+    },
+    "TestCFCloudFrontToS3CloudFrontDistributionOrigin1S3Origin9082F7A6": Object {
+      "Metadata": Object {
+        "cdk_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "AwsSolutions-CFR1",
+              "reason": "The solution does not control geo restriction.",
+            },
+            Object {
+              "id": "AwsSolutions-CFR2",
+              "reason": "No need to enable WAF.",
+            },
+            Object {
+              "id": "AwsSolutions-CFR4",
+              "reason": "No contorl on the solution side as it is using the CloudFront default certificate.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "CloudFrontOriginAccessIdentityConfig": Object {
+          "Comment": "Identity for TestCFCloudFrontToS3CloudFrontDistributionOrigin19002C6E4",
+        },
+      },
+      "Type": "AWS::CloudFront::CloudFrontOriginAccessIdentity",
+    },
+    "TestCFCloudFrontToS3S3Bucket2764548A": Object {
+      "DeletionPolicy": "Retain",
+      "Metadata": Object {
+        "cdk_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "AwsSolutions-CFR1",
+              "reason": "The solution does not control geo restriction.",
+            },
+            Object {
+              "id": "AwsSolutions-CFR2",
+              "reason": "No need to enable WAF.",
+            },
+            Object {
+              "id": "AwsSolutions-CFR4",
+              "reason": "No contorl on the solution side as it is using the CloudFront default certificate.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "BucketEncryption": Object {
+          "ServerSideEncryptionConfiguration": Array [
+            Object {
+              "ServerSideEncryptionByDefault": Object {
+                "SSEAlgorithm": "AES256",
+              },
+            },
+          ],
+        },
+        "BucketName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "-",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              "-ui",
+            ],
+          ],
+        },
+        "LifecycleConfiguration": Object {
+          "Rules": Array [
+            Object {
+              "NoncurrentVersionTransitions": Array [
+                Object {
+                  "StorageClass": "GLACIER",
+                  "TransitionInDays": 90,
+                },
+              ],
+              "Status": "Enabled",
+            },
+          ],
+        },
+        "LoggingConfiguration": Object {
+          "DestinationBucketName": Object {
+            "Ref": "TestLoggingBucket",
+          },
+          "LogFilePrefix": "ui-s3/",
+        },
+        "PublicAccessBlockConfiguration": Object {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true,
+        },
+        "VersioningConfiguration": Object {
+          "Status": "Enabled",
+        },
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "TestCFCloudFrontToS3S3BucketPolicy111FF803": Object {
+      "Metadata": Object {
+        "cdk_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "AwsSolutions-CFR1",
+              "reason": "The solution does not control geo restriction.",
+            },
+            Object {
+              "id": "AwsSolutions-CFR2",
+              "reason": "No need to enable WAF.",
+            },
+            Object {
+              "id": "AwsSolutions-CFR4",
+              "reason": "No contorl on the solution side as it is using the CloudFront default certificate.",
+            },
+          ],
+        },
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "F16",
+              "reason": "Public website bucket policy requires a wildcard principal",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "Bucket": Object {
+          "Ref": "TestCFCloudFrontToS3S3Bucket2764548A",
+        },
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "s3:*",
+              "Condition": Object {
+                "Bool": Object {
+                  "aws:SecureTransport": "false",
+                },
+              },
+              "Effect": "Deny",
+              "Principal": Object {
+                "AWS": "*",
+              },
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "TestCFCloudFrontToS3S3Bucket2764548A",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "TestCFCloudFrontToS3S3Bucket2764548A",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            Object {
+              "Action": "s3:GetObject",
+              "Effect": "Allow",
+              "Principal": Object {
+                "CanonicalUser": Object {
+                  "Fn::GetAtt": Array [
+                    "TestCFCloudFrontToS3CloudFrontDistributionOrigin1S3Origin9082F7A6",
+                    "S3CanonicalUserId",
+                  ],
+                },
+              },
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    Object {
+                      "Fn::GetAtt": Array [
+                        "TestCFCloudFrontToS3S3Bucket2764548A",
+                        "Arn",
+                      ],
+                    },
+                    "/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::S3::BucketPolicy",
+    },
+    "TestCFTeardownCloudfrontBucket814A2F37": Object {
+      "Condition": "TestCondition",
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "BucketName": Object {
+          "Ref": "TestCFCloudFrontToS3S3Bucket2764548A",
+        },
+        "Resource": "DeleteS3Bucket",
+        "ServiceToken": "test-arn",
+      },
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "TestGreengrassResourceBucket": Object {
+      "DeletionPolicy": "Retain",
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "TestLoggingBucket": Object {
+      "DeletionPolicy": "Retain",
+      "Properties": Object {
+        "AccessControl": "LogDeliveryWrite",
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain",
+    },
+  },
+}
+`;

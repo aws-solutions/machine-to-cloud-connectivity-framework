@@ -20,6 +20,7 @@ export interface ConnectionBuilderConstructProps {
   readonly kinesisStreamForTimestreamName: string;
   readonly logsTableArn: string;
   readonly logsTableName: string;
+  readonly collectorId: string;
   readonly solutionConfig: {
     loggingLevel: string;
     sendAnonymousUsage: string;
@@ -73,7 +74,7 @@ export class ConnectionBuilderConstruct extends Construct {
           SOLUTION_UUID: props.solutionConfig.uuid
         },
         handler: 'connection-builder/index.handler',
-        runtime: Runtime.NODEJS_14_X,
+        runtime: Runtime.NODEJS_16_X,
         timeout: Duration.minutes(1)
       },
       dynamoTableProps: {
@@ -207,7 +208,7 @@ export class ConnectionBuilderConstruct extends Construct {
                 Stack.of(this).formatArn({
                   service: 'secretsmanager',
                   resource: 'secret',
-                  resourceName: '*',
+                  resourceName: 'm2c2-*',
                   arnFormat: ArnFormat.COLON_RESOURCE_NAME
                 })
               ],
@@ -251,13 +252,14 @@ export class ConnectionBuilderConstruct extends Construct {
         SOLUTION_ID: props.solutionConfig.solutionId,
         SOLUTION_VERSION: props.solutionConfig.solutionVersion,
         SOLUTION_UUID: props.solutionConfig.uuid,
-        TIMESTREAM_KINESIS_STREAM: props.kinesisStreamForTimestreamName
+        TIMESTREAM_KINESIS_STREAM: props.kinesisStreamForTimestreamName,
+        COLLECTOR_ID: props.collectorId
       },
       handler: 'greengrass-deployer/index.handler',
       retryAttempts: 0,
       reservedConcurrentExecutions: 1,
       role: greengrassDeployerRole,
-      runtime: Runtime.NODEJS_14_X,
+      runtime: Runtime.NODEJS_16_X,
       timeout: Duration.minutes(10)
     });
     this.connectionBuilderLambdaFunction.addEnvironment(

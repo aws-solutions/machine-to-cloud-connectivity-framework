@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { ArnFormat, RemovalPolicy, Stack } from 'aws-cdk-lib';
+import { ArnFormat, RemovalPolicy, Stack, CfnCondition, CustomResource, CfnCustomResource, Aws } from 'aws-cdk-lib';
 import {
   Effect,
   PolicyStatement,
@@ -26,6 +26,8 @@ export interface GreengrassIoTProps {
     uuid: string;
   };
   readonly timestreamKinesisStreamArn: string;
+  readonly customResourcesFunctionArn: string;
+  readonly shouldTeardownData: CfnCondition;
 }
 
 /**
@@ -45,8 +47,8 @@ export class GreengrassConstruct extends Construct {
       blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
       encryption: BucketEncryption.S3_MANAGED,
       removalPolicy: RemovalPolicy.RETAIN,
-      serverAccessLogsBucket: props.s3LoggingBucket,
-      serverAccessLogsPrefix: 'm2c2/'
+      serverAccessLogsPrefix: 'm2c2/',
+      bucketName: `${Aws.STACK_NAME}-${Aws.ACCOUNT_ID}-gg`
     });
     this.greengrassResourceBucket.addToResourcePolicy(
       new PolicyStatement({
@@ -59,6 +61,16 @@ export class GreengrassConstruct extends Construct {
         resources: [this.greengrassResourceBucket.bucketArn, this.greengrassResourceBucket.arnForObjects('*')]
       })
     );
+
+    const teardownGreengrassResourcesBucket = new CustomResource(this, 'TeardownGreengrassResourcesBucket', {
+      serviceToken: props.customResourcesFunctionArn,
+      properties: {
+        Resource: 'DeleteS3Bucket',
+        BucketName: this.greengrassResourceBucket.bucketName
+      }
+    });
+    const cfnTeardownGreengrassResourcesBucket = <CfnCustomResource>teardownGreengrassResourcesBucket.node.defaultChild;
+    cfnTeardownGreengrassResourcesBucket.cfnOptions.condition = props.shouldTeardownData;
 
     const iotCredentialsRole = new Role(this, 'IoTCredentialsRole', {
       assumedBy: new CompositePrincipal(new ServicePrincipal('credentials.iot.amazonaws.com')),
@@ -134,7 +146,7 @@ export class GreengrassConstruct extends Construct {
                 }),
                 props.timestreamKinesisStreamArn
               ],
-              actions: ['kinesis:PutRecords']
+              actions: ['kinesis:PutRecords', 'kinesis:PutRecord']
             })
           ]
         }),
@@ -155,7 +167,7 @@ export class GreengrassConstruct extends Construct {
                 Stack.of(this).formatArn({
                   service: 'secretsmanager',
                   resource: 'secret',
-                  resourceName: '*',
+                  resourceName: 'm2c2-*',
                   arnFormat: ArnFormat.COLON_RESOURCE_NAME
                 })
               ],

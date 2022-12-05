@@ -13,10 +13,10 @@ test('M2C2 API test', () => {
   const connectionBuilderLambdaFunction = new LambdaFunction(stack, 'TestConnectionBuilder', {
     code: Code.fromBucket(Bucket.fromBucketName(stack, 'SourceCodeBucket', 'test-bucket'), 'connection-builder.zip'),
     handler: 'connection-builder/index.handler',
-    runtime: Runtime.NODEJS_14_X
+    runtime: Runtime.NODEJS_16_X
   });
 
-  const api = new ApiConstruct(stack, 'TestApi', { connectionBuilderLambdaFunction });
+  const api = new ApiConstruct(stack, 'TestApi', { connectionBuilderLambdaFunction, corsOrigin: '*' });
   expect(SynthUtils.toCloudFormation(stack)).toMatchSnapshot();
   expect(api.apiEndpoint).toBeDefined();
   expect(api.apiId).toBeDefined();

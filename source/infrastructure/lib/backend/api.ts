@@ -28,6 +28,7 @@ import { addCfnSuppressRules } from '../../utils/utils';
 
 export interface ApiConstructProps {
   readonly connectionBuilderLambdaFunction: LambdaFunction;
+  readonly corsOrigin: string;
 }
 
 /**
@@ -36,6 +37,7 @@ export interface ApiConstructProps {
 export class ApiConstruct extends Construct {
   public apiEndpoint: string;
   public apiId: string;
+  public apiUrl: string;
 
   constructor(scope: Construct, id: string, props: ApiConstructProps) {
     super(scope, id);
@@ -56,7 +58,7 @@ export class ApiConstruct extends Construct {
 
     const api = new RestApi(this, 'RestApi', {
       defaultCorsPreflightOptions: {
-        allowOrigins: ['*'],
+        allowOrigins: [props.corsOrigin],
         allowHeaders: ['Authorization', 'Content-Type', 'X-Amz-Date', 'X-Amz-Security-Token', 'X-Api-Key'],
         allowMethods: ['GET', 'POST', 'OPTIONS'],
         statusCode: 200
@@ -74,6 +76,7 @@ export class ApiConstruct extends Construct {
     });
     this.apiEndpoint = `https://${api.restApiId}.execute-api.${Aws.REGION}.amazonaws.com/prod`;
     this.apiId = api.restApiId;
+    this.apiUrl = api.url;
     api.node.tryRemoveChild('Endpoint');
 
     const requestValidator = new RequestValidator(this, 'ApiRequestValidator', {

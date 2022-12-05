@@ -45,7 +45,7 @@ export class SQSMessageConsumerConstruct extends Construct {
         },
         handler: 'sqs-message-consumer/index.handler',
         retryAttempts: 0,
-        runtime: Runtime.NODEJS_14_X,
+        runtime: Runtime.NODEJS_16_X,
         timeout: Duration.minutes(1)
       },
       queueProps: {

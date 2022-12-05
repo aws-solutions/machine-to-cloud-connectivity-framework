@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { KeyPair } from 'aws-sdk/clients/iot';
 import fs from 'fs';
 import IoTHandler from '../../lib/aws-handlers/iot-handler';
 import S3Handler from '../../lib/aws-handlers/s3-handler';
@@ -11,7 +12,8 @@ import {
   DeleteIoTCertificateRequest,
   GreengrassInstallationScriptsResponse,
   ManageIoTRoleAliasRequest,
-  RequestTypes
+  RequestTypes,
+  CreateGreengrassInstallationScriptsProperties
 } from '../../lib/types/custom-resource-types';
 import { CopyObjectRequest } from '../../lib/types/s3-handler-types';
 import { sleep } from '../../lib/utils';
@@ -95,26 +97,28 @@ export async function createGreengrassInstallationScripts(
 ): Promise<Partial<GreengrassInstallationScriptsResponse>> {
   const { requestType, resourceProperties } = params;
 
-  if (requestType === RequestTypes.CREATE) {
-    const { CredentialProviderEndpoint, DataAtsEndpoint, DestinationBucket } = resourceProperties;
-    const { IoTRoleAlias } = resourceProperties;
+  if (requestType === RequestTypes.CREATE || requestType === RequestTypes.UPDATE) {
     const { certificateArn, certificateId, certificatePem, keyPair } = await iotHandler.createKeysAndCertificate();
-    const { PrivateKey } = keyPair;
-    const fileName = 'm2c2-install.sh';
-    const installScript = fs.readFileSync(`${__dirname}/script/${fileName}`).toString();
 
-    await s3Handler.putObject({
-      body: installScript
-        .replace('REGION_PLACEHOLDER', AWS_REGION)
-        .replace('ROLE_ALIAS_PLACEHOLDER', IoTRoleAlias)
-        .replace('DATA_ENDPOINT_PLACEHOLDER', DataAtsEndpoint)
-        .replace('CRED_ENDPOINT_PLACEHOLDER', CredentialProviderEndpoint)
-        .replace('CERTIFICATE_PEM_PLACEHOLDER', certificatePem)
-        .replace('PRIVATE_KEY_PLACEHOLDER', PrivateKey),
-      contentType: 'text/x-sh',
-      destinationBucket: DestinationBucket,
-      destinationKey: fileName
-    });
+    // prep linux install script
+    const uploadLinuxInstallScript = uploadInstallScript(
+      'm2c2-install.sh',
+      requestType,
+      resourceProperties,
+      certificatePem,
+      keyPair
+    );
+
+    // prep windows install script
+    const uploadWindowsInstallScript = uploadInstallScript(
+      'm2c2-install.ps1',
+      requestType,
+      resourceProperties,
+      certificatePem,
+      keyPair
+    );
+
+    await Promise.all([uploadLinuxInstallScript, uploadWindowsInstallScript]);
 
     return {
       CertificateArn: certificateArn,
@@ -123,6 +127,41 @@ export async function createGreengrassInstallationScripts(
   }
 
   return {};
+}
+
+/**
+ * Uploads to s3 after replacing placeholders. Used for linux and windows install scripts
+ * @param fileName name of install script file
+ * @param requestType type of request coming from CF
+ * @param resourceProperties resource properties obj coming from CF
+ * @param certificatePem pem provided by AWS IoT
+ * @param keyPair keypair provided by AWS IoT
+ */
+async function uploadInstallScript(
+  fileName: string,
+  requestType: RequestTypes,
+  resourceProperties: CreateGreengrassInstallationScriptsProperties,
+  certificatePem: string,
+  keyPair: KeyPair
+) {
+  const { CredentialProviderEndpoint, DataAtsEndpoint, DestinationBucket } = resourceProperties;
+  const { IoTRoleAlias } = resourceProperties;
+  const { PrivateKey } = keyPair;
+
+  const installScript = fs.readFileSync(`${__dirname}/script/${fileName}`).toString();
+
+  await s3Handler.putObject({
+    body: installScript
+      .replace('REGION_PLACEHOLDER', AWS_REGION)
+      .replace('ROLE_ALIAS_PLACEHOLDER', IoTRoleAlias)
+      .replace('DATA_ENDPOINT_PLACEHOLDER', DataAtsEndpoint)
+      .replace('CRED_ENDPOINT_PLACEHOLDER', CredentialProviderEndpoint)
+      .replace('CERTIFICATE_PEM_PLACEHOLDER', certificatePem)
+      .replace('PRIVATE_KEY_PLACEHOLDER', PrivateKey),
+    contentType: 'text/x-sh',
+    destinationBucket: DestinationBucket,
+    destinationKey: fileName
+  });
 }
 
 /**

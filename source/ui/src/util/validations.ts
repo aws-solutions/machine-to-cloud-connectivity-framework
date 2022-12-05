@@ -7,10 +7,12 @@ import {
   ConnectionDefinition,
   KeyStringValue,
   MachineProtocol,
+  ModbusTcpDefinition,
   OpcDaDefinition,
   OpcUaDefinition,
   OsiPiAuthMode,
-  OsiPiDefinition
+  OsiPiDefinition,
+  ModbusTcpSlaveDefinition
 } from './types';
 
 // Constant variables
@@ -24,6 +26,7 @@ const MIN_PORT = 1;
 const MAX_PORT = 65535;
 const MAX_OPCUA_SERVER_NAME_CHARACTERS = 256;
 const MAX_OSIPI_SERVER_NAME_CHARACTERS = 256;
+const MAX_MODBUS_TCP_TAG_CHARACTERS = 256;
 const MIN_OSIPI_REQUEST_FREQUENCY = 1; //1 sec
 const MAX_OSIPI_REQUEST_FREQUENCY = 3600; //1 hour
 const MIN_OSIPI_CATCHUP_FREQUENCY = 0.1; //10 ms
@@ -99,7 +102,8 @@ export function validateConnectionDefinition(params: ConnectionDefinition): KeyS
     !params.sendDataToIoTSiteWise &&
     !params.sendDataToIoTTopic &&
     !params.sendDataToKinesisDataStreams &&
-    !params.sendDataToTimestream
+    !params.sendDataToTimestream &&
+    !params.sendDataToHistorian
   ) {
     errors.sendDataTo = I18n.get('invalid.send.data.to');
   }
@@ -110,6 +114,8 @@ export function validateConnectionDefinition(params: ConnectionDefinition): KeyS
     validateOpcUa(params.opcUa as OpcUaDefinition, errors);
   } else if (params.protocol === MachineProtocol.OSIPI) {
     validateOsiPi(params.osiPi as OsiPiDefinition, errors);
+  } else if (params.protocol === MachineProtocol.MODBUSTCP) {
+    validateModbusTcp(params.modbusTcp as ModbusTcpDefinition, errors);
   }
 
   return errors;
@@ -127,6 +133,101 @@ function validateAlphaNumericHyphenUnderscoreString(props: AlphaNumericValidatio
     !/^[a-zA-Z0-9-_]+$/.test(props.value)
   ) {
     props.errors[props.errorKeyName] = props.errorMessage;
+  }
+}
+
+/**
+ * The Modbus TCP connection requires a JSON config field for slaves.
+ * Most of the validate method is logic on checking that it is a valid
+ * JSON config for the connector to work properly.
+ * @param modbusTcp Definition for modbustcp coming from form
+ * @param errors Existing errors on form
+ */
+function validateModbusTcp(modbusTcp: ModbusTcpDefinition, errors: KeyStringValue) {
+  // Host Tag
+  if (modbusTcp.hostTag.trim() === '' || modbusTcp.hostTag.trim().length > MAX_MODBUS_TCP_TAG_CHARACTERS) {
+    errors.modbusTcp_hostTag = I18n.get('invalid.host.tag');
+  }
+
+  // Port
+  if (modbusTcp.hostPort !== undefined) {
+    if (
+      typeof modbusTcp.hostPort !== 'string' ||
+      (typeof modbusTcp.hostPort === 'string' && modbusTcp.hostPort.trim() !== '')
+    ) {
+      const port = Number(modbusTcp.hostPort);
+      if (!Number.isInteger(port) || port < MIN_PORT || port > MAX_PORT) {
+        errors.modbusTcp_hostPort = I18n.get('invalid.port');
+      }
+    }
+  }
+
+  try {
+    const modbusSlavesConfig: ModbusTcpSlaveDefinition[] = JSON.parse(modbusTcp.modbusSlavesConfigSerialized);
+
+    let validConfig = true;
+
+    if (modbusSlavesConfig.length === 0) {
+      validConfig = false;
+    }
+
+    for (const slaveConfig of modbusSlavesConfig) {
+      if (slaveConfig.slaveAddress === undefined) {
+        validConfig = false;
+      } else if (!Number.isInteger(slaveConfig.slaveAddress)) {
+        validConfig = false;
+      } else if (!Number.isInteger(slaveConfig.frequencyInSeconds)) {
+        validConfig = false;
+      } else if (slaveConfig.commandConfig === undefined) {
+        validConfig = false;
+      } else if (slaveConfig.commandConfig.readCoils !== undefined) {
+        if (slaveConfig.commandConfig.readCoils.address === undefined) {
+          validConfig = false;
+        } else if (!Number.isInteger(slaveConfig.commandConfig.readCoils.address)) {
+          validConfig = false;
+        } else if (slaveConfig.commandConfig.readCoils.count !== undefined) {
+          if (!Number.isInteger(slaveConfig.commandConfig.readCoils.count)) {
+            validConfig = false;
+          }
+        }
+      } else if (slaveConfig.commandConfig.readDiscreteInputs !== undefined) {
+        if (slaveConfig.commandConfig.readDiscreteInputs.address === undefined) {
+          validConfig = false;
+        } else if (!Number.isInteger(slaveConfig.commandConfig.readDiscreteInputs.address)) {
+          validConfig = false;
+        } else if (slaveConfig.commandConfig.readDiscreteInputs.count !== undefined) {
+          if (!Number.isInteger(slaveConfig.commandConfig.readDiscreteInputs.count)) {
+            validConfig = false;
+          }
+        }
+      } else if (slaveConfig.commandConfig.readHoldingRegisters !== undefined) {
+        if (slaveConfig.commandConfig.readHoldingRegisters.address === undefined) {
+          validConfig = false;
+        } else if (!Number.isInteger(slaveConfig.commandConfig.readHoldingRegisters.address)) {
+          validConfig = false;
+        } else if (slaveConfig.commandConfig.readHoldingRegisters.count !== undefined) {
+          if (!Number.isInteger(slaveConfig.commandConfig.readHoldingRegisters.count)) {
+            validConfig = false;
+          }
+        }
+      } else if (slaveConfig.commandConfig.readInputRegisters !== undefined) {
+        if (slaveConfig.commandConfig.readInputRegisters.address === undefined) {
+          validConfig = false;
+        } else if (!Number.isInteger(slaveConfig.commandConfig.readInputRegisters.address)) {
+          validConfig = false;
+        } else if (slaveConfig.commandConfig.readInputRegisters.count !== undefined) {
+          if (!Number.isInteger(slaveConfig.commandConfig.readInputRegisters.count)) {
+            validConfig = false;
+          }
+        }
+      }
+    }
+
+    if (!validConfig) {
+      errors.modbusTcp_modbusSlavesConfigSerialized = I18n.get('modbus.tcp.invalid.json');
+    }
+  } catch {
+    errors.modbusTcp_modbusSlavesConfigSerialized = I18n.get('modbus.tcp.invalid.json');
   }
 }
 
@@ -196,6 +297,7 @@ function validateOpcUa(opcUa: OpcUaDefinition, errors: KeyStringValue) {
   }
 }
 
+// TODO: Osi Pi Validations logic needs to have unit tests
 /**
  * Validates the OSI PI connection definition.
  * @param osiPi The OSI PI connection definition

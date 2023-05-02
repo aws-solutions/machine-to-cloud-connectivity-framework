@@ -4,5 +4,5 @@ pyserial>=3.5
 pyserial-asyncio==0.6
 greengrasssdk==1.6.0
 backoff==2.2.1
-awsiotsdk==1.11.1
+awsiotsdk==1.13.0
 dateutil==1.4

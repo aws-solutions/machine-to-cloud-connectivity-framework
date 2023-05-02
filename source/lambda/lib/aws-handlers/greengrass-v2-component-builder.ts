@@ -26,7 +26,7 @@ const PYTHON_MODULE_VERSION = {
   'OpenOPC-Python3x': '1.3.1',
   Pyro4: '4.81',
   'python-dateutil': '2.8.1',
-  requests_ntlm: '1.1.0',
+  requests_ntlm: '1.2.0',
   testresources: '2.0.1',
   wheel: '0.37.1',
   'twisted[serial]': '20.3.0',

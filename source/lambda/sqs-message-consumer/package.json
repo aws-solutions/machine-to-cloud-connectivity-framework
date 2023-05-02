@@ -1,6 +1,6 @@
 {
   "name": "sqs-message-consumer",
-  "version": "4.2.0",
+  "version": "4.2.1",
   "description": "It consumes the SQS queue messages from IoT topic and stores the logs into the DynamoDB table.",
   "main": "index.js",
   "scripts": {

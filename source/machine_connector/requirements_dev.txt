@@ -3,11 +3,11 @@ pytest==7.2.0
 pytest-cov==4.0.0
 pytest-mock==3.10.0
 python-dateutil==2.8.1
-awsiotsdk==1.11.1
+awsiotsdk==1.13.0
 greengrasssdk==1.6.0
 Pyro4==4.81
 OpenOPC-Python3x==1.3.1
 
 git+https://github.com/dcbark01/PI-Web-API-Client-Python.git@b620f72f2d2551632f406df44bd409f5cc305055
 
-requests_ntlm == 1.1.0
+requests_ntlm == 1.2.0

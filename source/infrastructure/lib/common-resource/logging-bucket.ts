@@ -3,7 +3,7 @@
 
 import { RemovalPolicy, Aws } from 'aws-cdk-lib';
 import { AnyPrincipal, Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { BlockPublicAccess, Bucket, BucketAccessControl, BucketEncryption } from 'aws-cdk-lib/aws-s3';
+import { Bucket, BucketEncryption, ObjectOwnership } from 'aws-cdk-lib/aws-s3';
 import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
 import { addCfnSuppressRules } from '../../utils/utils';
@@ -18,8 +18,7 @@ export class LoggingBucketConstruct extends Construct {
     super(scope, id);
 
     this.s3LoggingBucket = new Bucket(this, 'LogBucket', {
-      accessControl: BucketAccessControl.LOG_DELIVERY_WRITE,
-      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+      objectOwnership: ObjectOwnership.OBJECT_WRITER,
       encryption: BucketEncryption.S3_MANAGED,
       removalPolicy: RemovalPolicy.RETAIN,
       bucketName: `${Aws.STACK_NAME}-${Aws.ACCOUNT_ID}-log`
@@ -41,7 +40,8 @@ export class LoggingBucketConstruct extends Construct {
 
     // cdk-nag suppressions
     NagSuppressions.addResourceSuppressions(this.s3LoggingBucket, [
-      { id: 'AwsSolutions-S1', reason: 'This bucket is to store S3 logs, so it does not require access logs.' }
+      { id: 'AwsSolutions-S1', reason: 'This bucket is to store S3 logs, so it does not require access logs.' },
+      { id: 'AwsSolutions-S2', reason: 'Public Access Blocking is handled by objectOwnership' }
     ]);
   }
 }

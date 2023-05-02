@@ -1,6 +1,6 @@
 {
   "name": "greengrass-deployer",
-  "version": "4.2.0",
+  "version": "4.2.1",
   "description": "The function deploys the Greengrass group and restarting connections.",
   "main": "index.js",
   "scripts": {

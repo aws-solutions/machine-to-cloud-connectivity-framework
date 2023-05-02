@@ -12,6 +12,10 @@ Object {
               "id": "AwsSolutions-S1",
               "reason": "This bucket is to store S3 logs, so it does not require access logs.",
             },
+            Object {
+              "id": "AwsSolutions-S2",
+              "reason": "Public Access Blocking is handled by objectOwnership",
+            },
           ],
         },
         "cfn_nag": Object {
@@ -24,7 +28,6 @@ Object {
         },
       },
       "Properties": Object {
-        "AccessControl": "LogDeliveryWrite",
         "BucketEncryption": Object {
           "ServerSideEncryptionConfiguration": Array [
             Object {
@@ -49,11 +52,12 @@ Object {
             ],
           ],
         },
-        "PublicAccessBlockConfiguration": Object {
-          "BlockPublicAcls": true,
-          "BlockPublicPolicy": true,
-          "IgnorePublicAcls": true,
-          "RestrictPublicBuckets": true,
+        "OwnershipControls": Object {
+          "Rules": Array [
+            Object {
+              "ObjectOwnership": "ObjectWriter",
+            },
+          ],
         },
       },
       "Type": "AWS::S3::Bucket",

@@ -10,7 +10,7 @@ import { FormProps } from '../../util/types';
  * @param props The properties for the Modbus TCP form
  * @returns The Modbus TCP form
  */
-export default function ModbusTcpForm(props: FormProps): JSX.Element {
+export default function ModbusTcpForm(props: FormProps): React.JSX.Element {
   const { connection, onChange, errors } = props;
 
   return (
@@ -65,21 +65,23 @@ export default function ModbusTcpForm(props: FormProps): JSX.Element {
       </Form.Group>
       <Form.Group>
         <Form.Label>
-          {I18n.get('modbus.slave.config')} <span className="red-text">*</span>
+          {I18n.get('modbus.secondary.config')} <span className="red-text">*</span>
         </Form.Label>
-        <Form.Text muted>{I18n.get('description.modbus.slave.config')}</Form.Text>
+        <Form.Text muted>{I18n.get('description.modbus.secondary.config')}</Form.Text>
         <Form.Control
-          id="modbusTcp_modbusSlavesConfigSerialized"
+          id="modbusTcp_modbusSecondariesConfigSerialized"
           required
           type="text"
-          placeholder={I18n.get('placeholder.modbus.slave.config')}
-          defaultValue={connection.modbusTcp?.modbusSlavesConfigSerialized}
+          placeholder={I18n.get('placeholder.modbus.secondary.config')}
+          defaultValue={connection.modbusTcp?.modbusSecondariesConfigSerialized}
           onChange={onChange}
-          isInvalid={!!errors.modbusTcp_modbusSlavesConfigSerialized}
+          isInvalid={!!errors.modbusTcp_modbusSecondariesConfigSerialized}
           as="textarea"
           rows={15}
         />
-        <Form.Control.Feedback type="invalid">{errors.modbusTcp_modbusSlavesConfigSerialized}</Form.Control.Feedback>
+        <Form.Control.Feedback type="invalid">
+          {errors.modbusTcp_modbusSecondariesConfigSerialized}
+        </Form.Control.Feedback>
       </Form.Group>
     </>
   );

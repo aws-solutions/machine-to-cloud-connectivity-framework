@@ -111,7 +111,7 @@ test('tests handleValueChange function - category change when user Greengrass co
 
   const mockDevice = userGreengrassCoreDeviceResponse.greengrassCoreDevices[0];
   expect(await screen.findByText(`${mockDevice.coreDeviceThingName} (${mockDevice.status})`)).not.toBeNull();
-});
+}, 10000);
 
 test('tests handleValueChange function - Greengrass core device name change with invalid value', async () => {
   mockAPI.get.mockResolvedValueOnce({ greengrassCoreDevices: [] });

@@ -17,7 +17,7 @@ import {
   OsiPiAuthMode,
   OsiPiDefinition
 } from './types/solution-common-types';
-import { ModbusTcpDefinition, ModbusTcpSlaveDefinition } from './types/modbus-types';
+import { ModbusTcpDefinition, ModbusTcpSecondaryDefinition } from './types/modbus-types';
 
 const EMPTY_TYPES = [undefined, null];
 export const ValidationsLimit = {
@@ -435,94 +435,134 @@ function validateModbusTcpConnectionDefinition(modbusTcp: ModbusTcpDefinition) {
     });
   }
 
-  const { host, hostPort, hostTag, modbusSlavesConfig } = modbusTcp;
+  const { host, hostPort, hostTag, modbusSecondariesConfig } = modbusTcp;
 
   validateStringValue(host, 'host');
   validatePort(hostPort);
   validateStringValue(hostTag, 'hostTag');
 
-  if (modbusSlavesConfig.length === 0) {
+  if (modbusSecondariesConfig.length === 0) {
     throw new LambdaError({
-      message: '"modbusTcp" slave config cannot be empty',
+      message: '"modbusTcp" secondary config cannot be empty',
       name: 'ValidationError',
       statusCode: 400
     });
   } else {
-    for (const modbusSlaveConfig of modbusSlavesConfig) {
-      validateModbusSlaveConfig(modbusSlaveConfig);
+    for (const modbusSecondaryConfig of modbusSecondariesConfig) {
+      validatemodbusSecondaryConfig(modbusSecondaryConfig);
     }
   }
 }
 
 /**
- * Validates individual slave configs
- * @param modbusSlaveConfig the individual slave config for modbus
+ * Validates individual secondary configs
+ * @param modbusSecondaryConfig the individual secondary config for modbus
  */
-function validateModbusSlaveConfig(modbusSlaveConfig: ModbusTcpSlaveDefinition) {
+function validatemodbusSecondaryConfig(modbusSecondaryConfig: ModbusTcpSecondaryDefinition) {
   let failureCondition = '';
-  if (!Number.isInteger(modbusSlaveConfig.frequencyInSeconds)) {
+  if (!Number.isInteger(modbusSecondaryConfig.frequencyInSeconds)) {
     failureCondition = 'Frequency in seconds must be number';
   }
 
-  if (!Number.isInteger(modbusSlaveConfig.slaveAddress)) {
-    failureCondition = 'Slave address must be number';
+  if (!Number.isInteger(modbusSecondaryConfig.secondaryAddress)) {
+    failureCondition = 'Secondary address must be number';
   }
 
   // read coils
-  if (modbusSlaveConfig.commandConfig.readCoils !== undefined) {
-    if (!Number.isInteger(modbusSlaveConfig.commandConfig.readCoils.address)) {
-      failureCondition = 'Read coils address must be a number';
-    }
-    if (modbusSlaveConfig.commandConfig.readCoils.count !== undefined) {
-      if (!Number.isInteger(modbusSlaveConfig.commandConfig.readCoils.count)) {
-        failureCondition = 'Read coils count must be a number';
-      }
-    }
-  }
+  failureCondition = validateReadCoils(modbusSecondaryConfig, failureCondition);
 
   // discrete inputs
-  if (modbusSlaveConfig.commandConfig.readDiscreteInputs !== undefined) {
-    if (!Number.isInteger(modbusSlaveConfig.commandConfig.readDiscreteInputs.address)) {
-      failureCondition = 'Read discrete inputs address must be a number';
-    }
-    if (modbusSlaveConfig.commandConfig.readDiscreteInputs.count !== undefined) {
-      if (!Number.isInteger(modbusSlaveConfig.commandConfig.readDiscreteInputs.count)) {
-        failureCondition = 'Read discrete inputs count must be a number';
-      }
-    }
-  }
+  failureCondition = validateDiscreteInputs(modbusSecondaryConfig, failureCondition);
 
   // holding registers
-  if (modbusSlaveConfig.commandConfig.readHoldingRegisters !== undefined) {
-    if (!Number.isInteger(modbusSlaveConfig.commandConfig.readHoldingRegisters.address)) {
-      failureCondition = 'Read holding registers address must be a number';
-    }
-    if (modbusSlaveConfig.commandConfig.readHoldingRegisters.count !== undefined) {
-      if (!Number.isInteger(modbusSlaveConfig.commandConfig.readHoldingRegisters.count)) {
-        failureCondition = 'Read holding registers count must be a number';
-      }
-    }
-  }
+  failureCondition = validateHoldingRegisters(modbusSecondaryConfig, failureCondition);
 
   // input registers
-  if (modbusSlaveConfig.commandConfig.readInputRegisters !== undefined) {
-    if (!Number.isInteger(modbusSlaveConfig.commandConfig.readInputRegisters.address)) {
-      failureCondition = 'Read input registers address must be a number';
-    }
-    if (modbusSlaveConfig.commandConfig.readInputRegisters.count !== undefined) {
-      if (!Number.isInteger(modbusSlaveConfig.commandConfig.readInputRegisters.count)) {
-        failureCondition = 'Read input registers count must be a number';
-      }
-    }
-  }
+  failureCondition = validateInputRegisters(modbusSecondaryConfig, failureCondition);
 
   if (failureCondition.length > 0) {
     throw new LambdaError({
-      message: `"modbusTcp" slave definition failed validation: ${failureCondition}`,
+      message: `"modbusTcp" secondary definition failed validation: ${failureCondition}`,
       name: 'ValidationError',
       statusCode: 400
     });
   }
+}
+
+/**
+ *
+ * @param modbusSecondaryConfig
+ * @param failureCondition
+ */
+function validateInputRegisters(modbusSecondaryConfig: ModbusTcpSecondaryDefinition, failureCondition: string) {
+  if (modbusSecondaryConfig.commandConfig.readInputRegisters !== undefined) {
+    if (!Number.isInteger(modbusSecondaryConfig.commandConfig.readInputRegisters.address)) {
+      failureCondition = 'Read input registers address must be a number';
+    }
+    if (modbusSecondaryConfig.commandConfig.readInputRegisters.count !== undefined) {
+      if (!Number.isInteger(modbusSecondaryConfig.commandConfig.readInputRegisters.count)) {
+        failureCondition = 'Read input registers count must be a number';
+      }
+    }
+  }
+  return failureCondition;
+}
+
+/**
+ *
+ * @param modbusSecondaryConfig
+ * @param failureCondition
+ */
+function validateHoldingRegisters(modbusSecondaryConfig: ModbusTcpSecondaryDefinition, failureCondition: string) {
+  if (modbusSecondaryConfig.commandConfig.readHoldingRegisters !== undefined) {
+    if (!Number.isInteger(modbusSecondaryConfig.commandConfig.readHoldingRegisters.address)) {
+      failureCondition = 'Read holding registers address must be a number';
+    }
+    if (modbusSecondaryConfig.commandConfig.readHoldingRegisters.count !== undefined) {
+      if (!Number.isInteger(modbusSecondaryConfig.commandConfig.readHoldingRegisters.count)) {
+        failureCondition = 'Read holding registers count must be a number';
+      }
+    }
+  }
+  return failureCondition;
+}
+
+/**
+ *
+ * @param modbusSecondaryConfig
+ * @param failureCondition
+ */
+function validateDiscreteInputs(modbusSecondaryConfig: ModbusTcpSecondaryDefinition, failureCondition: string) {
+  if (modbusSecondaryConfig.commandConfig.readDiscreteInputs !== undefined) {
+    if (!Number.isInteger(modbusSecondaryConfig.commandConfig.readDiscreteInputs.address)) {
+      failureCondition = 'Read discrete inputs address must be a number';
+    }
+    if (modbusSecondaryConfig.commandConfig.readDiscreteInputs.count !== undefined) {
+      if (!Number.isInteger(modbusSecondaryConfig.commandConfig.readDiscreteInputs.count)) {
+        failureCondition = 'Read discrete inputs count must be a number';
+      }
+    }
+  }
+  return failureCondition;
+}
+
+/**
+ *
+ * @param modbusSecondaryConfig
+ * @param failureCondition
+ */
+function validateReadCoils(modbusSecondaryConfig: ModbusTcpSecondaryDefinition, failureCondition: string) {
+  if (modbusSecondaryConfig.commandConfig.readCoils !== undefined) {
+    if (!Number.isInteger(modbusSecondaryConfig.commandConfig.readCoils.address)) {
+      failureCondition = 'Read coils address must be a number';
+    }
+    if (modbusSecondaryConfig.commandConfig.readCoils.count !== undefined) {
+      if (!Number.isInteger(modbusSecondaryConfig.commandConfig.readCoils.count)) {
+        failureCondition = 'Read coils count must be a number';
+      }
+    }
+  }
+  return failureCondition;
 }
 
 // TODO: this needs to be unit tested, was skipped when osi pi was implemented

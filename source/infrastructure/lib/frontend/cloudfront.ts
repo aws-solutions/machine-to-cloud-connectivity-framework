@@ -1,15 +1,13 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { CustomResource, CfnCondition, CfnCustomResource, Aws } from 'aws-cdk-lib';
+import { CustomResource, CfnCondition, CfnCustomResource, aws_cloudfront as cf, aws_s3 as s3 } from 'aws-cdk-lib';
 import { CloudFrontToS3 } from '@aws-solutions-constructs/aws-cloudfront-s3';
-import { SecurityPolicyProtocol } from 'aws-cdk-lib/aws-cloudfront';
-import { Bucket, IBucket } from 'aws-cdk-lib/aws-s3';
 import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
 
 export interface CloudFrontConstructProps {
-  readonly s3LoggingBucket: IBucket;
+  readonly s3LoggingBucket: s3.IBucket;
   readonly customResourcesFunctionArn: string;
   readonly shouldTeardownData: CfnCondition;
 }
@@ -19,7 +17,7 @@ export interface CloudFrontConstructProps {
  */
 export class CloudFrontConstruct extends Construct {
   public cloudFrontDomainName: string;
-  public uiBucket: Bucket;
+  public uiBucket: s3.Bucket;
 
   constructor(scope: Construct, id: string, props: CloudFrontConstructProps) {
     super(scope, id);
@@ -27,8 +25,7 @@ export class CloudFrontConstruct extends Construct {
     const cloudFrontToS3 = new CloudFrontToS3(this, 'CloudFrontToS3', {
       bucketProps: {
         serverAccessLogsBucket: props.s3LoggingBucket,
-        serverAccessLogsPrefix: 'ui-s3/',
-        bucketName: `${Aws.STACK_NAME}-${Aws.ACCOUNT_ID}-ui`
+        serverAccessLogsPrefix: 'ui-s3/'
       },
       cloudFrontDistributionProps: {
         comment: 'Machine to Cloud Connectivity Framework Distribution',
@@ -38,13 +35,13 @@ export class CloudFrontConstruct extends Construct {
           { httpStatus: 404, responseHttpStatus: 200, responsePagePath: '/index.html' }
         ],
         logBucket: props.s3LoggingBucket,
-        minimumProtocolVersion: SecurityPolicyProtocol.TLS_V1_2_2019,
+        minimumProtocolVersion: cf.SecurityPolicyProtocol.TLS_V1_2_2019,
         logFilePrefix: 'ui-cf/'
       },
       insertHttpSecurityHeaders: false
     });
     this.cloudFrontDomainName = cloudFrontToS3.cloudFrontWebDistribution.domainName;
-    this.uiBucket = <Bucket>cloudFrontToS3.s3Bucket;
+    this.uiBucket = <s3.Bucket>cloudFrontToS3.s3Bucket;
 
     const teardownCloudfrontBucket = new CustomResource(this, 'TeardownCloudfrontBucket', {
       serviceToken: props.customResourcesFunctionArn,

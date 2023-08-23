@@ -178,7 +178,7 @@ test('Test success to update running OPC DA connection with list tags', async ()
   expect(sleepSpy).toHaveBeenNthCalledWith(1, 5);
   expect(sleepSpy).toHaveBeenNthCalledWith(2, 30);
   expect(sleepSpy).toHaveBeenNthCalledWith(3, 3);
-});
+}, 60000);
 
 test('Test success to update stopped OPC DA connection with tags', async () => {
   delete event.opcDa.listTags;

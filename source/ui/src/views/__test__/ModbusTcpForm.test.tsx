@@ -32,10 +32,10 @@ test('renders the ModbusTcpForm with the existing connection', async () => {
       host: 'mock-host',
       hostPort: 1,
       hostTag: 'mock-tag',
-      modbusSlavesConfigSerialized: 'mock-serialized',
-      modbusSlavesConfig: [
+      modbusSecondariesConfigSerialized: 'mock-serialized',
+      modbusSecondariesConfig: [
         {
-          slaveAddress: 1,
+          secondaryAddress: 1,
           frequencyInSeconds: 1,
           commandConfig: {
             readCoils: {
@@ -62,7 +62,7 @@ test('renders the ModbusTcpForm errors', async () => {
     modbusTcp_host: 'modbusTcp_host invalid',
     modbusTcp_hostPort: 'modbusTcp_hostPort invalid',
     modbusTcp_hostTag: 'modbusTcp_hostTag invalid',
-    modbusTcp_modbusSlavesConfigSerialized: 'modbusTcp_modbusSlavesConfigSerialized invalid'
+    modbusTcp_modbusSecondariesConfigSerialized: 'modbusTcp_modbusSecondariesConfigSerialized invalid'
   };
   const modbusTcpForm = render(
     <ModbusTcpForm connection={connection} onChange={() => console.log('changed')} errors={errors} />

@@ -15,7 +15,6 @@ import {
 } from '../../lib/types/custom-resource-types';
 import { StackEventMetricData } from '../../lib/types/utils-types';
 import { sendAnonymousMetric } from '../../lib/utils';
-import { ListTablesResponse } from 'aws-sdk/clients/timestreamwrite';
 import S3 from 'aws-sdk/clients/s3';
 import S3Handler from '../../lib/aws-handlers/s3-handler';
 import TimestreamHandler from '../../lib/aws-handlers/timestream-handler';
@@ -119,36 +118,49 @@ export async function deleteTimestreamDatabase(params: DeleteTimestreamDatabaseR
       const iterationWaitMilliseconds = 1000;
       let isDeleted = false;
       while (threshold > 0 && !isDeleted) {
-        try {
-          await deleteTimestreamTables(listTablesResponse, params.resourceProperties.DatabaseName);
-        } catch (error) {
-          console.log('Delete timestream table failed.', error);
-          throw error;
-        }
-
-        try {
-          await timestreamHandler.deleteDatabase({ databaseName: params.resourceProperties.DatabaseName });
-          isDeleted = true;
-        } catch (error) {
-          if (error.code === 'ResourceNotFoundException') {
-            console.log(`Database ${params.resourceProperties.DatabaseName} doesn't exist.`);
-            isDeleted = true;
-          } else {
-            console.log('Delete database failed.', error);
-
-            // waiting for eventual consistency's sake
-            await delay(iterationWaitMilliseconds);
-
-            listTablesResponse = await timestreamHandler.listTables({
-              databaseName: params.resourceProperties.DatabaseName
-            });
-          }
-        }
-
+        await deleteTimestreamTablesIfExists(listTablesResponse, params);
+        ({ isDeleted, listTablesResponse } = await deleteTimestreamDatabaseIfExists(
+          params,
+          iterationWaitMilliseconds,
+          listTablesResponse
+        ));
         threshold--;
       }
     }
   }
+}
+
+/**
+ *
+ * @param params
+ * @param iterationWaitMilliseconds
+ * @param listTablesResponse
+ */
+async function deleteTimestreamDatabaseIfExists(
+  params: DeleteTimestreamDatabaseRequest,
+  iterationWaitMilliseconds: number,
+  listTablesResponse
+) {
+  let isDeleted: boolean = false;
+  try {
+    await timestreamHandler.deleteDatabase({ databaseName: params.resourceProperties.DatabaseName });
+    isDeleted = true;
+  } catch (error) {
+    if (error.code === 'ResourceNotFoundException') {
+      console.log(`Database ${params.resourceProperties.DatabaseName} doesn't exist.`);
+      isDeleted = true;
+    } else {
+      console.log('Delete database failed.', error);
+
+      // waiting for eventual consistency's sake
+      await delay(iterationWaitMilliseconds);
+
+      listTablesResponse = await timestreamHandler.listTables({
+        databaseName: params.resourceProperties.DatabaseName
+      });
+    }
+  }
+  return { isDeleted, listTablesResponse };
 }
 
 /**
@@ -164,22 +176,31 @@ function delay(milliseconds: number): Promise<void> {
  * Deletes timestream tables in list tables response, part of eventual consistency logic
  * @param listTablesResponse Response from listing tables in database
  * @param databaseName Name of database
+ * @param params
  */
-async function deleteTimestreamTables(listTablesResponse: ListTablesResponse, databaseName: string): Promise<void> {
-  if (listTablesResponse.Tables != undefined) {
-    console.log(`Received data with tables of length: ${listTablesResponse.Tables.length}`);
+async function deleteTimestreamTablesIfExists(listTablesResponse, params: DeleteTimestreamDatabaseRequest) {
+  try {
+    if (listTablesResponse.Tables != undefined) {
+      console.log(`Received data with tables of length: ${listTablesResponse.Tables.length}`);
 
-    listTablesResponse.Tables.forEach(async table => {
-      if (table.TableName != undefined) {
-        try {
-          await timestreamHandler.deleteTable({ databaseName: databaseName, tableName: table.TableName });
-        } catch (error) {
-          if (error.code === 'ResourceNotFoundException') {
-            console.log(`Table ${table.TableName} doesn't exist.`);
+      listTablesResponse.Tables.forEach(async table => {
+        if (table.TableName != undefined) {
+          try {
+            await timestreamHandler.deleteTable({
+              databaseName: params.resourceProperties.DatabaseName,
+              tableName: table.TableName
+            });
+          } catch (error) {
+            if (error.code === 'ResourceNotFoundException') {
+              console.log(`Table ${table.TableName} doesn't exist.`);
+            }
           }
         }
-      }
-    });
+      });
+    }
+  } catch (error) {
+    console.log('Delete timestream table failed.', error);
+    throw error;
   }
 }
 
@@ -197,42 +218,73 @@ export async function deleteS3Bucket(params: DeleteS3BucketRequest): Promise<voi
       const iterationWaitMilliseconds = 1000;
       let isDeleted = false;
       while (threshold > 0 && !isDeleted) {
-        try {
-          await deleteBucketObjects(listObjectsResponse, params.resourceProperties.BucketName);
-        } catch (error) {
-          if (error.code === 'ResourceNotFoundException') {
-            console.log('Tried deleting object that did not exist');
-          } else {
-            console.log('Delete s3 objects failed.', error);
-            throw error;
-          }
-        }
+        await tryDeleteBucketObjects(listObjectsResponse, params);
 
-        try {
-          await s3Handler.deleteBucket({ bucketName: params.resourceProperties.BucketName });
-          isDeleted = true;
-        } catch (error) {
-          if (error.code === 'ResourceNotFoundException') {
-            console.log(`Bucket ${params.resourceProperties.BucketName} doesn't exist.`);
-            isDeleted = true;
-          } else if (error.code === 'BucketNotEmpty') {
-            console.log(`Bucket ${params.resourceProperties.BucketName} not empty.`, error);
-            isDeleted = false;
-
-            // waiting for eventual consistency's sake
-            await delay(iterationWaitMilliseconds);
-
-            listObjectsResponse = await s3Handler.listObjectVersions({
-              bucketName: params.resourceProperties.BucketName
-            });
-          } else {
-            console.log('Delete bucket failed.', error);
-            throw error;
-          }
-        }
+        ({ isDeleted, listObjectsResponse } = await tryDeleteBucket(
+          params,
+          isDeleted,
+          iterationWaitMilliseconds,
+          listObjectsResponse
+        ));
 
         threshold--;
       }
+    }
+  }
+}
+
+/**
+ *
+ * @param params
+ * @param isDeleted
+ * @param iterationWaitMilliseconds
+ * @param listObjectsResponse
+ */
+async function tryDeleteBucket(
+  params: DeleteS3BucketRequest,
+  isDeleted: boolean,
+  iterationWaitMilliseconds: number,
+  listObjectsResponse: S3.ListObjectVersionsOutput
+) {
+  try {
+    await s3Handler.deleteBucket({ bucketName: params.resourceProperties.BucketName });
+    isDeleted = true; //NOSONAR: This is used outside of the function.
+  } catch (error) {
+    if (error.code === 'ResourceNotFoundException') {
+      console.log(`Bucket ${params.resourceProperties.BucketName} doesn't exist.`);
+      isDeleted = true;
+    } else if (error.code === 'BucketNotEmpty') {
+      console.log(`Bucket ${params.resourceProperties.BucketName} not empty.`, error);
+      isDeleted = false;
+
+      // waiting for eventual consistency's sake
+      await delay(iterationWaitMilliseconds);
+
+      listObjectsResponse = await s3Handler.listObjectVersions({
+        bucketName: params.resourceProperties.BucketName
+      });
+    } else {
+      console.log('Delete bucket failed.', error);
+      throw error;
+    }
+  }
+  return { isDeleted, listObjectsResponse };
+}
+
+/**
+ *
+ * @param listObjectsResponse
+ * @param params
+ */
+async function tryDeleteBucketObjects(listObjectsResponse: S3.ListObjectVersionsOutput, params: DeleteS3BucketRequest) {
+  try {
+    await deleteBucketObjects(listObjectsResponse, params.resourceProperties.BucketName);
+  } catch (error) {
+    if (error.code === 'ResourceNotFoundException') {
+      console.log('Tried deleting object that did not exist');
+    } else {
+      console.log('Delete s3 objects failed.', error);
+      throw error;
     }
   }
 }

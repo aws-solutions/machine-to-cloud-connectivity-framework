@@ -12,7 +12,7 @@ import { MessageModalProps, MessageModalType } from '../util/types';
  * @param props The message modal properties
  * @returns The message modal
  */
-export default function MessageModal(props: MessageModalProps): JSX.Element {
+export default function MessageModal(props: MessageModalProps): React.JSX.Element {
   const { show, hide, message, modalType, confirmAction } = props;
 
   /**

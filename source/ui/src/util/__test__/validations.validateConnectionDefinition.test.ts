@@ -398,11 +398,11 @@ test('Modbus TCP: Port is between the minimum value and the maximum value', () =
     host: 'mock-host',
     hostPort: 1,
     hostTag: 'mock-tag',
-    modbusSlavesConfigSerialized:
-      '[{"slaveAddress":1,"frequencyInSeconds":1,"commandConfig":{"readCoils":{"address":1,"count":1}}}]',
-    modbusSlavesConfig: [
+    modbusSecondariesConfigSerialized:
+      '[{"secondaryAddress":1,"frequencyInSeconds":1,"commandConfig":{"readCoils":{"address":1,"count":1}}}]',
+    modbusSecondariesConfig: [
       {
-        slaveAddress: 1,
+        secondaryAddress: 1,
         frequencyInSeconds: 1,
         commandConfig: {
           readCoils: {
@@ -439,12 +439,12 @@ test('Modbus TCP: Host tag is longer than 256 characters', () => {
   (params.modbusTcp as ModbusTcpDefinition).hostTag = 'valid-tag';
 });
 
-test('Modbus TCP: Slave Config is invalid', () => {
-  (params.modbusTcp as ModbusTcpDefinition).modbusSlavesConfigSerialized =
-    '[{"slaveAddress":"invalid","frequencyInSeconds":"1","commandConfig":{"readCoils":{"address":"1","count":"1"}}}]';
+test('Modbus TCP: Secondary Config is invalid', () => {
+  (params.modbusTcp as ModbusTcpDefinition).modbusSecondariesConfigSerialized =
+    '[{"secondaryAddress":"invalid","frequencyInSeconds":"1","commandConfig":{"readCoils":{"address":"1","count":"1"}}}]';
 
   expect(validateConnectionDefinition(params)).toEqual({
-    modbusTcp_modbusSlavesConfigSerialized: I18n.get('modbus.tcp.invalid.json')
+    modbusTcp_modbusSecondariesConfigSerialized: I18n.get('modbus.tcp.invalid.json')
   });
 });
 

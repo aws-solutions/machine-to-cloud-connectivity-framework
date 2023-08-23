@@ -1,23 +1,13 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { Aws, Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
-import {
-  CfnIdentityPool,
-  CfnIdentityPoolRoleAttachment,
-  CfnUserPool,
-  CfnUserPoolUser,
-  UserPool,
-  UserPoolClient
-} from 'aws-cdk-lib/aws-cognito';
-import { Effect, FederatedPrincipal, PolicyDocument, PolicyStatement, Role } from 'aws-cdk-lib/aws-iam';
-import { CfnBucket, IBucket } from 'aws-cdk-lib/aws-s3';
+import { Aws, Duration, RemovalPolicy, Stack, aws_cognito as cognito, aws_iam as iam, aws_s3 as s3 } from 'aws-cdk-lib';
 import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
 
 export interface UiConstructProps {
   readonly apiId: string;
-  readonly resourceBucket: IBucket;
+  readonly resourceBucket: s3.IBucket;
   readonly userEmail: string;
   readonly cloudFrontDomainName: string;
 }
@@ -33,7 +23,7 @@ export class UiConstruct extends Construct {
   constructor(scope: Construct, id: string, props: UiConstructProps) {
     super(scope, id);
 
-    const userPool = new UserPool(this, 'UserPool', {
+    const userPool = new cognito.UserPool(this, 'UserPool', {
       passwordPolicy: {
         minLength: 12,
         requireDigits: true,
@@ -61,10 +51,10 @@ export class UiConstruct extends Construct {
         `
       }
     });
-    (<CfnUserPool>userPool.node.defaultChild).userPoolAddOns = { advancedSecurityMode: 'ENFORCED' };
+    (<cognito.CfnUserPool>userPool.node.defaultChild).userPoolAddOns = { advancedSecurityMode: 'ENFORCED' };
     this.userPoolId = userPool.userPoolId;
 
-    const userPoolClient = new UserPoolClient(this, 'UserPoolClient', {
+    const userPoolClient = new cognito.UserPoolClient(this, 'UserPoolClient', {
       generateSecret: false,
       preventUserExistenceErrors: true,
       refreshTokenValidity: Duration.days(1),
@@ -73,7 +63,7 @@ export class UiConstruct extends Construct {
     });
     this.webClientId = userPoolClient.userPoolClientId;
 
-    new CfnUserPoolUser(this, 'User', {
+    new cognito.CfnUserPoolUser(this, 'User', {
       userPoolId: userPool.userPoolId,
       desiredDeliveryMediums: ['EMAIL'],
       forceAliasCreation: true,
@@ -84,7 +74,7 @@ export class UiConstruct extends Construct {
       username: props.userEmail
     });
 
-    const identityPool = new CfnIdentityPool(this, 'IdentityPool', {
+    const identityPool = new cognito.CfnIdentityPool(this, 'IdentityPool', {
       allowUnauthenticatedIdentities: false,
       cognitoIdentityProviders: [
         {
@@ -96,8 +86,8 @@ export class UiConstruct extends Construct {
     });
     this.identityPoolId = identityPool.ref;
 
-    const authenticatedRole = new Role(this, 'IdentityPoolAuthenticatedRole', {
-      assumedBy: new FederatedPrincipal(
+    const authenticatedRole = new iam.Role(this, 'IdentityPoolAuthenticatedRole', {
+      assumedBy: new iam.FederatedPrincipal(
         'cognito-identity.amazonaws.com',
         {
           StringEquals: { 'cognito-identity.amazonaws.com:aud': identityPool.ref },
@@ -107,10 +97,10 @@ export class UiConstruct extends Construct {
       ),
       description: `${Aws.STACK_NAME} Identity Pool authenticated role`,
       inlinePolicies: {
-        ExecuteApiPolicy: new PolicyDocument({
+        ExecuteApiPolicy: new iam.PolicyDocument({
           statements: [
-            new PolicyStatement({
-              effect: Effect.ALLOW,
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
               actions: ['execute-api:Invoke'],
               resources: [
                 Stack.of(this).formatArn({
@@ -120,8 +110,8 @@ export class UiConstruct extends Construct {
                 })
               ]
             }),
-            new PolicyStatement({
-              effect: Effect.ALLOW,
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
               actions: ['s3:GetObject'],
               resources: [props.resourceBucket.arnForObjects('public/*')]
             })
@@ -130,12 +120,12 @@ export class UiConstruct extends Construct {
       }
     });
 
-    new CfnIdentityPoolRoleAttachment(this, 'IdentityPoolRoleAttachment', {
+    new cognito.CfnIdentityPoolRoleAttachment(this, 'IdentityPoolRoleAttachment', {
       identityPoolId: identityPool.ref,
       roles: { authenticated: authenticatedRole.roleArn }
     });
 
-    (props.resourceBucket.node.defaultChild as CfnBucket).corsConfiguration = {
+    (props.resourceBucket.node.defaultChild as s3.CfnBucket).corsConfiguration = {
       corsRules: [
         {
           allowedMethods: ['GET'],

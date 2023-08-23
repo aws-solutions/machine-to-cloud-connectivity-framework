@@ -5,6 +5,6 @@
  * EmptyCol returns an empty col.
  * @returns An empty col
  */
-export default function EmptyCol(): JSX.Element {
+export default function EmptyCol(): React.JSX.Element {
   return <span>&nbsp;</span>;
 }

@@ -1,33 +1,20 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { Aws, RemovalPolicy } from 'aws-cdk-lib';
 import {
-  AccessLogFormat,
-  AuthorizationType,
-  ContentHandling,
-  Deployment,
-  EndpointType,
-  Integration,
-  IntegrationProps,
-  IntegrationType,
-  LogGroupLogDestination,
-  MethodLoggingLevel,
-  MethodOptions,
-  PassthroughBehavior,
-  RequestValidator,
-  RestApi,
-  Stage
-} from 'aws-cdk-lib/aws-apigateway';
-import { ServicePrincipal } from 'aws-cdk-lib/aws-iam';
-import { Function as LambdaFunction } from 'aws-cdk-lib/aws-lambda';
-import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
+  Aws,
+  RemovalPolicy,
+  aws_apigateway as apiGateway,
+  aws_iam as iam,
+  aws_lambda as lambda,
+  aws_logs as logs
+} from 'aws-cdk-lib';
 import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
 import { addCfnSuppressRules } from '../../utils/utils';
 
 export interface ApiConstructProps {
-  readonly connectionBuilderLambdaFunction: LambdaFunction;
+  readonly connectionBuilderLambdaFunction: lambda.Function;
   readonly corsOrigin: string;
 }
 
@@ -45,9 +32,9 @@ export class ApiConstruct extends Construct {
     const { connectionBuilderLambdaFunction } = props;
     const connectionBuilderLambdaFunctionArn = connectionBuilderLambdaFunction.functionArn;
 
-    const apiLogGroup = new LogGroup(this, 'Logs', {
+    const apiLogGroup = new logs.LogGroup(this, 'Logs', {
       removalPolicy: RemovalPolicy.DESTROY,
-      retention: RetentionDays.THREE_MONTHS
+      retention: logs.RetentionDays.THREE_MONTHS
     });
     addCfnSuppressRules(apiLogGroup, [
       {
@@ -56,7 +43,7 @@ export class ApiConstruct extends Construct {
       }
     ]);
 
-    const api = new RestApi(this, 'RestApi', {
+    const api = new apiGateway.RestApi(this, 'RestApi', {
       defaultCorsPreflightOptions: {
         allowOrigins: [props.corsOrigin],
         allowHeaders: ['Authorization', 'Content-Type', 'X-Amz-Date', 'X-Amz-Security-Token', 'X-Api-Key'],
@@ -65,58 +52,58 @@ export class ApiConstruct extends Construct {
       },
       deploy: true,
       deployOptions: {
-        accessLogDestination: new LogGroupLogDestination(apiLogGroup),
-        accessLogFormat: AccessLogFormat.jsonWithStandardFields(),
-        loggingLevel: MethodLoggingLevel.INFO,
+        accessLogDestination: new apiGateway.LogGroupLogDestination(apiLogGroup),
+        accessLogFormat: apiGateway.AccessLogFormat.jsonWithStandardFields(),
+        loggingLevel: apiGateway.MethodLoggingLevel.INFO,
         stageName: 'prod',
         tracingEnabled: true
       },
       description: 'Machine to Cloud Connectivity Rest API',
-      endpointTypes: [EndpointType.REGIONAL]
+      endpointTypes: [apiGateway.EndpointType.REGIONAL]
     });
     this.apiEndpoint = `https://${api.restApiId}.execute-api.${Aws.REGION}.amazonaws.com/prod`;
     this.apiId = api.restApiId;
     this.apiUrl = api.url;
     api.node.tryRemoveChild('Endpoint');
 
-    const requestValidator = new RequestValidator(this, 'ApiRequestValidator', {
+    const requestValidator = new apiGateway.RequestValidator(this, 'ApiRequestValidator', {
       restApi: api,
       validateRequestParameters: true,
       validateRequestBody: true
     });
 
-    addCfnSuppressRules(api.node.findChild('Deployment') as Deployment, [
+    addCfnSuppressRules(api.node.findChild('Deployment') as apiGateway.Deployment, [
       {
         id: 'W68',
         reason: 'The solution does not require the usage plan.'
       }
     ]);
-    addCfnSuppressRules(api.node.findChild('DeploymentStage.prod') as Stage, [
+    addCfnSuppressRules(api.node.findChild('DeploymentStage.prod') as apiGateway.Stage, [
       {
         id: 'W64',
         reason: 'The solution does not require the usage plan.'
       }
     ]);
 
-    const basicIntegration: IntegrationProps = {
-      type: IntegrationType.AWS_PROXY,
+    const basicIntegration: apiGateway.IntegrationProps = {
+      type: apiGateway.IntegrationType.AWS_PROXY,
       integrationHttpMethod: 'POST',
       options: {
-        contentHandling: ContentHandling.CONVERT_TO_TEXT,
+        contentHandling: apiGateway.ContentHandling.CONVERT_TO_TEXT,
         integrationResponses: [{ statusCode: '200' }],
-        passthroughBehavior: PassthroughBehavior.WHEN_NO_MATCH
+        passthroughBehavior: apiGateway.PassthroughBehavior.WHEN_NO_MATCH
       },
       uri: `arn:${Aws.PARTITION}:apigateway:${Aws.REGION}:lambda:path/2015-03-31/functions/${connectionBuilderLambdaFunctionArn}/invocations`
     };
-    const nextTokenIntegration: IntegrationProps = {
+    const nextTokenIntegration: apiGateway.IntegrationProps = {
       ...basicIntegration,
       options: {
         ...basicIntegration.options,
         requestParameters: { 'integration.request.querystring.nextToken': 'method.request.querystring.nextToken' }
       }
     };
-    const basicMethodOption: MethodOptions = {
-      authorizationType: AuthorizationType.IAM,
+    const basicMethodOption: apiGateway.MethodOptions = {
+      authorizationType: apiGateway.AuthorizationType.IAM,
       methodResponses: [
         {
           statusCode: '200',
@@ -127,7 +114,7 @@ export class ApiConstruct extends Construct {
       ],
       requestValidator: requestValidator
     };
-    const nextTokenMethodOption: MethodOptions = {
+    const nextTokenMethodOption: apiGateway.MethodOptions = {
       ...basicMethodOption,
       requestParameters: { 'method.request.querystring.nextToken': false }
     };
@@ -139,11 +126,11 @@ export class ApiConstruct extends Construct {
      * GET /connections/{connectionName}
      */
     const connectionsResource = api.root.addResource('connections');
-    connectionsResource.addMethod('GET', new Integration(nextTokenIntegration), nextTokenMethodOption);
-    connectionsResource.addMethod('POST', new Integration(basicIntegration), basicMethodOption);
+    connectionsResource.addMethod('GET', new apiGateway.Integration(nextTokenIntegration), nextTokenMethodOption);
+    connectionsResource.addMethod('POST', new apiGateway.Integration(basicIntegration), basicMethodOption);
     connectionsResource.addResource('{connectionName}').addMethod(
       'GET',
-      new Integration({
+      new apiGateway.Integration({
         ...basicIntegration,
         options: {
           ...basicIntegration.options,
@@ -162,10 +149,10 @@ export class ApiConstruct extends Construct {
      * GET /logs/{connectionName}
      */
     const logsResource = api.root.addResource('logs');
-    logsResource.addMethod('GET', new Integration(nextTokenIntegration), nextTokenMethodOption);
+    logsResource.addMethod('GET', new apiGateway.Integration(nextTokenIntegration), nextTokenMethodOption);
     logsResource.addResource('{connectionName}').addMethod(
       'GET',
-      new Integration({
+      new apiGateway.Integration({
         ...basicIntegration,
         options: {
           ...basicIntegration.options,
@@ -188,7 +175,7 @@ export class ApiConstruct extends Construct {
     const siteWiseResource = api.root.addResource('sitewise');
     siteWiseResource.addResource('{serverName}').addMethod(
       'GET',
-      new Integration({
+      new apiGateway.Integration({
         ...basicIntegration,
         options: {
           ...basicIntegration.options,
@@ -208,13 +195,15 @@ export class ApiConstruct extends Construct {
      * GET /greengrass/user
      */
     const greengrassResource = api.root.addResource('greengrass');
-    greengrassResource.addMethod('GET', new Integration(nextTokenIntegration), nextTokenMethodOption);
-    greengrassResource.addMethod('POST', new Integration(basicIntegration), basicMethodOption);
-    greengrassResource.addResource('user').addMethod('GET', new Integration(basicIntegration), basicMethodOption);
+    greengrassResource.addMethod('GET', new apiGateway.Integration(nextTokenIntegration), nextTokenMethodOption);
+    greengrassResource.addMethod('POST', new apiGateway.Integration(basicIntegration), basicMethodOption);
+    greengrassResource
+      .addResource('user')
+      .addMethod('GET', new apiGateway.Integration(basicIntegration), basicMethodOption);
 
     connectionBuilderLambdaFunction.addPermission('ApiLambdaInvokePermission', {
       action: 'lambda:InvokeFunction',
-      principal: new ServicePrincipal('apigateway.amazonaws.com'),
+      principal: new iam.ServicePrincipal('apigateway.amazonaws.com'),
       sourceArn: api.arnForExecuteApi()
     });
 

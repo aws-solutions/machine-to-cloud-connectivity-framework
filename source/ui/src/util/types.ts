@@ -149,32 +149,32 @@ export interface ModbusTcpDefinition {
   host: string;
   hostPort: number | string;
   hostTag: string;
-  modbusSlavesConfigSerialized: string;
-  modbusSlavesConfig: ModbusTcpSlaveDefinition[];
+  modbusSecondariesConfigSerialized: string;
+  modbusSecondariesConfig: ModbusTcpSecondaryDefinition[];
 }
 
-export interface ModbusTcpSlaveDefinition {
-  slaveAddress: number | string;
+export interface ModbusTcpSecondaryDefinition {
+  secondaryAddress: number | string;
   frequencyInSeconds: number;
-  commandConfig: ModbusTcpSlaveCommandConfig;
+  commandConfig: ModbusTcpSecondaryCommandConfig;
 }
 
-export interface ModbusTcpSlaveCommandConfig {
-  readCoils?: ModbusTcpSlaveCommandReadCoilsConfig;
-  readDiscreteInputs?: ModbusTcpSlaveCommandReadDiscreteInputsConfig;
-  readHoldingRegisters?: ModbusTcpSlaveCommandReadHoldingRegistersConfig;
-  readInputRegisters?: ModbusTcpSlaveCommandReadInputRegistersConfig;
+export interface ModbusTcpSecondaryCommandConfig {
+  readCoils?: ModbusTcpSecondaryCommandReadCoilsConfig;
+  readDiscreteInputs?: ModbusTcpSecondaryCommandReadDiscreteInputsConfig;
+  readHoldingRegisters?: ModbusTcpSecondaryCommandReadHoldingRegistersConfig;
+  readInputRegisters?: ModbusTcpSecondaryCommandReadInputRegistersConfig;
 }
 
-export interface ModbusTcpSlaveCommandIndividualConfig {
+export interface ModbusTcpSecondaryCommandIndividualConfig {
   address: number | string;
   count?: number | string;
 }
 
-export type ModbusTcpSlaveCommandReadCoilsConfig = ModbusTcpSlaveCommandIndividualConfig;
-export type ModbusTcpSlaveCommandReadDiscreteInputsConfig = ModbusTcpSlaveCommandIndividualConfig;
-export type ModbusTcpSlaveCommandReadHoldingRegistersConfig = ModbusTcpSlaveCommandIndividualConfig;
-export type ModbusTcpSlaveCommandReadInputRegistersConfig = ModbusTcpSlaveCommandIndividualConfig;
+export type ModbusTcpSecondaryCommandReadCoilsConfig = ModbusTcpSecondaryCommandIndividualConfig;
+export type ModbusTcpSecondaryCommandReadDiscreteInputsConfig = ModbusTcpSecondaryCommandIndividualConfig;
+export type ModbusTcpSecondaryCommandReadHoldingRegistersConfig = ModbusTcpSecondaryCommandIndividualConfig;
+export type ModbusTcpSecondaryCommandReadInputRegistersConfig = ModbusTcpSecondaryCommandIndividualConfig;
 
 export interface ListConnectionsItem {
   connectionName: string;

@@ -1,18 +1,16 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import '@aws-cdk/assert/jest';
-import { SynthUtils } from '@aws-cdk/assert';
-import { CfnCondition, Stack } from 'aws-cdk-lib';
-import { Bucket, CfnBucket } from 'aws-cdk-lib/aws-s3';
+import { Template } from 'aws-cdk-lib/assertions';
+import { CfnCondition, Stack, aws_s3 as s3 } from 'aws-cdk-lib';
 import { CloudFrontConstruct } from '../lib/frontend/cloudfront';
 
 test('M2C2 Cloudfront test', () => {
   const stack = new Stack();
-  const s3LoggingBucket = new Bucket(stack, 'TestLoggingBucket');
-  (<CfnBucket>s3LoggingBucket.node.defaultChild).overrideLogicalId('TestLoggingBucket');
-  const resourceBucket = new Bucket(stack, 'TestGreengrassResourceBucket');
-  (<CfnBucket>resourceBucket.node.defaultChild).overrideLogicalId('TestGreengrassResourceBucket');
+  const s3LoggingBucket = new s3.Bucket(stack, 'TestLoggingBucket');
+  (<s3.CfnBucket>s3LoggingBucket.node.defaultChild).overrideLogicalId('TestLoggingBucket');
+  const resourceBucket = new s3.Bucket(stack, 'TestGreengrassResourceBucket');
+  (<s3.CfnBucket>resourceBucket.node.defaultChild).overrideLogicalId('TestGreengrassResourceBucket');
 
   const cf = new CloudFrontConstruct(stack, 'TestCF', {
     s3LoggingBucket: s3LoggingBucket,
@@ -20,10 +18,9 @@ test('M2C2 Cloudfront test', () => {
     shouldTeardownData: new CfnCondition(stack, 'TestCondition')
   });
 
-  expect(SynthUtils.toCloudFormation(stack)).toMatchSnapshot();
   expect(cf.uiBucket).toBeDefined();
   expect(cf.cloudFrontDomainName).toBeDefined();
-  expect(stack).toHaveResourceLike('AWS::S3::Bucket', {
+  Template.fromStack(stack).hasResourceProperties('AWS::S3::Bucket', {
     LoggingConfiguration: {
       DestinationBucketName: {
         Ref: 'TestLoggingBucket'
@@ -31,7 +28,7 @@ test('M2C2 Cloudfront test', () => {
       LogFilePrefix: 'ui-s3/'
     }
   });
-  expect(stack).toHaveResourceLike('AWS::CloudFront::Distribution', {
+  Template.fromStack(stack).hasResourceProperties('AWS::CloudFront::Distribution', {
     DistributionConfig: {
       Logging: {
         Bucket: {

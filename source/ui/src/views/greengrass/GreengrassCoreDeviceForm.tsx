@@ -43,7 +43,7 @@ const domIds: GreengrassCoreDeviceDomIds = {
  * Renders the Greengrass core device registration form.
  * @returns The Greengrass core device modal
  */
-export default function GreengrassCoreDeviceForm(): JSX.Element {
+export default function GreengrassCoreDeviceForm(): React.JSX.Element {
   const [confirmMessage, setConfirmMessage] = useState<string>('');
   const [createdBy, setCreatedBy] = useState<CreatedBy>(CreatedBy.SYSTEM);
   const [greengrassCoreDeviceName, setGreengrassCoreDeviceName] = useState<string>('');

@@ -162,9 +162,9 @@ test('Test Modbus TCP protocol', () => {
     host: 'mock-host',
     hostPort: 1,
     hostTag: 'mock-tag',
-    modbusSlavesConfigSerialized:
-      '[{"slaveAddress":1,"frequencyInSeconds":1,"commandConfig":{"readCoils":{"address":1,"count":1}}}]',
-    modbusSlavesConfig: []
+    modbusSecondariesConfigSerialized:
+      '[{"secondaryAddress":1,"frequencyInSeconds":1,"commandConfig":{"readCoils":{"address":1,"count":1}}}]',
+    modbusSecondariesConfig: []
   };
 
   expect(buildConnectionDefinition(params)).toEqual({
@@ -187,11 +187,11 @@ test('Test Modbus TCP protocol', () => {
       host: 'mock-host',
       hostPort: 1,
       hostTag: 'mock-tag',
-      modbusSlavesConfigSerialized:
-        '[{"slaveAddress":1,"frequencyInSeconds":1,"commandConfig":{"readCoils":{"address":1,"count":1}}}]',
-      modbusSlavesConfig: [
+      modbusSecondariesConfigSerialized:
+        '[{"secondaryAddress":1,"frequencyInSeconds":1,"commandConfig":{"readCoils":{"address":1,"count":1}}}]',
+      modbusSecondariesConfig: [
         {
-          slaveAddress: 1,
+          secondaryAddress: 1,
           frequencyInSeconds: 1,
           commandConfig: {
             readCoils: {

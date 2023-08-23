@@ -23,7 +23,7 @@ Amplify.configure(getAmplifyConfiguration(config));
  * The default application
  * @returns Amplify Authenticator with Main and Footer
  */
-function App(): JSX.Element {
+function App(): React.JSX.Element {
   return (
     <div>
       <BrowserRouter>

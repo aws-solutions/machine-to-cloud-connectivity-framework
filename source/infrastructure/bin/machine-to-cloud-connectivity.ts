@@ -47,7 +47,7 @@ function getProps(): MachineToCloudConnectivityFrameworkProps {
   const solutionVersion = VERSION_PLACEHOLDER;
   const shouldSendAnonymousMetrics = SHOULD_SEND_ANONYMOUS_METRICS;
   const shouldTeardownDataOnDestroy = SHOULD_TEARDOWN_DATA_ON_DESTROY;
-  const description = `(${solutionId}) - ${solutionName} Version ${solutionVersion}`;
+  const description = `(${solutionId}) - ${solutionName}. Version ${solutionVersion}`;
 
   return {
     description,

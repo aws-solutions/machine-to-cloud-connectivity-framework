@@ -122,8 +122,8 @@ export function buildConnectionDefinition(params: ConnectionDefinition): Connect
     } else if (params.protocol === MachineProtocol.MODBUSTCP) {
       connectionDefinition.modbusTcp = params.modbusTcp as ModbusTcpDefinition;
       connectionDefinition.modbusTcp.hostPort = Number(connectionDefinition.modbusTcp.hostPort);
-      connectionDefinition.modbusTcp.modbusSlavesConfig = JSON.parse(
-        connectionDefinition.modbusTcp.modbusSlavesConfigSerialized
+      connectionDefinition.modbusTcp.modbusSecondariesConfig = JSON.parse(
+        connectionDefinition.modbusTcp.modbusSecondariesConfigSerialized
       );
     }
   }
@@ -168,10 +168,10 @@ export const INIT_CONNECTION: GetConnectionResponse = {
     host: '',
     hostPort: 502,
     hostTag: '',
-    modbusSlavesConfigSerialized: JSON.stringify(
+    modbusSecondariesConfigSerialized: JSON.stringify(
       [
         {
-          slaveAddress: 1,
+          secondaryAddress: 1,
           frequencyInSeconds: 30,
           commandConfig: {
             readCoils: {
@@ -193,9 +193,9 @@ export const INIT_CONNECTION: GetConnectionResponse = {
       undefined,
       4
     ),
-    modbusSlavesConfig: [
+    modbusSecondariesConfig: [
       {
-        slaveAddress: 1,
+        secondaryAddress: 1,
         frequencyInSeconds: 30,
         commandConfig: {
           readCoils: {

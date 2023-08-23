@@ -62,7 +62,7 @@ class PayloadRouter:
         The payload router routes telemetry data based on set destinations in the destinations dictionary
         """
         if message.payload is None:
-            raise Exception("Message is missing payload attribute")
+            raise ValueError("Message is missing payload attribute")
         try:
             payload = json.loads(message.payload)
             message_sequence_number = message.sequence_number

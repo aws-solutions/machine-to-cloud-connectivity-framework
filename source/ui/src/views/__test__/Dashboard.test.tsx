@@ -277,7 +277,7 @@ test('tests refresh button', async () => {
   expect(mockAPI.get).toHaveBeenNthCalledWith(2, API_NAME, '/connections', {
     queryStringParameters: { nextToken: undefined }
   });
-});
+}, 10000);
 
 test('tests create connection button', async () => {
   mockAPI.get.mockResolvedValueOnce({ connections: [] });

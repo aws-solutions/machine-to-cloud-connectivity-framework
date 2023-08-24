@@ -1,4 +1,9 @@
+<<<<<<< HEAD
 
+=======
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+>>>>>>> main
 
 from datetime import datetime, timedelta, timezone
 from unittest import TestCase

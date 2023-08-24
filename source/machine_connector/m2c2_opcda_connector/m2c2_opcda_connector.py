@@ -1,7 +1,6 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-import logging
 import time
 import os
 import OpenOPC
@@ -19,7 +18,15 @@ from typing import Union
 from utils import StreamManagerHelperClient, AWSEndpointClient, InitMessage
 from utils.subscription_stream_handler import SubscriptionStreamHandler
 from utils.custom_exception import ConnectorException
+<<<<<<< HEAD
 from validations.message_validation import MessageValidation
+=======
+
+from boilerplate.messaging.message import Message
+from boilerplate.messaging.message_batch import MessageBatch
+from boilerplate.messaging.message_sender import MessageSender
+import boilerplate.logging.logger as ConnectorLogging
+>>>>>>> main
 
 # payload array containing responses from the OPC DA server
 # appended to at each execution of the thread
@@ -31,20 +38,10 @@ connection = None  # OPC connection to the server
 # used to ensure the thread has completed its execution
 ttl = 0.2
 
-# Greengrass Stream name
-CONNECTION_GG_STREAM_NAME = os.environ["CONNECTION_GG_STREAM_NAME"]
-
 # Constant variables
 # Connection name from component environment variables
 CONNECTION_NAME = os.getenv("CONNECTION_NAME")
-# Site name from component environment variables
-SITE_NAME = os.getenv("SITE_NAME")
-# Area from component environment variables
-AREA = os.getenv("AREA")
-# Process from component environment variables
-PROCESS = os.getenv("PROCESS")
-# Machine name from component environment variables
-MACHINE_NAME = os.getenv("MACHINE_NAME")
+
 # Connection retry count
 CONNECTION_RETRY = 10
 # Error retry count
@@ -56,6 +53,7 @@ max_stream_size = 5368706371  # 5G
 # Clients and logging
 smh_client = StreamManagerHelperClient()
 connector_client = AWSEndpointClient()
+<<<<<<< HEAD
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -154,6 +152,10 @@ def post_to_user(post_type: str, message: Union[str, dict]) -> None:
             f"Failed to publish message to IoT topic or Stream Manager. Error: {err}"
         )
         raise
+=======
+logger = ConnectorLogging.get_logger("m2c2_opcda_connector.py")
+message_sender = MessageSender()
+>>>>>>> main
 
 
 def device_connect(connection_data: dict) -> None:
@@ -217,19 +219,54 @@ def read_opc_da_data(tags: list, list_tags: list, payload_content: list) -> list
     return payload_content
 
 
-def send_opc_da_data(payload_content: list, current_iteration: int, iterations: int) -> tuple:
+def send_opc_da_data(payload_content: list):
+    """ Sends the opc data
+
+    Args:
+        payload_content (list): List of messages that look like this: ('Random.UInt4', 41.0, 'Good', '2022-09-26 17:19:59.478000+00:00')
+    """
+    # arrange messages by tag
+    messages_by_tag = {}
+    for datum in payload_content:
+        if len(datum) == 4:
+            message = Message(
+                value=datum[1],
+                quality=datum[2],
+                timestamp=datum[3]
+            )
+            tag = datum[0].replace(".", "-").replace("/", "_")
+            if tag in messages_by_tag:
+                messages_by_tag[tag].append(message)
+            else:
+                messages_by_tag[tag] = [message]
+        else:
+            logger.error(
+                f'Could not process message, invalid amount of items. Received {len(datum)} items in message')
+            logger.debug(f'Improper message is: {datum}')
+
+    # send each message batch
+    for tag, messages in messages_by_tag.items():
+        message_batch = MessageBatch(
+            tag, messages, CONNECTION_NAME
+        )
+        logger.debug('Sending message batch...')
+        message_sender.post_message_batch(message_batch)
+
+
+def send_opc_da_data_by_iterations(payload_content: list, current_iteration: int, iterations: int) -> tuple:
     """
     Sends the data if the query iterations are done.
 
-    :param payload_content: The payload content
+    :param payload_content: List of messages that look like this: ('Random.UInt4', 41.0, 'Good', '2022-09-26 17:19:59.478000+00:00')
     :param current_iteration: The current iteration
     :param iterations: The iterations to send data to the cloud
     :return: The payload content and the current iteration
     """
 
     if current_iteration >= iterations:
+        send_opc_da_data(payload_content)
+
         current_iteration = 0
-        post_to_user("data", convert_to_json(payload_content))
         payload_content = []
 
     return payload_content, current_iteration
@@ -261,8 +298,10 @@ def handle_get_data_error(connection_data: dict, error: Exception, error_count: 
 
             global control
             control = "stop"
-            post_to_user(
-                "error", msg.ERR_MSG_LOST_CONNECTION_STOPPED.format(err))
+
+            error_message = msg.ERR_MSG_LOST_CONNECTION_STOPPED.format(err)
+            logger.error(error_message)
+            message_sender.post_error_message(error_message)
 
     return error_count
 
@@ -295,7 +334,7 @@ def data_collection_control(connection_data: dict, payload_content: list = [], i
             current_iteration += 1
             current_error_count = 0
 
-            payload_content, current_iteration = send_opc_da_data(
+            payload_content, current_iteration = send_opc_da_data_by_iterations(
                 payload_content=payload_content,
                 current_iteration=current_iteration,
                 iterations=opc_da_data["iterations"]
@@ -316,7 +355,7 @@ def data_collection_control(connection_data: dict, payload_content: list = [], i
         ).start()
     elif control == "stop":
         if payload_content:
-            post_to_user("data", convert_to_json(payload_content))
+            send_opc_da_data(payload_content)
             payload_content = []
 
         connector_client.stop_client()
@@ -333,8 +372,8 @@ def start(connection_data: dict) -> None:
 
     try:
         if connector_client.is_running:
-            post_to_user(
-                "info", msg.ERR_MSG_FAIL_LAST_COMMAND_START.format(CONNECTION_NAME))
+            message_sender.post_info_message(
+                msg.ERR_MSG_FAIL_LAST_COMMAND_START.format(CONNECTION_NAME))
         else:
             logger.info("User request: start")
 
@@ -347,7 +386,7 @@ def start(connection_data: dict) -> None:
             )
             device_connect(connection_data)
 
-            post_to_user("info", msg.INF_MSG_CONNECTION_STARTED)
+            message_sender.post_info_message(msg.INF_MSG_CONNECTION_STARTED)
             data_collection_control(connection_data=connection_data)
     except Exception as err:
         error_message = f"Failed to execute the start: {err}"
@@ -376,10 +415,12 @@ def stop() -> None:
                     connection_name=CONNECTION_NAME,
                     connection_configuration=local_connection_data,
                 )
-                post_to_user("info", msg.INF_MSG_CONNECTION_STOPPED)
+
+                message_sender.post_info_message(
+                    msg.INF_MSG_CONNECTION_STOPPED)
         else:
-            post_to_user(
-                "info", msg.ERR_MSG_FAIL_LAST_COMMAND_STOP.format(CONNECTION_NAME))
+            message_sender.post_info_message(
+                msg.ERR_MSG_FAIL_LAST_COMMAND_STOP.format(CONNECTION_NAME))
     except Exception as err:
         error_message = f"Failed to execute the stop: {err}"
         logger.error(error_message)
@@ -398,11 +439,12 @@ def push(connection_data: dict) -> None:
         server = opc.servers()
         opc.close()
 
-        post_to_user("info", msg.INF_MSG_SERVER_NAME.format(server))
+        message_sender.post_info_message(
+            msg.INF_MSG_SERVER_NAME.format(server))
     except Exception as err:
         error_message = msg.ERR_MSG_FAIL_SERVER_NAME.format(err)
         logger.error(error_message)
-        post_to_user("error", error_message)
+        message_sender.post_error_message(error_message)
 
 
 def pull() -> None:
@@ -415,40 +457,14 @@ def pull() -> None:
             CONNECTION_NAME)
 
         if local_connection_data:
-            post_to_user("info", local_connection_data)
+            message_sender.post_info_message(local_connection_data)
         else:
-            post_to_user(
-                "error", msg.ERR_MSG_NO_CONNECTION_FILE.format(CONNECTION_NAME))
+            message_sender.post_error_message(
+                msg.ERR_MSG_NO_CONNECTION_FILE.format(CONNECTION_NAME))
     except Exception as err:
         error_message = msg.ERR_MSG_FAIL_SERVER_NAME.format(err)
         logger.error(error_message)
-        post_to_user("error", error_message)
-
-
-def convert_to_json(payload_content: list) -> dict:
-    """Convert the OPC DA array data to JSON (Dict) and return the aggregated JSON data."""
-
-    try:
-        json_response = {}
-
-        for t in payload_content:  # tuple in payload_content
-            temp = {}
-            key = t[0].replace(".", "-").replace("/", "_")
-
-            if len(t) == 4:
-                temp["value"] = t[1]
-                temp["quality"] = t[2]
-                temp["timestamp"] = t[3]
-            else:
-                temp["value"] = "Parameters cannot be read from server"
-
-            json_response.setdefault(key, []).append(temp)
-
-        return json_response
-    except Exception as err:
-        error_message = f"Failed to convert the data to JSON: {err}"
-        logger.error(error_message)
-        return {"error": error_message}
+        message_sender.post_error_message(error_message)
 
 
 def control_switch() -> dict:
@@ -487,7 +503,7 @@ def message_handler(connection_data: dict) -> None:
                 else:
                     control_action_function()
             else:
-                post_to_user("error", msg.ERR_MSG_FAIL_UNKNOWN_CONTROL.format(
+                message_sender.post_error_message(msg.ERR_MSG_FAIL_UNKNOWN_CONTROL.format(
                     connection_control))
 
             lock = False
@@ -497,7 +513,8 @@ def message_handler(connection_data: dict) -> None:
         logger.error(f"Failed to run the connection on the function: {err}")
 
         if type(err).__name__ != "KeyError":
-            post_to_user("error", f"Failed to run the connection: {err}")
+            message_sender.post_error_message(
+                f"Failed to run the connection: {err}")
 
         lock = False
         connector_client.stop_client()

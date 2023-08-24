@@ -7,7 +7,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import GreengrassCoreDeviceForm from '../greengrass/GreengrassCoreDeviceForm';
-import { CreatedBy, GreengrassCoreDeviceControl, UserGreengrassCoreDeviceResponse } from '../../util/types';
+import { CreatedBy, GreengrassCoreDeviceControl, OsPlatform, UserGreengrassCoreDeviceResponse } from '../../util/types';
 import { API_NAME } from '../../util/utils';
 
 const mockAPI = {
@@ -111,7 +111,7 @@ test('tests handleValueChange function - category change when user Greengrass co
 
   const mockDevice = userGreengrassCoreDeviceResponse.greengrassCoreDevices[0];
   expect(await screen.findByText(`${mockDevice.coreDeviceThingName} (${mockDevice.status})`)).not.toBeNull();
-});
+}, 10000);
 
 test('tests handleValueChange function - Greengrass core device name change with invalid value', async () => {
   mockAPI.get.mockResolvedValueOnce({ greengrassCoreDevices: [] });
@@ -248,7 +248,8 @@ test('tests registerGreengrassCoreDevice function - System success', async () =>
     body: {
       name: greengrassCoreDeviceName,
       control: GreengrassCoreDeviceControl.CREATE,
-      createdBy: CreatedBy.SYSTEM
+      createdBy: CreatedBy.SYSTEM,
+      osPlatform: OsPlatform.LINUX
     }
   });
 });
@@ -288,7 +289,8 @@ test('tests registerGreengrassCoreDevice function - User failure', async () => {
     body: {
       name: mockDevice.coreDeviceThingName,
       control: GreengrassCoreDeviceControl.CREATE,
-      createdBy: CreatedBy.USER
+      createdBy: CreatedBy.USER,
+      osPlatform: OsPlatform.LINUX
     }
   });
 });

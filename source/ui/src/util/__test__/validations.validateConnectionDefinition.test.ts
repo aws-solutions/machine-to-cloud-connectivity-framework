@@ -2,7 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { I18n } from '@aws-amplify/core';
-import { ConnectionControl, ConnectionDefinition, MachineProtocol, OpcDaDefinition, OpcUaDefinition } from '../types';
+import {
+  ConnectionControl,
+  ConnectionDefinition,
+  MachineProtocol,
+  ModbusTcpDefinition,
+  OpcDaDefinition,
+  OpcUaDefinition
+} from '../types';
 import { validateConnectionDefinition } from '../validations';
 
 const params: ConnectionDefinition = {
@@ -123,6 +130,7 @@ test('Send data to IoT SiteWise only', () => {
   params.sendDataToIoTTopic = false;
   params.sendDataToKinesisDataStreams = false;
   params.sendDataToTimestream = false;
+  params.sendDataToHistorian = false;
 
   expect(validateConnectionDefinition(params)).toEqual({});
 });
@@ -132,6 +140,7 @@ test('Send data to IoT topic only', () => {
   params.sendDataToIoTTopic = true;
   params.sendDataToKinesisDataStreams = false;
   params.sendDataToTimestream = false;
+  params.sendDataToHistorian = false;
 
   expect(validateConnectionDefinition(params)).toEqual({});
 });
@@ -141,6 +150,7 @@ test('Send data to Kinesis data stream only', () => {
   params.sendDataToIoTTopic = false;
   params.sendDataToKinesisDataStreams = true;
   params.sendDataToTimestream = false;
+  params.sendDataToHistorian = false;
 
   expect(validateConnectionDefinition(params)).toEqual({});
 });
@@ -150,6 +160,17 @@ test('Send data to Timestream only', () => {
   params.sendDataToIoTTopic = false;
   params.sendDataToKinesisDataStreams = true;
   params.sendDataToTimestream = true;
+  params.sendDataToHistorian = false;
+
+  expect(validateConnectionDefinition(params)).toEqual({});
+});
+
+test('Send data to Historian only', () => {
+  params.sendDataToIoTSiteWise = false;
+  params.sendDataToIoTTopic = false;
+  params.sendDataToKinesisDataStreams = false;
+  params.sendDataToTimestream = false;
+  params.sendDataToHistorian = true;
 
   expect(validateConnectionDefinition(params)).toEqual({});
 });
@@ -159,6 +180,7 @@ test('Send data to nowhere', () => {
   params.sendDataToIoTTopic = false;
   params.sendDataToKinesisDataStreams = false;
   params.sendDataToTimestream = false;
+  params.sendDataToHistorian = false;
 
   expect(validateConnectionDefinition(params)).toEqual({
     sendDataTo: I18n.get('invalid.send.data.to')
@@ -170,6 +192,7 @@ test('OPC DA: Iteration is not a number', () => {
   params.sendDataToIoTTopic = false;
   params.sendDataToKinesisDataStreams = true;
   params.sendDataToTimestream = false;
+  params.sendDataToHistorian = false;
   (params.opcDa as OpcDaDefinition).iterations = 'a';
 
   expect(validateConnectionDefinition(params)).toEqual({
@@ -366,6 +389,63 @@ test('OPC UA: Port is between the minimum value and the maximum value', () => {
   (params.opcUa as OpcUaDefinition).port = '80';
 
   expect(validateConnectionDefinition(params)).toEqual({});
+});
+
+test('Modbus TCP: Port is between the minimum value and the maximum value', () => {
+  delete params.opcUa;
+  params.protocol = MachineProtocol.MODBUSTCP;
+  params.modbusTcp = {
+    host: 'mock-host',
+    hostPort: 1,
+    hostTag: 'mock-tag',
+    modbusSecondariesConfigSerialized:
+      '[{"secondaryAddress":1,"frequencyInSeconds":1,"commandConfig":{"readCoils":{"address":1,"count":1}}}]',
+    modbusSecondariesConfig: [
+      {
+        secondaryAddress: 1,
+        frequencyInSeconds: 1,
+        commandConfig: {
+          readCoils: {
+            address: 1,
+            count: 1
+          }
+        }
+      }
+    ]
+  };
+
+  (params.modbusTcp as ModbusTcpDefinition).hostPort = '5020';
+
+  expect(validateConnectionDefinition(params)).toEqual({});
+});
+
+test('Modbus TCP: Port is greater than the minimum value', () => {
+  (params.modbusTcp as ModbusTcpDefinition).hostPort = '65536';
+
+  expect(validateConnectionDefinition(params)).toEqual({
+    modbusTcp_hostPort: I18n.get('invalid.port')
+  });
+
+  (params.modbusTcp as ModbusTcpDefinition).hostPort = '5020';
+});
+
+test('Modbus TCP: Host tag is longer than 256 characters', () => {
+  (params.modbusTcp as ModbusTcpDefinition).hostTag = Array(258).join('a');
+
+  expect(validateConnectionDefinition(params)).toEqual({
+    modbusTcp_hostTag: I18n.get('invalid.host.tag')
+  });
+
+  (params.modbusTcp as ModbusTcpDefinition).hostTag = 'valid-tag';
+});
+
+test('Modbus TCP: Secondary Config is invalid', () => {
+  (params.modbusTcp as ModbusTcpDefinition).modbusSecondariesConfigSerialized =
+    '[{"secondaryAddress":"invalid","frequencyInSeconds":"1","commandConfig":{"readCoils":{"address":"1","count":"1"}}}]';
+
+  expect(validateConnectionDefinition(params)).toEqual({
+    modbusTcp_modbusSecondariesConfigSerialized: I18n.get('modbus.tcp.invalid.json')
+  });
 });
 
 test('Other protocol: It should not have an error', () => {

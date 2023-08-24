@@ -121,6 +121,73 @@ exports[`renders the Greengrass core device form by default 1`] = `
             class="row"
           >
             <div
+              class="justify-content-left grid col"
+            >
+              <label
+                class="form-label"
+              >
+                os.platform
+                 
+                <span
+                  class="red-text"
+                >
+                  *
+                </span>
+              </label>
+              <div>
+                <div
+                  class="form-check"
+                >
+                  <input
+                    checked=""
+                    class="form-check-input"
+                    id="osPlatform"
+                    type="radio"
+                    value="linux"
+                  />
+                  <label
+                    class="form-check-label"
+                    for="osPlatform"
+                    title=""
+                  >
+                    Linux
+                  </label>
+                </div>
+                <div
+                  class="form-check"
+                >
+                  <input
+                    class="form-check-input"
+                    id="osPlatform"
+                    type="radio"
+                    value="windows"
+                  />
+                  <label
+                    class="form-check-label"
+                    for="osPlatform"
+                    title=""
+                  >
+                    Windows
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="row"
+          >
+            <div
+              class="col"
+            >
+              <span>
+                 
+              </span>
+            </div>
+          </div>
+          <div
+            class="row"
+          >
+            <div
               class="justify-content-center grid col"
             >
               <div

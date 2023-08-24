@@ -1,12 +1,19 @@
 Machine To Cloud Connectivity Framework
 Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+<<<<<<< HEAD
+=======
+Licensed under the Apache License Version 2.0 (the "License"). You may not use this file except
+in compliance with the License. A copy of the License is located at http://www.apache.org/licenses/
+or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+>>>>>>> main
 
 **********************
 THIRD PARTY COMPONENTS
 **********************
 This software includes third party software subject to the following copyrights:
 
-1. Node.js
 @aws-amplify/api under the Apache License 2.0
 @aws-amplify/auth under the Apache License 2.0
 @aws-amplify/core under the Apache License 2.0
@@ -63,11 +70,55 @@ ts-node under the Massachusetts Institute of Technology (MIT) License
 typescript under the Apache License 2.0
 uuid under the Massachusetts Institute of Technology (MIT) License
 yarn The 2-Clause BSD License
-
-2. Python
 backoff under the Massachusetts Institute of Technology (MIT) License
 greengrasssdk under the Apache License 2.0
-OpenOPC-Python3x under the GNU GENERAL PUBLIC License Version 2
+OpenOPC-Python3x under the GPLv2
 Pyro4 under the Massachusetts Institute of Technology (MIT) License
 python-dateutil under the Apache 2.0 License and the 3-Clause BSD License
+<<<<<<< HEAD
 dcbark01/PI-Web-API-Client-Python under the Apache 2.0 License
+=======
+dcbark01/PI-Web-API-Client-Python under the Apache 2.0 License
+twisted under the Massachusetts Institute of Technology (MIT) License
+pymodbus 3-Clause BSD License
+pyserial BSD License
+pyserial-asyncio BSD License
+dateutil under the Apache License 2.0
+requests_ntlm under the ISC License
+attrs under the Massachusetts Institute of Technology (MIT) License
+awscrt under the Apache License 2.0
+awsiotsdk under the Apache License 2.0
+boto3 under the Apache License 2.0 
+botocore under the Apache License 2.0
+cbor2 under the Massachusetts Institute of Technology (MIT) License
+cffi under the Massachusetts Institute of Technology (MIT) License
+coverage under the 3-Clause BSD License
+cryptography under the Apache 2.0 License and the 3-Clause BSD License
+decorator under the 2-Clause BSD License
+defusedxml under the python software foundation license version 2
+exceptiongroup under the Massachusetts Institute of Technology (MIT) License
+filelock under the Unlicense
+gssapi under the Apache License 2.0 
+iniconfig under the Massachusetts Institute of Technology (MIT) License
+jmespath under the Massachusetts Institute of Technology (MIT) License
+krb5 under the Massachusetts Institute of Technology (MIT) License
+numpy under the 3-Clause BSD License
+osisoft.pidevclub.piwebapi under the Apache License 2.0
+pandas under the 3-Clause BSD License
+pluggy under the Massachusetts Institute of Technology (MIT) License
+py-serializable under the Apache License 2.0
+pycparser under the BSD License
+pyspnego under the Massachusetts Institute of Technology (MIT) License
+pytest under the Massachusetts Institute of Technology (MIT) License
+pytest-cov under the Massachusetts Institute of Technology (MIT) License
+pytest-mock under the Massachusetts Institute of Technology (MIT) License
+pytz under the Massachusetts Institute of Technology (MIT) License
+requests-kerberos under the ISC License
+requests-ntlm under the ISC License
+s3transfer under the Apache License 2.0
+serpent under the Massachusetts Institute of Technology (MIT) License
+tomli under the Massachusetts Institute of Technology (MIT) License
+tzdata under the Massachusetts Institute of Technology (MIT) Licensex
+is-typedarray under the Massachusetts Institute of Technology (MIT) License
+@paralleldrive/cuid2 under the Massachusetts Institute of Technology (MIT) License
+>>>>>>> main

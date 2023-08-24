@@ -141,3 +141,66 @@ test('Test parameters including sendDataToKinesisDataStreams', () => {
     sendDataToKinesisDataStreams: true
   });
 });
+
+test('Test Modbus TCP protocol', () => {
+  delete params.opcUa;
+  params.control = ConnectionControl.UPDATE;
+  params.protocol = MachineProtocol.MODBUSTCP;
+  params.area = 'mock-area';
+  params.greengrassCoreDeviceName = 'mock-device';
+  params.historianKinesisDatastreamName = 'mock-stream';
+  params.logLevel = 'INFO';
+  params.machineName = 'mock-machine';
+  params.process = 'mock-process';
+  params.sendDataToHistorian = false;
+  params.sendDataToIoTSiteWise = false;
+  params.sendDataToIoTTopic = true;
+  params.sendDataToKinesisDataStreams = true;
+  params.sendDataToTimestream = false;
+  params.siteName = 'mock-site';
+  params.modbusTcp = {
+    host: 'mock-host',
+    hostPort: 1,
+    hostTag: 'mock-tag',
+    modbusSecondariesConfigSerialized:
+      '[{"secondaryAddress":1,"frequencyInSeconds":1,"commandConfig":{"readCoils":{"address":1,"count":1}}}]',
+    modbusSecondariesConfig: []
+  };
+
+  expect(buildConnectionDefinition(params)).toEqual({
+    control: params.control,
+    connectionName: params.connectionName,
+    protocol: MachineProtocol.MODBUSTCP,
+    area: 'mock-area',
+    greengrassCoreDeviceName: 'mock-device',
+    historianKinesisDatastreamName: 'mock-stream',
+    logLevel: 'INFO',
+    machineName: 'mock-machine',
+    process: 'mock-process',
+    sendDataToHistorian: false,
+    sendDataToIoTSiteWise: false,
+    sendDataToKinesisDataStreams: true,
+    sendDataToTimestream: false,
+    sendDataToIoTTopic: true,
+    siteName: 'mock-site',
+    modbusTcp: {
+      host: 'mock-host',
+      hostPort: 1,
+      hostTag: 'mock-tag',
+      modbusSecondariesConfigSerialized:
+        '[{"secondaryAddress":1,"frequencyInSeconds":1,"commandConfig":{"readCoils":{"address":1,"count":1}}}]',
+      modbusSecondariesConfig: [
+        {
+          secondaryAddress: 1,
+          frequencyInSeconds: 1,
+          commandConfig: {
+            readCoils: {
+              address: 1,
+              count: 1
+            }
+          }
+        }
+      ]
+    }
+  });
+});

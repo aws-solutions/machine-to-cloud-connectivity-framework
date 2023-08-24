@@ -48,7 +48,7 @@ const logger = new Logger('Dashboard');
  * @param props.region The AWS region
  * @returns The dashboard
  */
-export default function Dashboard(props: { region: string }): JSX.Element {
+export default function Dashboard(props: { region: string }): React.JSX.Element {
   const navigate = useNavigate();
   const [showDeleteConfirmMessageModal, setShowDeleteConfirmMessageModal] = useState<boolean>(false);
   const [showMessageModal, setShowMessageModal] = useState<boolean>(false);
@@ -66,7 +66,7 @@ export default function Dashboard(props: { region: string }): JSX.Element {
    * Renders the empty connection message.
    * @returns Empty connection component
    */
-  function EmptyConnection(): JSX.Element {
+  function EmptyConnection(): React.JSX.Element {
     return (
       <Jumbotron className="text-align-center" id="empty-connection-jumbotron">
         <p className="empty-p">{I18n.get('info.message.no.connection')}</p>
@@ -79,7 +79,7 @@ export default function Dashboard(props: { region: string }): JSX.Element {
    * @param connection Connection
    * @returns Connection row
    */
-  function Connection(connection: ConnectionRowRequest): JSX.Element {
+  function Connection(connection: ConnectionRowRequest): React.JSX.Element {
     return (
       <tr>
         <td>{connection.connectionName}</td>
@@ -88,6 +88,10 @@ export default function Dashboard(props: { region: string }): JSX.Element {
           {connection.protocol === MachineProtocol.OPCDA && 'OPC DA'}
           {connection.protocol === MachineProtocol.OPCUA && 'OPC UA'}
           {connection.protocol === MachineProtocol.OSIPI && 'OSI PI'}
+<<<<<<< HEAD
+=======
+          {connection.protocol === MachineProtocol.MODBUSTCP && 'Modbus TCP'}
+>>>>>>> main
         </td>
         <td>{I18n.get(`status.${connection.status}`)}</td>
         <td>

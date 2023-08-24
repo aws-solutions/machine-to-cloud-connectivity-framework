@@ -23,6 +23,7 @@ test('renders the OpcDaFrom with the existing connection', async () => {
     sendDataToIoTTopic: true,
     sendDataToKinesisDataStreams: true,
     sendDataToTimestream: true,
+    sendDataToHistorian: true,
     area: 'mock-area',
     machineName: 'mock-machine',
     opcDa: {

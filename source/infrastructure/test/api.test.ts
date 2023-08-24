@@ -1,23 +1,21 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import '@aws-cdk/assert/jest';
-import { SynthUtils } from '@aws-cdk/assert';
-import { Stack } from 'aws-cdk-lib';
-import { Code, Function as LambdaFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { Bucket } from 'aws-cdk-lib/aws-s3';
+import { Stack, aws_lambda as lambda, aws_s3 as s3 } from 'aws-cdk-lib';
 import { ApiConstruct } from '../lib/backend/api';
 
 test('M2C2 API test', () => {
   const stack = new Stack();
-  const connectionBuilderLambdaFunction = new LambdaFunction(stack, 'TestConnectionBuilder', {
-    code: Code.fromBucket(Bucket.fromBucketName(stack, 'SourceCodeBucket', 'test-bucket'), 'connection-builder.zip'),
+  const connectionBuilderLambdaFunction = new lambda.Function(stack, 'TestConnectionBuilder', {
+    code: lambda.Code.fromBucket(
+      s3.Bucket.fromBucketName(stack, 'SourceCodeBucket', 'test-bucket'),
+      'connection-builder.zip'
+    ),
     handler: 'connection-builder/index.handler',
-    runtime: Runtime.NODEJS_14_X
+    runtime: lambda.Runtime.NODEJS_18_X
   });
 
-  const api = new ApiConstruct(stack, 'TestApi', { connectionBuilderLambdaFunction });
-  expect(SynthUtils.toCloudFormation(stack)).toMatchSnapshot();
+  const api = new ApiConstruct(stack, 'TestApi', { connectionBuilderLambdaFunction, corsOrigin: '*' });
   expect(api.apiEndpoint).toBeDefined();
   expect(api.apiId).toBeDefined();
 });

@@ -337,7 +337,7 @@ describe('Test CREATE_GREENGRASS_INSTALLATION_SCRIPTS', () => {
         CertificateId: mockValues.certificate.certificateId
       }
     });
-    expect(fsReadFileSyncSpy).toHaveBeenCalledTimes(1);
+    expect(fsReadFileSyncSpy).toHaveBeenCalledTimes(2);
     expect(fsReadFileSyncSpy).toHaveBeenCalledWith(
       `${__dirname.replace('test', 'greengrass-custom-resources')}/script/${fileName}`
     );
@@ -345,7 +345,7 @@ describe('Test CREATE_GREENGRASS_INSTALLATION_SCRIPTS', () => {
     expect(mockAxios.put).toHaveBeenCalledWith(event.ResponseURL, responseBody, axiosConfig);
     expect(mockIoTHandler.createKeysAndCertificate).toHaveBeenCalledTimes(1);
     expect(mockIoTHandler.createKeysAndCertificate).toHaveBeenCalledWith();
-    expect(mockS3Handler.putObject).toHaveBeenCalledTimes(1);
+    expect(mockS3Handler.putObject).toHaveBeenCalledTimes(2);
     expect(mockS3Handler.putObject).toHaveBeenCalledWith({
       body: script
         .toString()

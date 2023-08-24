@@ -4,10 +4,13 @@
 import S3 from 'aws-sdk/clients/s3';
 import {
   CopyObjectRequest,
+  DeleteBucketRequest,
   DeleteObjectRequest,
+  DeleteObjectsRequest,
   GetObjectRequest,
   GetSignedUrlRequest,
-  PutObjectRequest
+  PutObjectRequest,
+  ListObjectVersionsRequest
 } from '../types/s3-handler-types';
 import { getAwsSdkOptions } from '../utils';
 
@@ -61,5 +64,49 @@ export default class S3Handler {
   public async deleteObject(params: DeleteObjectRequest): Promise<void> {
     const { sourceBucket, sourceKey } = params;
     await s3.deleteObject({ Bucket: sourceBucket, Key: sourceKey }).promise();
+  }
+
+  /**
+   * Deletes multiple objects from an S3 bucket.
+   * @param params The S3 delete objects parameters
+   */
+  async deleteObjects(params: DeleteObjectsRequest): Promise<void> {
+    if (params.keys.length > 0) {
+      const deleteRequest: S3.Types.DeleteObjectsRequest = {
+        Bucket: params.bucketName,
+        Delete: {
+          Objects: params.keys
+        }
+      };
+
+      console.log(`Deleting keys from bucket ${params.bucketName}: ${params.keys}`);
+
+      await s3.deleteObjects(deleteRequest).promise();
+    }
+  }
+
+  /**
+   * Deletes a bucket from S3
+   * @param params The S3 delete bucket parameters
+   */
+  async deleteBucket(params: DeleteBucketRequest): Promise<void> {
+    const deleteBucketRequest: S3.Types.DeleteBucketRequest = {
+      Bucket: params.bucketName
+    };
+    console.log(`Deleting bucket ${params.bucketName}`);
+    await s3.deleteBucket(deleteBucketRequest).promise();
+  }
+
+  /**
+   * Lists objects in a bucket with versions
+   * @param params The S3 list object parameters
+   * @returns s3 list objects response
+   */
+  async listObjectVersions(params: ListObjectVersionsRequest): Promise<S3.Types.ListObjectVersionsOutput> {
+    const listObjectVersionsRequest: S3.Types.ListObjectVersionsRequest = {
+      Bucket: params.bucketName
+    };
+
+    return s3.listObjectVersions(listObjectVersionsRequest).promise();
   }
 }

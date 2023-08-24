@@ -84,6 +84,7 @@ class TestOpcDaConnector(TestCase):
             self.connector.connector_client.read_local_connection_configuration = MagicMock()
             self.connector.connector_client.write_local_connection_configuration_file = MagicMock()
 
+<<<<<<< HEAD
     def test_form_map(self):
         self.assertDictEqual(self.connector.form_map(), {
             "name": "test-connection",
@@ -211,6 +212,8 @@ class TestOpcDaConnector(TestCase):
             with self.assertRaises(Exception):
                 self.connector.post_to_user("data", message)
 
+=======
+>>>>>>> main
     def test_send_opc_da_data(self):
         with patch("utils.StreamManagerHelperClient.__init__") as mock_stream_manager_client, \
                 patch("validations.message_validation.MessageValidation.__init__") as mock_message_validation:
@@ -222,9 +225,9 @@ class TestOpcDaConnector(TestCase):
             self.connector.smh_client.list_streams = MagicMock(
                 return_value=[])
 
-            self.assertTupleEqual(self.connector.send_opc_da_data(
+            self.assertTupleEqual(self.connector.send_opc_da_data_by_iterations(
                 self.machine_message, 1, 5), (self.machine_message, 1))
-            self.assertTupleEqual(self.connector.send_opc_da_data(
+            self.assertTupleEqual(self.connector.send_opc_da_data_by_iterations(
                 self.machine_message, 5, 5), ([], 0))
 
     def test_device_connect(self):
@@ -259,7 +262,7 @@ class TestOpcDaConnector(TestCase):
 
     def test_handle_get_data_error(self):
         with patch("m2c2_opcda_connector.m2c2_opcda_connector.device_connect") as mock_device_connect, \
-                patch("m2c2_opcda_connector.m2c2_opcda_connector.post_to_user") as mock_post_to_user:
+                patch("boilerplate.messaging.message_sender.MessageSender.post_error_message") as mock_post_error_message:
 
             # When error count is less then retry count.
             self.connector.control = "start"
@@ -268,7 +271,7 @@ class TestOpcDaConnector(TestCase):
             self.assertEqual(error_count, 2)
             self.assertEqual(self.connector.control, "start")
             mock_device_connect.assert_not_called()
-            mock_post_to_user.assert_not_called()
+            mock_post_error_message.assert_not_called()
 
             # When error count is larger then retry count.
             error_count = self.connector.handle_get_data_error(
@@ -276,7 +279,7 @@ class TestOpcDaConnector(TestCase):
             self.assertEqual(error_count, 6)
             self.assertEqual(self.connector.control, "start")
             mock_device_connect.assert_called()
-            mock_post_to_user.assert_not_called()
+            mock_post_error_message.assert_not_called()
 
             # When an error happens.
             mock_device_connect.side_effect = Exception("Failure")
@@ -285,26 +288,27 @@ class TestOpcDaConnector(TestCase):
             self.assertEqual(error_count, 6)
             self.assertEqual(self.connector.control, "stop")
             mock_device_connect.assert_called()
-            mock_post_to_user.assert_called()
+            mock_post_error_message.assert_called()
 
     def test_data_collection_control(self):
         with patch("m2c2_opcda_connector.m2c2_opcda_connector.read_opc_da_data") as mock_read_opc_da_data, \
-                patch("m2c2_opcda_connector.m2c2_opcda_connector.send_opc_da_data") as mock_send_opc_da_data, \
+                patch("m2c2_opcda_connector.m2c2_opcda_connector.send_opc_da_data_by_iterations") as mock_send_opc_da_data_by_iterations, \
                 patch("m2c2_opcda_connector.m2c2_opcda_connector.handle_get_data_error") as mock_handle_get_data_error, \
-                patch("m2c2_opcda_connector.m2c2_opcda_connector.post_to_user") as mock_post_to_user, \
-                patch("m2c2_opcda_connector.m2c2_opcda_connector.connection") as mock_connetion, \
+                patch("boilerplate.messaging.message_sender.MessageSender.post_message_batch") as mock_post_message_batch, \
+                patch("m2c2_opcda_connector.m2c2_opcda_connector.connection") as mock_connection, \
                 patch("m2c2_opcda_connector.m2c2_opcda_connector.Timer.__init__") as mock_timer:
             def reset_all_mocks():
                 mock_read_opc_da_data.reset_mock()
-                mock_send_opc_da_data.reset_mock()
+                mock_send_opc_da_data_by_iterations.reset_mock()
                 mock_handle_get_data_error.reset_mock()
-                mock_post_to_user.reset_mock()
-                mock_connetion.reset_mock()
+                mock_post_message_batch.reset_mock()
+                mock_connection.reset_mock()
                 mock_timer.reset_mock()
 
             self.connector.control = "start"
             mock_read_opc_da_data.return_value = self.machine_message
-            mock_send_opc_da_data.return_value = (self.machine_message, 1)
+            mock_send_opc_da_data_by_iterations.return_value = (
+                self.machine_message, 1)
             self.connector.Timer = mock_timer.MagicMock()
 
             # Success to collect data
@@ -312,8 +316,8 @@ class TestOpcDaConnector(TestCase):
             mock_read_opc_da_data.assert_called()
             mock_read_opc_da_data.assert_called_with(
                 tags=self.connection_data["opcDa"]["tags"], list_tags=[], payload_content=[])
-            mock_send_opc_da_data.assert_called()
-            mock_send_opc_da_data.assert_called_with(
+            mock_send_opc_da_data_by_iterations.assert_called()
+            mock_send_opc_da_data_by_iterations.assert_called_with(
                 payload_content=self.machine_message,
                 current_iteration=1,
                 iterations=self.connection_data["opcDa"]["iterations"]
@@ -334,7 +338,7 @@ class TestOpcDaConnector(TestCase):
             mock_read_opc_da_data.assert_called()
             mock_read_opc_da_data.assert_called_with(
                 tags=self.connection_data["opcDa"]["tags"], list_tags=[], payload_content=[])
-            mock_send_opc_da_data.assert_not_called()
+            mock_send_opc_da_data_by_iterations.assert_not_called()
             mock_handle_get_data_error.assert_called()
             self.connector.Timer.assert_called()
             self.connector.Timer.assert_called_with(
@@ -345,33 +349,35 @@ class TestOpcDaConnector(TestCase):
 
             # Success to stop the connection
             reset_all_mocks()
-            mock_connetion.close = MagicMock()
+            mock_read_opc_da_data.return_value = self.machine_message
+            mock_connection.close = MagicMock()
             self.connector.control = "stop"
             self.connector.data_collection_control(
                 self.connection_data, self.machine_message)
 
             self.connector.Timer.assert_not_called()
-            mock_post_to_user.assert_called()
-            mock_connetion.close.assert_called()
+            mock_post_message_batch.assert_called()
+            mock_connection.close.assert_called()
             self.assertEqual(self.connector.connection, None)
 
             # Failure to stop the connection
             reset_all_mocks()
-            mock_connetion.close = MagicMock()
-            mock_connetion.close.side_effect = Exception("Failure")
+            mock_connection.close = MagicMock()
+            mock_connection.close.side_effect = Exception("Failure")
             self.connector.data_collection_control(
                 self.connection_data)
 
-            mock_post_to_user.assert_not_called()
+            mock_post_message_batch.assert_not_called()
 
     def test_control_switch(self):
-        with patch("m2c2_opcda_connector.m2c2_opcda_connector.post_to_user") as mock_post_to_user, \
+        with patch("boilerplate.messaging.message_sender.MessageSender.post_info_message") as mock_post_info_message, \
+                patch("boilerplate.messaging.message_sender.MessageSender.post_error_message") as mock_post_error_message, \
                 patch("m2c2_opcda_connector.m2c2_opcda_connector.device_connect") as mock_device_connect, \
                 patch("m2c2_opcda_connector.m2c2_opcda_connector.data_collection_control") as mock_data_collection_control, \
                 patch("m2c2_opcda_connector.m2c2_opcda_connector.OpenOPC") as mock_open_opc, \
                 patch("m2c2_opcda_connector.m2c2_opcda_connector.time") as mock_time:
             def reset_all_mocks():
-                mock_post_to_user.reset_mock()
+                mock_post_info_message.reset_mock()
                 mock_device_connect.reset_mock()
                 mock_data_collection_control.reset_mock()
                 mock_open_opc.reset_mock()
@@ -383,7 +389,7 @@ class TestOpcDaConnector(TestCase):
             self.connector.connector_client.is_running = True
             self.connector.control_switch().get("start")(self.connection_data)
 
-            mock_post_to_user.assert_called()
+            mock_post_info_message.assert_called()
             self.connector.connector_client.start_client.assert_not_called()
             mock_device_connect.assert_not_called()
             mock_data_collection_control.assert_not_called()
@@ -413,7 +419,7 @@ class TestOpcDaConnector(TestCase):
             reset_all_mocks()
             self.connector.control_switch().get("stop")()
 
-            mock_post_to_user.assert_called()
+            mock_post_info_message.assert_called()
             self.connector.connector_client.read_local_connection_configuration.assert_not_called()
             self.connector.connector_client.write_local_connection_configuration_file.assert_not_called()
 
@@ -429,7 +435,7 @@ class TestOpcDaConnector(TestCase):
             self.connector.connector_client.write_local_connection_configuration_file.assert_called()
             self.connector.connector_client.write_local_connection_configuration_file.assert_called_with(
                 connection_name=self.connection_name, connection_configuration=self.connection_data)
-            mock_post_to_user.assert_called()
+            mock_post_info_message.assert_called()
 
             # Stop failure
             reset_all_mocks()
@@ -447,8 +453,8 @@ class TestOpcDaConnector(TestCase):
             self.connector.connector_client.read_local_connection_configuration.assert_called()
             self.connector.connector_client.read_local_connection_configuration.assert_called_with(
                 self.connection_name)
-            mock_post_to_user.assert_called()
-            mock_post_to_user.assert_called_with("info", self.connection_data)
+            mock_post_info_message.assert_called()
+            mock_post_info_message.assert_called_with(self.connection_data)
 
             # Pull local connection configuration not existing
             reset_all_mocks()
@@ -458,9 +464,9 @@ class TestOpcDaConnector(TestCase):
             self.connector.connector_client.read_local_connection_configuration.assert_called()
             self.connector.connector_client.read_local_connection_configuration.assert_called_with(
                 self.connection_name)
-            mock_post_to_user.assert_called()
-            mock_post_to_user.assert_called_with(
-                "error", messages.ERR_MSG_NO_CONNECTION_FILE.format(self.connection_name))
+            mock_post_error_message.assert_called()
+            mock_post_error_message.assert_called_with(
+                messages.ERR_MSG_NO_CONNECTION_FILE.format(self.connection_name))
 
             # Pull failure
             reset_all_mocks()
@@ -471,9 +477,9 @@ class TestOpcDaConnector(TestCase):
             self.connector.connector_client.read_local_connection_configuration.assert_called()
             self.connector.connector_client.read_local_connection_configuration.assert_called_with(
                 self.connection_name)
-            mock_post_to_user.assert_called()
-            mock_post_to_user.assert_called_with(
-                "error", messages.ERR_MSG_FAIL_SERVER_NAME.format("Failure"))
+            mock_post_error_message.assert_called()
+            mock_post_error_message.assert_called_with(
+                messages.ERR_MSG_FAIL_SERVER_NAME.format("Failure"))
 
             # Push success
             reset_all_mocks()
@@ -482,7 +488,7 @@ class TestOpcDaConnector(TestCase):
             mock_open_opc.open_client.assert_called()
             mock_open_opc.open_client.assert_called_with(
                 host=self.connection_data["opcDa"]["machineIp"])
-            mock_post_to_user.assert_called()
+            mock_post_info_message.assert_called()
 
             # Push failure
             reset_all_mocks()
@@ -493,12 +499,12 @@ class TestOpcDaConnector(TestCase):
             self.connector.OpenOPC.open_client.assert_called()
             self.connector.OpenOPC.open_client.assert_called_with(
                 host=self.connection_data["opcDa"]["machineIp"])
-            mock_post_to_user.assert_called()
-            mock_post_to_user.assert_called_with(
-                "error", messages.ERR_MSG_FAIL_SERVER_NAME.format("Failure"))
+            mock_post_error_message.assert_called()
+            mock_post_error_message.assert_called_with(
+                messages.ERR_MSG_FAIL_SERVER_NAME.format("Failure"))
 
     def test_message_handler(self):
-        with patch("m2c2_opcda_connector.m2c2_opcda_connector.post_to_user") as mock_post_to_user, \
+        with patch("boilerplate.messaging.message_sender.MessageSender.post_error_message") as mock_post_error_message, \
                 patch("m2c2_opcda_connector.m2c2_opcda_connector.control_switch") as mock_control_switch:
             def foo(input):
                 print("foo", input)
@@ -507,7 +513,7 @@ class TestOpcDaConnector(TestCase):
                 print("bar")
 
             def reset_all_mock():
-                mock_post_to_user.reset_mock()
+                mock_post_error_message.reset_mock()
                 mock_control_switch.reset_mock()
 
             mock_control_switch.return_value = {
@@ -521,7 +527,7 @@ class TestOpcDaConnector(TestCase):
             self.assertTrue(self.connector.lock)
 
             mock_control_switch.assert_not_called()
-            mock_post_to_user.assert_not_called()
+            mock_post_error_message.assert_not_called()
 
             # Success to handle start control
             reset_all_mock()
@@ -529,23 +535,23 @@ class TestOpcDaConnector(TestCase):
             self.connector.message_handler({"control": "start"})
 
             mock_control_switch.assert_called()
-            mock_post_to_user.assert_not_called()
+            mock_post_error_message.assert_not_called()
 
             # Success to handle stop control
             reset_all_mock()
             self.connector.message_handler({"control": "stop"})
 
             mock_control_switch.assert_called()
-            mock_post_to_user.assert_not_called()
+            mock_post_error_message.assert_not_called()
 
             # Success to handle invalid control
             reset_all_mock()
             self.connector.message_handler({"control": "invalid"})
 
             mock_control_switch.assert_called()
-            mock_post_to_user.assert_called()
-            mock_post_to_user.assert_called_with(
-                "error", messages.ERR_MSG_FAIL_UNKNOWN_CONTROL.format("invalid"))
+            mock_post_error_message.assert_called()
+            mock_post_error_message.assert_called_with(
+                messages.ERR_MSG_FAIL_UNKNOWN_CONTROL.format("invalid"))
 
             # When "KeyError" error occurs
             reset_all_mock()
@@ -555,7 +561,7 @@ class TestOpcDaConnector(TestCase):
                 self.connector.message_handler({"control": "stop"})
 
             mock_control_switch.assert_called()
-            mock_post_to_user.assert_not_called()
+            mock_post_error_message.assert_not_called()
             self.connector.connector_client.stop_client.assert_called()
 
             # When other error occurs
@@ -566,7 +572,7 @@ class TestOpcDaConnector(TestCase):
                 self.connector.message_handler({"control": "stop"})
 
             mock_control_switch.assert_called()
-            mock_post_to_user.assert_called()
-            mock_post_to_user.assert_called_with(
-                "error", "Failed to run the connection: Failure")
+            mock_post_error_message.assert_called()
+            mock_post_error_message.assert_called_with(
+                "Failed to run the connection: Failure")
             self.connector.connector_client.stop_client.assert_called()

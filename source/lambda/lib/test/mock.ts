@@ -65,12 +65,18 @@ export const mockAwsS3 = {
   deleteObject: jest.fn(),
   getObject: jest.fn(),
   getSignedUrlPromise: jest.fn(),
-  putObject: jest.fn()
+  putObject: jest.fn(),
+  deleteObjects: jest.fn(),
+  deleteBucket: jest.fn(),
+  listObjectVersions: jest.fn()
 };
 jest.mock('aws-sdk/clients/s3', () => jest.fn(() => ({ ...mockAwsS3 })));
 
 export const mockAwsTimestreamWrite = {
-  writeRecords: jest.fn()
+  writeRecords: jest.fn(),
+  listTables: jest.fn(),
+  deleteTable: jest.fn(),
+  deleteDatabase: jest.fn()
 };
 jest.mock('aws-sdk/clients/timestreamwrite', () => jest.fn(() => ({ ...mockAwsTimestreamWrite })));
 
@@ -78,7 +84,7 @@ export const mockAxios = jest.fn();
 jest.mock('axios', () => ({ post: mockAxios }));
 
 export const UPPER_ALPHA_NUMERIC = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-export const mockNanoId = jest.fn();
-jest.mock('nanoid', () => ({ customAlphabet: mockNanoId }));
+export const mockCuid2 = jest.fn();
+jest.mock('@paralleldrive/cuid2', () => ({ init: mockCuid2 }));
 
 export const consoleErrorSpy = jest.spyOn(console, 'error');

@@ -10,7 +10,7 @@ import { FormProps } from '../../util/types';
  * @param props The properties for the OPC UA form
  * @returns The OPC UA form
  */
-export default function OpcUaForm(props: FormProps): JSX.Element {
+export default function OpcUaForm(props: FormProps): React.JSX.Element {
   const { connection, onChange, errors } = props;
 
   return (

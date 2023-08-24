@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { CapabilityConfigurationSource } from './iot-sitewise-handler-types';
+import { ModbusTcpDefinition } from './modbus-types';
 
 export enum ConnectionControl {
   DEPLOY = 'deploy',
@@ -10,13 +11,19 @@ export enum ConnectionControl {
   UPDATE = 'update',
   DELETE = 'delete',
   PUSH = 'push',
-  PULL = 'pull'
+  PULL = 'pull',
+  FAIL = 'fail'
 }
 
 export enum MachineProtocol {
   OPCDA = 'opcda',
   OPCUA = 'opcua',
+<<<<<<< HEAD
   OSIPI = 'osipi'
+=======
+  OSIPI = 'osipi',
+  MODBUSTCP = 'modbustcp'
+>>>>>>> main
 }
 
 export enum LogType {
@@ -48,12 +55,19 @@ export interface ConnectionDefinition {
   opcDa?: OpcDaDefinition;
   opcUa?: OpcUaDefinition;
   osiPi?: OsiPiDefinition;
+<<<<<<< HEAD
+=======
+  modbusTcp?: ModbusTcpDefinition;
+>>>>>>> main
   process?: string;
   sendDataToIoTSiteWise?: boolean;
   sendDataToIoTTopic?: boolean;
   sendDataToKinesisDataStreams?: boolean;
   sendDataToTimestream?: boolean;
+  sendDataToHistorian?: boolean;
   siteName?: string;
+  historianKinesisDatastreamName?: string;
+  osPlatform?: string;
 }
 
 export interface CommonDefinition {

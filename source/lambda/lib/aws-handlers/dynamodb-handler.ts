@@ -63,7 +63,9 @@ export default class DynamoDBHandler {
         sendDataToIoTSiteWise: item.sendDataToIoTSiteWise,
         sendDataToIoTTopic: item.sendDataToIoTTopic,
         sendDataToKinesisDataStreams: item.sendDataToKinesisDataStreams,
-        sendDataToTimestream: item.sendDataToTimestream
+        sendDataToTimestream: item.sendDataToTimestream,
+        sendDataToHistorian: item.sendDataToHistorian,
+        historianKinesisDatastreamName: item.historianKinesisDatastreamName
       });
     }
 
@@ -174,6 +176,7 @@ export default class DynamoDBHandler {
       TableName: this.connectionTable,
       Item: {
         connectionName: connectionDefinition.connectionName,
+        greengrassCoreDeviceName: connectionDefinition.greengrassCoreDeviceName,
         control: connectionDefinition.control,
         protocol: connectionDefinition.protocol,
         area: connectionDefinition.area,
@@ -187,6 +190,8 @@ export default class DynamoDBHandler {
             ? connectionDefinition.sendDataToKinesisDataStreams
             : true,
         sendDataToTimestream: !!connectionDefinition.sendDataToTimestream,
+        sendDataToHistorian: !!connectionDefinition.sendDataToHistorian,
+        historianKinesisDatastreamName: connectionDefinition.historianKinesisDatastreamName,
         siteName: connectionDefinition.siteName,
         timestamp: timestamp
       }
@@ -202,6 +207,12 @@ export default class DynamoDBHandler {
       case MachineProtocol.OSIPI:
         params.Item.osiPi = connectionDefinition.osiPi;
         break;
+<<<<<<< HEAD
+=======
+      case MachineProtocol.MODBUSTCP:
+        params.Item.modbusTcp = connectionDefinition.modbusTcp;
+        break;
+>>>>>>> main
       default:
         throw new LambdaError({
           message: `Unsupported protocol: ${connectionDefinition.protocol}`,
@@ -219,6 +230,11 @@ export default class DynamoDBHandler {
       sendDataToIoTTopic: params.Item.sendDataToIoTTopic,
       sendDataToKinesisDataStreams: params.Item.sendDataToKinesisDataStreams,
       sendDataToTimestream: params.Item.sendDataToTimestream,
+<<<<<<< HEAD
+=======
+      sendDataToHistorian: params.Item.sendDataToHistorian,
+      historianKinesisDatastreamName: params.Item.historianKinesisDatastreamName,
+>>>>>>> main
       machineName: params.Item.machineName,
       logLevel: params.Item.logLevel
     };

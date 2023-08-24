@@ -15,3 +15,7 @@ dist/
 coverage/
 aws-exports.js
 build/
+<<<<<<< HEAD
+=======
+.matt_deploy.env
+>>>>>>> main

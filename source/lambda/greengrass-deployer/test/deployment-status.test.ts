@@ -12,7 +12,6 @@ import {
   sleepSpy
 } from './mock';
 import { handler } from '../index';
-import { LambdaError } from '../../lib/errors';
 import { IoTMessageTypes } from '../../lib/types/iot-handler-types';
 import { ConnectionControl, ConnectionDefinition, MachineProtocol } from '../../lib/types/solution-common-types';
 
@@ -98,12 +97,7 @@ test('Test when deployment status is CANCELED', async () => {
   mockIoTHandler.publishIoTTopicMessage.mockResolvedValueOnce(undefined);
   sleepSpy.mockResolvedValueOnce(undefined);
 
-  await expect(handler(event)).rejects.toEqual(
-    new LambdaError({
-      message: errorMessage,
-      name: 'GreengrassDeployerError'
-    })
-  );
+  await handler(event);
 
   expect(mockGreengrassV2Handler.createDeployment).toHaveBeenCalledTimes(1);
   expect(mockGreengrassV2Handler.createDeployment).toHaveBeenCalledWith({
@@ -123,6 +117,7 @@ test('Test when deployment status is CANCELED', async () => {
       error: errorMessage
     }
   });
+  expect(mockDynamoDbHandler.updateConnection).toHaveBeenCalledTimes(1);
   expect(sleepSpy).toHaveBeenCalledTimes(1);
   expect(sleepSpy).toHaveBeenCalledWith(5);
 });
@@ -144,12 +139,7 @@ test('Test when deployment status is FAILED', async () => {
   mockIoTHandler.publishIoTTopicMessage.mockResolvedValueOnce(undefined);
   sleepSpy.mockResolvedValueOnce(undefined);
 
-  await expect(handler(event)).rejects.toEqual(
-    new LambdaError({
-      message: errorMessage,
-      name: 'GreengrassDeployerError'
-    })
-  );
+  await handler(event);
 
   expect(mockGreengrassV2Handler.createDeployment).toHaveBeenCalledTimes(1);
   expect(mockGreengrassV2Handler.createDeployment).toHaveBeenCalledWith({
@@ -169,6 +159,7 @@ test('Test when deployment status is FAILED', async () => {
       error: errorMessage
     }
   });
+  expect(mockDynamoDbHandler.updateConnection).toHaveBeenCalledTimes(1);
   expect(sleepSpy).toHaveBeenCalledTimes(1);
   expect(sleepSpy).toHaveBeenCalledWith(5);
 });

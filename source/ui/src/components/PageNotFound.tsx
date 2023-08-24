@@ -11,7 +11,7 @@ import Jumbotron from 'react-bootstrap/Jumbotron';
  * PageNotFound returns an error when path does not match.
  * @returns Page not found error message
  */
-export default function PageNotFound(): JSX.Element {
+export default function PageNotFound(): React.JSX.Element {
   return (
     <Container>
       <Row>

@@ -1,0 +1,442 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`renders the ModbusTcpForm errors 1`] = `
+<div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      host
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.modbus.tcp.host
+    </small>
+    <input
+      class="form-control is-invalid"
+      id="modbusTcp_host"
+      placeholder="placeholder.modbus.tcp.host"
+      required=""
+      type="text"
+      value=""
+    />
+    <div
+      class="invalid-feedback"
+    >
+      modbusTcp_host invalid
+    </div>
+  </div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      port
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.modbus.tcp.hostPort
+    </small>
+    <input
+      class="form-control is-invalid"
+      id="modbusTcp_hostPort"
+      placeholder="placeholder.modbus.tcp.hostPort"
+      required=""
+      type="text"
+      value="502"
+    />
+    <div
+      class="invalid-feedback"
+    >
+      modbusTcp_hostPort invalid
+    </div>
+  </div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      host.tag
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.modbus.tcp.hostTag
+    </small>
+    <input
+      class="form-control is-invalid"
+      id="modbusTcp_hostTag"
+      placeholder="placeholder.modbus.tcp.hostTag"
+      required=""
+      type="text"
+      value=""
+    />
+    <div
+      class="invalid-feedback"
+    >
+      modbusTcp_hostTag invalid
+    </div>
+  </div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      modbus.secondary.config
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.modbus.secondary.config
+    </small>
+    <textarea
+      class="form-control is-invalid"
+      id="modbusTcp_modbusSecondariesConfigSerialized"
+      placeholder="placeholder.modbus.secondary.config"
+      required=""
+      rows="15"
+      type="text"
+    >
+      [
+    {
+        "secondaryAddress": 1,
+        "frequencyInSeconds": 30,
+        "commandConfig": {
+            "readCoils": {
+                "address": 1,
+                "count": 1
+            },
+            "readDiscreteInputs": {
+                "address": 1
+            },
+            "readHoldingRegisters": {
+                "address": 1
+            },
+            "readInputRegisters": {
+                "address": 1
+            }
+        }
+    }
+]
+    </textarea>
+    <div
+      class="invalid-feedback"
+    >
+      modbusTcp_modbusSecondariesConfigSerialized invalid
+    </div>
+  </div>
+</div>
+`;
+
+exports[`renders the ModbusTcpForm with the existing connection 1`] = `
+<div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      host
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.modbus.tcp.host
+    </small>
+    <input
+      class="form-control"
+      id="modbusTcp_host"
+      placeholder="placeholder.modbus.tcp.host"
+      required=""
+      type="text"
+      value="mock-host"
+    />
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      port
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.modbus.tcp.hostPort
+    </small>
+    <input
+      class="form-control"
+      id="modbusTcp_hostPort"
+      placeholder="placeholder.modbus.tcp.hostPort"
+      required=""
+      type="text"
+      value="1"
+    />
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      host.tag
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.modbus.tcp.hostTag
+    </small>
+    <input
+      class="form-control"
+      id="modbusTcp_hostTag"
+      placeholder="placeholder.modbus.tcp.hostTag"
+      required=""
+      type="text"
+      value="mock-tag"
+    />
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      modbus.secondary.config
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.modbus.secondary.config
+    </small>
+    <textarea
+      class="form-control"
+      id="modbusTcp_modbusSecondariesConfigSerialized"
+      placeholder="placeholder.modbus.secondary.config"
+      required=""
+      rows="15"
+      type="text"
+    >
+      mock-serialized
+    </textarea>
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+</div>
+`;
+
+exports[`renders the default ModbusTcpForm 1`] = `
+<div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      host
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.modbus.tcp.host
+    </small>
+    <input
+      class="form-control"
+      id="modbusTcp_host"
+      placeholder="placeholder.modbus.tcp.host"
+      required=""
+      type="text"
+      value=""
+    />
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      port
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.modbus.tcp.hostPort
+    </small>
+    <input
+      class="form-control"
+      id="modbusTcp_hostPort"
+      placeholder="placeholder.modbus.tcp.hostPort"
+      required=""
+      type="text"
+      value="502"
+    />
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      host.tag
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.modbus.tcp.hostTag
+    </small>
+    <input
+      class="form-control"
+      id="modbusTcp_hostTag"
+      placeholder="placeholder.modbus.tcp.hostTag"
+      required=""
+      type="text"
+      value=""
+    />
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+  <div
+    class="form-group"
+  >
+    <label
+      class="form-label"
+    >
+      modbus.secondary.config
+       
+      <span
+        class="red-text"
+      >
+        *
+      </span>
+    </label>
+    <small
+      class="form-text text-muted"
+    >
+      description.modbus.secondary.config
+    </small>
+    <textarea
+      class="form-control"
+      id="modbusTcp_modbusSecondariesConfigSerialized"
+      placeholder="placeholder.modbus.secondary.config"
+      required=""
+      rows="15"
+      type="text"
+    >
+      [
+    {
+        "secondaryAddress": 1,
+        "frequencyInSeconds": 30,
+        "commandConfig": {
+            "readCoils": {
+                "address": 1,
+                "count": 1
+            },
+            "readDiscreteInputs": {
+                "address": 1
+            },
+            "readHoldingRegisters": {
+                "address": 1
+            },
+            "readInputRegisters": {
+                "address": 1
+            }
+        }
+    }
+]
+    </textarea>
+    <div
+      class="invalid-feedback"
+    />
+  </div>
+</div>
+`;

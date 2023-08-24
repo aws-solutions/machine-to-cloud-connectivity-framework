@@ -12,7 +12,7 @@ import { signOut } from '../util/utils';
  * Renders the header of the UI.
  * @returns The header
  */
-export default function Header(): JSX.Element {
+export default function Header(): React.JSX.Element {
   return (
     <header key="header">
       <Navbar bg="light" expand="sm">

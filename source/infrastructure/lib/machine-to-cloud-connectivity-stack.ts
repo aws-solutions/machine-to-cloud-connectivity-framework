@@ -1,25 +1,39 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { Aspects, Aws, CfnCondition, CfnMapping, CfnParameter, Fn, Stack, StackProps } from 'aws-cdk-lib';
+import {
+  Aws,
+  CfnCondition,
+  CfnMapping,
+  CfnParameter,
+  Fn,
+  Stack,
+  StackProps,
+  CustomResource,
+  CfnCustomResource
+} from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { ApiConstruct } from './backend/api';
 import { ConnectionBuilderConstruct } from './backend/connection-builder';
-import { CommonResourcesConstruct } from './common-resource/common-resources';
+import { CloudwatchLogsPolicyConstruct } from './common-resource/cloudwatch-logs-policy';
+import { LoggingBucketConstruct } from './common-resource/logging-bucket';
 import { CustomResourcesConstruct } from './custom-resource/custom-resources';
 import { KinesisDataStreamConstruct } from './data-flow/kinesis-data-stream';
 import { SQSMessageConsumerConstruct } from './data-flow/sqs-message-consumer';
 import { TimestreamConstruct } from './data-flow/timestream';
 import { UiConstruct } from './frontend/ui';
+import { CloudFrontConstruct } from './frontend/cloudfront';
 import { GreengrassConstruct } from './greengrass/greengrass';
-import { ConditionAspect } from '../utils/aspects';
 import { addOutputs } from '../utils/utils';
+import { SourceBucketConstruct } from './common-resource/source-bucket';
 
 export interface MachineToCloudConnectivityFrameworkProps extends StackProps {
   readonly solutionBucketName: string;
   readonly solutionId: string;
   readonly solutionName: string;
   readonly solutionVersion: string;
+  readonly shouldSendAnonymousMetrics: string;
+  readonly shouldTeardownDataOnDestroy: string;
 }
 
 /**
@@ -90,9 +104,11 @@ export class MachineToCloudConnectivityFrameworkStack extends Stack {
         Config: {
           SolutionId: props.solutionId,
           Version: props.solutionVersion,
-          SendAnonymousUsage: 'Yes',
+          SendAnonymousUsage: props.shouldSendAnonymousMetrics,
           S3Bucket: props.solutionBucketName,
-          KeyPrefix: `${props.solutionName}/${props.solutionVersion}`
+          KeyPrefix: `${props.solutionName}/${props.solutionVersion}`,
+          ShouldTeardownDataOnDestroy: props.shouldTeardownDataOnDestroy,
+          SolutionName: props.solutionName
         }
       }
     });
@@ -101,6 +117,7 @@ export class MachineToCloudConnectivityFrameworkStack extends Stack {
     const solutionVersion = solutionMapping.findInMap('Config', 'Version');
     const sourceCodeBucket = Fn.join('-', [solutionMapping.findInMap('Config', 'S3Bucket'), Aws.REGION]);
     const sourceCodePrefix = solutionMapping.findInMap('Config', 'KeyPrefix');
+    const shouldTeardownDataOnDestroy = solutionMapping.findInMap('Config', 'ShouldTeardownDataOnDestroy');
 
     const sendAnonymousUsageCondition = new CfnCondition(this, 'SendAnonymousUsage', {
       expression: Fn.conditionEquals(sendAnonymousUsage, 'Yes')
@@ -108,23 +125,18 @@ export class MachineToCloudConnectivityFrameworkStack extends Stack {
     const createKinesisResourcesCondition = new CfnCondition(this, 'CreateKinesisResources', {
       expression: Fn.conditionEquals(existingKinesisStreamNameParameter.valueAsString, '')
     });
-
-    const commonResources = new CommonResourcesConstruct(this, 'CommonResources', {
-      sourceCodeBucket
+    const shouldTeardownDataOnDestroyCondition = new CfnCondition(this, 'ShouldTeardownDataOnDestroy', {
+      expression: Fn.conditionEquals(shouldTeardownDataOnDestroy, 'Yes')
     });
 
-    const kinesisDataStream = new KinesisDataStreamConstruct(this, 'Kinesis', {
-      s3LoggingBucket: commonResources.s3LoggingBucket
+    const sourceCode = new SourceBucketConstruct(this, 'SourceBucket', {
+      sourceCodeBucketName: sourceCodeBucket
     });
-    Aspects.of(kinesisDataStream).add(new ConditionAspect(createKinesisResourcesCondition));
-    this.kinesisStreamName = Fn.conditionIf(
-      createKinesisResourcesCondition.logicalId,
-      kinesisDataStream.kinesisStreamName,
-      existingKinesisStreamNameParameter.valueAsString
-    ).toString();
+
+    const cloudwatchLogsPolicy = new CloudwatchLogsPolicyConstruct(this, 'CloudwatchLogsPolicy');
 
     const customResources = new CustomResourcesConstruct(this, 'CustomResources', {
-      cloudWatchLogsPolicy: commonResources.cloudWatchLogsPolicy,
+      cloudWatchLogsPolicy: cloudwatchLogsPolicy.policy,
       existingKinesisStream: existingKinesisStreamNameParameter.valueAsString,
       existingTimestreamDatabase: existingTimestreamDatabaseNameParameter.valueAsString,
       sendAnonymousUsageCondition,
@@ -132,31 +144,61 @@ export class MachineToCloudConnectivityFrameworkStack extends Stack {
         loggingLevel: loggingLevel.valueAsString,
         solutionId,
         solutionVersion,
-        sourceCodeBucket: commonResources.sourceCodeBucket,
+        sourceCodeBucket: sourceCode.sourceCodeBucket,
         sourceCodePrefix
       }
     });
 
+    const loggingBucket = new LoggingBucketConstruct(this, 'LoggingBucket');
+
+    // can't put in logging bucket construct due to opaque circular dependencies that result
+    const teardownS3LoggingBucket = new CustomResource(this, 'TeardownS3LoggingBucket', {
+      serviceToken: customResources.customResourceFunction.functionArn,
+      properties: {
+        Resource: 'DeleteS3Bucket',
+        BucketName: loggingBucket.s3LoggingBucket.bucketName
+      }
+    });
+    const cfnTeardownS3LoggingBucket = <CfnCustomResource>teardownS3LoggingBucket.node.defaultChild;
+    cfnTeardownS3LoggingBucket.cfnOptions.condition = shouldTeardownDataOnDestroyCondition;
+
+    const kinesisDataStream = new KinesisDataStreamConstruct(this, 'Kinesis', {
+      s3LoggingBucket: loggingBucket.s3LoggingBucket,
+      customResourcesFunctionArn: customResources.customResourceFunction.functionArn,
+      shouldTeardownData: shouldTeardownDataOnDestroyCondition,
+      shouldCreateKinesisResources: createKinesisResourcesCondition
+    });
+    this.kinesisStreamName = Fn.conditionIf(
+      createKinesisResourcesCondition.logicalId,
+      kinesisDataStream.kinesisStreamName,
+      existingKinesisStreamNameParameter.valueAsString
+    ).toString();
+
     const timestream = new TimestreamConstruct(this, 'Timestream', {
-      databaseName: existingTimestreamDatabaseNameParameter.valueAsString,
+      existingDatabaseName: existingTimestreamDatabaseNameParameter.valueAsString,
       solutionConfig: {
         loggingLevel: loggingLevel.valueAsString,
         solutionId,
         solutionVersion,
-        sourceCodeBucket: commonResources.sourceCodeBucket,
-        sourceCodePrefix
-      }
+        sourceCodeBucket: sourceCode.sourceCodeBucket,
+        sourceCodePrefix,
+        uuid: customResources.uuid
+      },
+      customResourcesFunctionArn: customResources.customResourceFunction.functionArn,
+      shouldTeardownData: shouldTeardownDataOnDestroyCondition
     });
 
     const greengrassResources = new GreengrassConstruct(this, 'GreengrassResources', {
       kinesisStreamName: this.kinesisStreamName,
-      s3LoggingBucket: commonResources.s3LoggingBucket,
+      s3LoggingBucket: loggingBucket.s3LoggingBucket,
       solutionConfig: {
         solutionId,
         solutionVersion,
         uuid: customResources.uuid
       },
-      timestreamKinesisStreamArn: timestream.kinesisStreamArn
+      timestreamKinesisStreamArn: timestream.kinesisStreamArn,
+      customResourcesFunctionArn: customResources.customResourceFunction.functionArn,
+      shouldTeardownData: shouldTeardownDataOnDestroyCondition
     });
     customResources.setupGreengrassV2({
       greengrassIoTPolicyName: greengrassResources.greengrassIoTPolicyName,
@@ -171,13 +213,13 @@ export class MachineToCloudConnectivityFrameworkStack extends Stack {
         loggingLevel: loggingLevel.valueAsString,
         solutionId,
         solutionVersion,
-        sourceCodeBucket: commonResources.sourceCodeBucket,
+        sourceCodeBucket: sourceCode.sourceCodeBucket,
         sourceCodePrefix
       }
     });
 
     const connectionBuilder = new ConnectionBuilderConstruct(this, 'ConnectionBuilder', {
-      cloudWatchLogsPolicy: commonResources.cloudWatchLogsPolicy,
+      cloudWatchLogsPolicy: cloudwatchLogsPolicy.policy,
       greengrassResourceBucket: greengrassResources.greengrassResourceBucket,
       iotCertificateArn: customResources.iotCertificateArn,
       iotEndpointAddress: customResources.iotDataAtsEndpoint,
@@ -185,19 +227,26 @@ export class MachineToCloudConnectivityFrameworkStack extends Stack {
       kinesisStreamForTimestreamName: timestream.kinesisStreamName,
       logsTableArn: sqsMessageConsumer.logsTable.tableArn,
       logsTableName: sqsMessageConsumer.logsTable.tableName,
+      collectorId: `${props.solutionId}-${Aws.STACK_NAME}`,
       solutionConfig: {
         loggingLevel: loggingLevel.valueAsString,
         sendAnonymousUsage,
         solutionId,
         solutionVersion,
-        sourceCodeBucket: commonResources.sourceCodeBucket,
+        sourceCodeBucket: sourceCode.sourceCodeBucket,
         sourceCodePrefix,
         uuid: customResources.uuid
       }
     });
 
+    const cloudFront = new CloudFrontConstruct(this, 'CloudFront', {
+      s3LoggingBucket: loggingBucket.s3LoggingBucket,
+      customResourcesFunctionArn: customResources.customResourceFunction.functionArn,
+      shouldTeardownData: shouldTeardownDataOnDestroyCondition
+    });
     const api = new ApiConstruct(this, 'Api', {
-      connectionBuilderLambdaFunction: connectionBuilder.connectionBuilderLambdaFunction
+      connectionBuilderLambdaFunction: connectionBuilder.connectionBuilderLambdaFunction,
+      corsOrigin: `https://${cloudFront.cloudFrontDomainName}`
     });
     connectionBuilder.connectionBuilderLambdaFunction.addEnvironment(
       'API_ENDPOINT',
@@ -207,7 +256,7 @@ export class MachineToCloudConnectivityFrameworkStack extends Stack {
     const ui = new UiConstruct(this, 'Ui', {
       apiId: api.apiId,
       resourceBucket: greengrassResources.greengrassResourceBucket,
-      s3LoggingBucket: commonResources.s3LoggingBucket,
+      cloudFrontDomainName: cloudFront.cloudFrontDomainName,
       userEmail: userEmail.valueAsString
     });
     customResources.setupUi({
@@ -215,7 +264,7 @@ export class MachineToCloudConnectivityFrameworkStack extends Stack {
       identityPoolId: ui.identityPoolId,
       loggingLevel: loggingLevel.valueAsString,
       resourceS3Bucket: greengrassResources.greengrassResourceBucket,
-      uiBucket: ui.uiBucket,
+      uiBucket: cloudFront.uiBucket,
       userPoolId: ui.userPoolId,
       webClientId: ui.webClientId
     });
@@ -276,7 +325,12 @@ export class MachineToCloudConnectivityFrameworkStack extends Stack {
       {
         id: 'UIDomainName',
         description: 'The UI domain name',
-        value: `https://${ui.cloudFrontDomainName}`
+        value: `https://${cloudFront.cloudFrontDomainName}`
+      },
+      {
+        id: 'APIGatewayDomainName',
+        description: 'The API Gateway domain name',
+        value: api.apiUrl
       }
     ]);
   }

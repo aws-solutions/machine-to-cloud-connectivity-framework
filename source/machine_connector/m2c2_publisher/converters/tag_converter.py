@@ -36,6 +36,14 @@ class TagConverter:
         tag = self.payload["alias"].replace(".", "-").replace("/", "_")
         return tag
 
+    def convert_modbustcp_tag(self, payload):
+        """
+        Using the alias to pull out the tag for modbustcp, tag is 
+        last part of alias designated as "(user custom tag)_(modbus command)_(secondary address)"
+        """
+        tag = payload["alias"].split('/')[-1]
+        return tag
+
     def retrieve_tag(self, payload):
         if self.protocol == "opcua":
             self.tag = self.convert_opcua_tag(payload)
@@ -43,4 +51,6 @@ class TagConverter:
             self.tag = self.convert_opcda_tag(payload)
         if self.protocol == "osipi":
             self.tag = self.convert_osipi_tag(payload)
+        if self.protocol == "modbustcp":
+            self.tag = self.convert_modbustcp_tag(payload)
         return self.tag

@@ -78,7 +78,7 @@ export const mockAxios = jest.fn();
 jest.mock('axios', () => ({ post: mockAxios }));
 
 export const UPPER_ALPHA_NUMERIC = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-export const mockNanoId = jest.fn();
-jest.mock('nanoid', () => ({ customAlphabet: mockNanoId }));
+export const mockCuid2 = jest.fn();
+jest.mock('@paralleldrive/cuid2', () => ({ init: mockCuid2 }));
 
 export const consoleErrorSpy = jest.spyOn(console, 'error');

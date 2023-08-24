@@ -9,7 +9,7 @@ import EmptyCol from './EmptyCol';
  * EmptyRow returns an empty row.
  * @returns An empty row
  */
-export default function EmptyRow(): JSX.Element {
+export default function EmptyRow(): React.JSX.Element {
   return (
     <Row>
       <Col>

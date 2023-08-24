@@ -320,7 +320,7 @@ class TestOsiPiConnector(TestCase):
             # When error count is less then retry count.
             self.connector.control = "start"
             error_count = self.connector.handle_get_data_error(
-                {}, Exception("Failure"), 1)
+                Exception("Failure"), 1)
             self.assertEqual(error_count, 2)
             self.assertEqual(self.connector.control, "start")
             mock_device_connect.assert_not_called()
@@ -328,7 +328,7 @@ class TestOsiPiConnector(TestCase):
 
             # When error count is equal to the retry count.
             error_count = self.connector.handle_get_data_error(
-                {}, Exception("Failure"), 5)
+                Exception("Failure"), 5)
             self.assertEqual(error_count, 6)
             self.assertEqual(self.connector.control, "stop")
             mock_device_connect.assert_not_called()

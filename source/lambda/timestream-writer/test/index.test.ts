@@ -61,7 +61,7 @@ function expectParsingError(record: unknown, error: LambdaError) {
 }
 
 beforeAll(() => {
-  jest.useFakeTimers('modern');
+  jest.useFakeTimers();
   jest.setSystemTime(new Date(A_DAY_MS));
 });
 

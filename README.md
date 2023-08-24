@@ -93,6 +93,11 @@ chmod +x build-s3-dist.sh
 ## Deploy
 
 - Deploy the distributable to the Amazon S3 bucket in your account. Make sure you are uploading all files and directories under `deployment/global-s3-assets` and `deployment/regional-s3-assets` to `<SOLUTION_NAME>/<VERSION>` folder in the `<DIST_BUCKET_PREFIX>-<REGION>` bucket (e.g. `s3://<DIST_BUCKET_PREFIX>-<REGION>/<SOLUTION_NAME>/<VERSION>/`).
+  CLI based S3 command to sync the buckets is:
+  ```bash
+  aws s3 sync $MAIN_DIRECTORY/deployment/global-s3-assets/ s3://${DIST_BUCKET_PREFIX}-${REGION}/${SOLUTION_NAME}/${VERSION}/
+  aws s3 sync $MAIN_DIRECTORY/deployment/regional-s3-assets/ s3://${DIST_BUCKET_PREFIX}-${REGION}/${SOLUTION_NAME}/${VERSION}/
+  ```
 - Get the link of the solution template uploaded to your Amazon S3 bucket.
 - Deploy the solution to your account by launching a new AWS CloudFormation stack using the link of the solution template in Amazon S3.
 

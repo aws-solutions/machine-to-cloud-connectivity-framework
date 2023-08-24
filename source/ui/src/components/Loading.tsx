@@ -14,7 +14,7 @@ type LoadingProp = {
  * @param props The loading property
  * @returns Loading bar
  */
-export function LoadingProgressBar(props: LoadingProp): JSX.Element {
+export function LoadingProgressBar(props: LoadingProp): React.JSX.Element {
   if (props.loading) return <ProgressBar animated now={100} />;
   else return <></>;
 }
@@ -24,7 +24,7 @@ export function LoadingProgressBar(props: LoadingProp): JSX.Element {
  * @param props The loading property
  * @returns Loading spinner
  */
-export function LoadingSpinner(props: LoadingProp): JSX.Element {
+export function LoadingSpinner(props: LoadingProp): React.JSX.Element {
   if (props.loading) {
     return (
       <>

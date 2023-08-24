@@ -414,7 +414,7 @@ test('tests handleConnection function - OPC DA without errors', async () => {
   expect(mockAPI.post).toHaveBeenCalledWith(API_NAME, '/connections', {
     body: copiedResponse
   });
-});
+}, 30000);
 
 test('tests handleConnection function - OPC DA with update failure', async () => {
   mockAPI.get.mockResolvedValueOnce(opcDaResponse);

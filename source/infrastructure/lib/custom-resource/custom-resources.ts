@@ -1,17 +1,24 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { CfnCondition, CfnCustomResource, CustomResource, Duration, Stack } from 'aws-cdk-lib';
-import { Effect, Policy, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
-import { CfnPolicyPrincipalAttachment } from 'aws-cdk-lib/aws-iot';
-import { Code, Function as LambdaFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { IBucket } from 'aws-cdk-lib/aws-s3';
+import {
+  CfnCondition,
+  CfnCustomResource,
+  CustomResource,
+  Duration,
+  Stack,
+  ArnFormat,
+  aws_iam as iam,
+  aws_iot as iot,
+  aws_lambda as lambda,
+  aws_s3 as s3
+} from 'aws-cdk-lib';
 import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
 import { addCfnSuppressRules } from '../../utils/utils';
 
 export interface CustomResourcesConstructProps {
-  readonly cloudWatchLogsPolicy: PolicyDocument;
+  readonly cloudWatchLogsPolicy: iam.PolicyDocument;
   readonly existingKinesisStream: string;
   readonly existingTimestreamDatabase: string;
   readonly sendAnonymousUsageCondition: CfnCondition;
@@ -19,7 +26,7 @@ export interface CustomResourcesConstructProps {
     loggingLevel: string;
     solutionId: string;
     solutionVersion: string;
-    sourceCodeBucket: IBucket;
+    sourceCodeBucket: s3.IBucket;
     sourceCodePrefix: string;
   };
 }
@@ -28,15 +35,15 @@ interface CustomResourceSetupUiProps {
   apiEndpoint: string;
   identityPoolId: string;
   loggingLevel: string;
-  resourceS3Bucket: IBucket;
-  uiBucket: IBucket;
+  resourceS3Bucket: s3.IBucket;
+  uiBucket: s3.IBucket;
   userPoolId: string;
   webClientId: string;
 }
 
 interface CustomResourceSetupGreengrassV2Props {
   greengrassIoTPolicyName: string;
-  greengrassV2ResourceBucket: IBucket;
+  greengrassV2ResourceBucket: s3.IBucket;
   iotCredentialsRoleArn: string;
   iotPolicyName: string;
   iotRoleAliasName: string;
@@ -46,12 +53,12 @@ interface CustomResourceSetupGreengrassV2Props {
  * Creates a custom resource Lambda function, a solution UUID, a custom resource to send anonymous usage, and a role.
  */
 export class CustomResourcesConstruct extends Construct {
-  public customResourceFunction: LambdaFunction;
-  public customResourceFunctionRole: Role;
+  public customResourceFunction: lambda.Function;
+  public customResourceFunctionRole: iam.Role;
   public iotCertificateArn: string;
   public iotCredentialProviderEndpoint: string;
   public iotDataAtsEndpoint: string;
-  private sourceCodeBucket: IBucket;
+  private sourceCodeBucket: s3.IBucket;
   private sourceCodePrefix: string;
   public uuid: string;
 
@@ -61,14 +68,14 @@ export class CustomResourcesConstruct extends Construct {
     this.sourceCodeBucket = props.solutionConfig.sourceCodeBucket;
     this.sourceCodePrefix = props.solutionConfig.sourceCodePrefix;
 
-    this.customResourceFunctionRole = new Role(this, 'CustomResourceFunctionRole', {
-      assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
+    this.customResourceFunctionRole = new iam.Role(this, 'CustomResourceFunctionRole', {
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
       path: '/',
       inlinePolicies: {
         CloudWatchPolicy: props.cloudWatchLogsPolicy,
-        GreengrassIoTPolicy: new PolicyDocument({
+        GreengrassIoTPolicy: new iam.PolicyDocument({
           statements: [
-            new PolicyStatement({
+            new iam.PolicyStatement({
               actions: [
                 'iot:CreateKeysAndCertificate',
                 'iot:DescribeEndpoint',
@@ -76,12 +83,12 @@ export class CustomResourcesConstruct extends Construct {
                 'iot:UpdateThingShadow',
                 'iot:DeleteCertificate'
               ],
-              effect: Effect.ALLOW,
+              effect: iam.Effect.ALLOW,
               resources: ['*']
             }),
-            new PolicyStatement({
+            new iam.PolicyStatement({
               actions: ['iot:CreateRoleAlias', 'iot:DeleteRoleAlias'],
-              effect: Effect.ALLOW,
+              effect: iam.Effect.ALLOW,
               resources: [
                 Stack.of(this).formatArn({
                   service: 'iot',
@@ -89,20 +96,57 @@ export class CustomResourcesConstruct extends Construct {
                   resourceName: '*'
                 })
               ]
+            }),
+            new iam.PolicyStatement({
+              actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
+              effect: iam.Effect.ALLOW,
+              resources: [
+                Stack.of(this).formatArn({
+                  service: 'logs',
+                  resource: 'log-group',
+                  resourceName: '*',
+                  arnFormat: ArnFormat.COLON_RESOURCE_NAME
+                })
+              ]
+            })
+          ]
+        }),
+        TeardownPolicy: new iam.PolicyDocument({
+          statements: [
+            new iam.PolicyStatement({
+              actions: ['s3:List*', 's3:GetObject', 's3:GetObjectVersion', 's3:PutObject', 's3:Delete*'],
+              effect: iam.Effect.ALLOW,
+              resources: ['*']
+            }),
+            new iam.PolicyStatement({
+              actions: [
+                'timestream:DescribeEndpoints',
+                'timestream:ListTables',
+                'timestream:DescribeTable',
+                'timestream:DeleteTable',
+                'timestream:DeleteDatabase',
+                'timestream:DescribeDatabase'
+              ],
+              effect: iam.Effect.ALLOW,
+              // access denied on describe endpoints when doing teardown happens
+              // everytime unless we put a wildcard, even prefix doesn't work
+              // also, tables aren't named with prefix
+              resources: ['*']
             })
           ]
         })
       }
     });
+
     addCfnSuppressRules(this.customResourceFunctionRole, [
       { id: 'W11', reason: 'IoT actions cannot specify the resource.' }
     ]);
 
-    this.customResourceFunction = new LambdaFunction(this, 'CustomResourceFunction', {
+    this.customResourceFunction = new lambda.Function(this, 'CustomResourceFunction', {
       description: 'Machine to Cloud Connectivity custom resource function',
       handler: 'custom-resource/index.handler',
-      runtime: Runtime.NODEJS_14_X,
-      code: Code.fromBucket(this.sourceCodeBucket, `${this.sourceCodePrefix}/custom-resource.zip`),
+      runtime: lambda.Runtime.NODEJS_18_X,
+      code: lambda.Code.fromBucket(this.sourceCodeBucket, `${this.sourceCodePrefix}/custom-resource.zip`),
       timeout: Duration.seconds(240),
       role: this.customResourceFunctionRole,
       environment: {
@@ -197,10 +241,10 @@ export class CustomResourcesConstruct extends Construct {
     props.greengrassV2ResourceBucket.grantPut(this.customResourceFunction);
     props.greengrassV2ResourceBucket.grantRead(this.customResourceFunction);
 
-    const greengrassV2CustomResourcePolicy = new Policy(this, 'GreengrassV2CustomResourcePolicy', {
+    const greengrassV2CustomResourcePolicy = new iam.Policy(this, 'GreengrassV2CustomResourcePolicy', {
       statements: [
-        new PolicyStatement({
-          effect: Effect.ALLOW,
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
           actions: ['iam:PassRole'],
           resources: [props.iotCredentialsRoleArn]
         })
@@ -224,6 +268,7 @@ export class CustomResourcesConstruct extends Construct {
         Artifacts: {
           OpcDaConnectorArtifact: 'm2c2_opcda_connector.zip',
           OsiPiConnectorArtifact: 'm2c2_osipi_connector.zip',
+          ModbusTcpConnectorArtifact: 'm2c2_modbus_tcp_connector.zip',
           PublisherArtifact: 'm2c2_publisher.zip'
         },
         DestinationBucket: props.greengrassV2ResourceBucket.bucketName,
@@ -244,10 +289,10 @@ export class CustomResourcesConstruct extends Construct {
     });
     this.iotCertificateArn = createGreengrassInstallationScripts.getAttString('CertificateArn');
 
-    const greengrassV2DeletePolicy = new Policy(this, 'GreengrassV2DeletePolicy', {
+    const greengrassV2DeletePolicy = new iam.Policy(this, 'GreengrassV2DeletePolicy', {
       statements: [
-        new PolicyStatement({
-          effect: Effect.ALLOW,
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
           resources: [this.iotCertificateArn],
           actions: ['iot:DetachThingPrincipal', 'iot:ListPrincipalThings']
         })
@@ -265,12 +310,12 @@ export class CustomResourcesConstruct extends Construct {
     });
     deleteIoTCertificate.node.addDependency(greengrassV2DeletePolicy);
 
-    new CfnPolicyPrincipalAttachment(this, 'PolicyPrincipalAttachment', {
+    new iot.CfnPolicyPrincipalAttachment(this, 'PolicyPrincipalAttachment', {
       policyName: props.iotPolicyName,
       principal: this.iotCertificateArn
     });
 
-    new CfnPolicyPrincipalAttachment(this, 'GreengrassPolicyPrincipalAttachment', {
+    new iot.CfnPolicyPrincipalAttachment(this, 'GreengrassPolicyPrincipalAttachment', {
       policyName: props.greengrassIoTPolicyName,
       principal: this.iotCertificateArn
     });

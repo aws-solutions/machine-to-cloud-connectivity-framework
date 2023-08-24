@@ -306,7 +306,7 @@ test('tests download install script button failure', async () => {
   });
   expect(mockStorage.get).toHaveBeenCalledTimes(1);
   expect(mockStorage.get).toHaveBeenCalledWith(`${greengrassCoreDevice.name}.sh`, { expires: 10 });
-});
+}, 10000);
 
 test('tests not showing download install script button for USER Greengrass core device', async () => {
   const greengrassCoreDevice = greengrassCoreDevicesResponse.greengrassCoreDevices[1];

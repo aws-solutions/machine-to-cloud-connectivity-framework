@@ -2,30 +2,37 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { LambdaToDynamoDB } from '@aws-solutions-constructs/aws-lambda-dynamodb';
-import { ArnFormat, CfnDeletionPolicy, Duration, Fn, Stack } from 'aws-cdk-lib';
-import { AttributeType, BillingMode, CfnTable, Table, TableEncryption } from 'aws-cdk-lib/aws-dynamodb';
-import { Effect, Policy, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
-import { Code, Function as LambdaFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { IBucket } from 'aws-cdk-lib/aws-s3';
+import {
+  ArnFormat,
+  CfnDeletionPolicy,
+  Duration,
+  Fn,
+  Stack,
+  aws_dynamodb as dynamodb,
+  aws_iam as iam,
+  aws_lambda as lambda,
+  aws_s3 as s3
+} from 'aws-cdk-lib';
 import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
 import { addCfnSuppressRules } from '../../utils/utils';
 
 export interface ConnectionBuilderConstructProps {
-  readonly cloudWatchLogsPolicy: PolicyDocument;
-  readonly greengrassResourceBucket: IBucket;
+  readonly cloudWatchLogsPolicy: iam.PolicyDocument;
+  readonly greengrassResourceBucket: s3.IBucket;
   readonly iotCertificateArn: string;
   readonly iotEndpointAddress: string;
   readonly kinesisStreamName: string;
   readonly kinesisStreamForTimestreamName: string;
   readonly logsTableArn: string;
   readonly logsTableName: string;
+  readonly collectorId: string;
   readonly solutionConfig: {
     loggingLevel: string;
     sendAnonymousUsage: string;
     solutionId: string;
     solutionVersion: string;
-    sourceCodeBucket: IBucket;
+    sourceCodeBucket: s3.IBucket;
     sourceCodePrefix: string;
     uuid: string;
   };
@@ -36,7 +43,7 @@ export interface ConnectionBuilderConstructProps {
  */
 export class ConnectionBuilderConstruct extends Construct {
   public connectionTableName: string;
-  public connectionBuilderLambdaFunction: LambdaFunction;
+  public connectionBuilderLambdaFunction: lambda.Function;
   public greengrassCoreDevicesTableName: string;
 
   constructor(scope: Construct, id: string, props: ConnectionBuilderConstructProps) {
@@ -45,19 +52,19 @@ export class ConnectionBuilderConstruct extends Construct {
     const sourceCodeBucket = props.solutionConfig.sourceCodeBucket;
     const sourceCodePrefix = props.solutionConfig.sourceCodePrefix;
 
-    const greengrassCoreDevicesTable = new Table(this, 'GreengrassCoreDevicesTable', {
-      partitionKey: { name: 'name', type: AttributeType.STRING },
-      billingMode: BillingMode.PAY_PER_REQUEST,
+    const greengrassCoreDevicesTable = new dynamodb.Table(this, 'GreengrassCoreDevicesTable', {
+      partitionKey: { name: 'name', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       pointInTimeRecovery: true,
-      encryption: TableEncryption.AWS_MANAGED
+      encryption: dynamodb.TableEncryption.AWS_MANAGED
     });
-    const cfnGreengrassCoreDevicesTable = <CfnTable>greengrassCoreDevicesTable.node.defaultChild;
+    const cfnGreengrassCoreDevicesTable = <dynamodb.CfnTable>greengrassCoreDevicesTable.node.defaultChild;
     cfnGreengrassCoreDevicesTable.cfnOptions.deletionPolicy = CfnDeletionPolicy.DELETE;
     this.greengrassCoreDevicesTableName = greengrassCoreDevicesTable.tableName;
 
     const lambdaToDynamoDb = new LambdaToDynamoDB(this, 'ConnectionBuilder', {
       lambdaFunctionProps: {
-        code: Code.fromBucket(sourceCodeBucket, `${sourceCodePrefix}/connection-builder.zip`),
+        code: lambda.Code.fromBucket(sourceCodeBucket, `${sourceCodePrefix}/connection-builder.zip`),
         description: 'Machine to Cloud Connectivity connection builder function',
         environment: {
           GREENGRASS_CORE_DEVICES_DYNAMODB_TABLE: this.greengrassCoreDevicesTableName,
@@ -73,32 +80,32 @@ export class ConnectionBuilderConstruct extends Construct {
           SOLUTION_UUID: props.solutionConfig.uuid
         },
         handler: 'connection-builder/index.handler',
-        runtime: Runtime.NODEJS_14_X,
+        runtime: lambda.Runtime.NODEJS_18_X,
         timeout: Duration.minutes(1)
       },
       dynamoTableProps: {
         partitionKey: {
           name: 'connectionName',
-          type: AttributeType.STRING
+          type: dynamodb.AttributeType.STRING
         }
       },
       tableEnvironmentVariableName: 'CONNECTION_DYNAMODB_TABLE'
     });
     this.connectionBuilderLambdaFunction = lambdaToDynamoDb.lambdaFunction;
 
-    const cfnDynamoTable = <CfnTable>lambdaToDynamoDb.dynamoTable.node.defaultChild;
+    const cfnDynamoTable = <dynamodb.CfnTable>lambdaToDynamoDb.dynamoTable.node.defaultChild;
     cfnDynamoTable.cfnOptions.deletionPolicy = CfnDeletionPolicy.DELETE;
     this.connectionTableName = lambdaToDynamoDb.dynamoTable.tableName;
 
-    const greengrassDeployerRole = new Role(this, 'GreengrassDeployerRole', {
-      assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
+    const greengrassDeployerRole = new iam.Role(this, 'GreengrassDeployerRole', {
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
       path: '/',
       inlinePolicies: {
         CloudWatchPolicy: props.cloudWatchLogsPolicy,
-        GreengrassIoTPolicy: new PolicyDocument({
+        GreengrassIoTPolicy: new iam.PolicyDocument({
           statements: [
-            new PolicyStatement({
-              effect: Effect.ALLOW,
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
               actions: [
                 'greengrass:CreateComponentVersion',
                 'greengrass:CreateDeployment',
@@ -118,8 +125,8 @@ export class ConnectionBuilderConstruct extends Construct {
               ],
               resources: ['*']
             }),
-            new PolicyStatement({
-              effect: Effect.ALLOW,
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
               actions: ['iot:Publish'],
               resources: [
                 Stack.of(this).formatArn({
@@ -142,8 +149,8 @@ export class ConnectionBuilderConstruct extends Construct {
                 })
               ]
             }),
-            new PolicyStatement({
-              effect: Effect.ALLOW,
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
               actions: ['iot:DescribeThing'],
               resources: [
                 Stack.of(this).formatArn({
@@ -153,8 +160,8 @@ export class ConnectionBuilderConstruct extends Construct {
                 })
               ]
             }),
-            new PolicyStatement({
-              effect: Effect.ALLOW,
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
               actions: [
                 'iotsitewise:DescribeGatewayCapabilityConfiguration',
                 'iotsitewise:UpdateGatewayCapabilityConfiguration'
@@ -169,10 +176,10 @@ export class ConnectionBuilderConstruct extends Construct {
             })
           ]
         }),
-        DynamoDBPolicy: new PolicyDocument({
+        DynamoDBPolicy: new iam.PolicyDocument({
           statements: [
-            new PolicyStatement({
-              effect: Effect.ALLOW,
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
               actions: [
                 'dynamodb:DeleteItem',
                 'dynamodb:GetItem',
@@ -183,31 +190,31 @@ export class ConnectionBuilderConstruct extends Construct {
               ],
               resources: [lambdaToDynamoDb.dynamoTable.tableArn]
             }),
-            new PolicyStatement({
-              effect: Effect.ALLOW,
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
               actions: ['dynamodb:GetItem', 'dynamodb:UpdateItem'],
               resources: [greengrassCoreDevicesTable.tableArn]
             })
           ]
         }),
-        S3Policy: new PolicyDocument({
+        S3Policy: new iam.PolicyDocument({
           statements: [
-            new PolicyStatement({
-              effect: Effect.ALLOW,
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
               actions: ['s3:GetObject'],
               resources: [props.greengrassResourceBucket.bucketArn, props.greengrassResourceBucket.arnForObjects('*')]
             })
           ]
         }),
-        SecretsManagerPolicy: new PolicyDocument({
+        SecretsManagerPolicy: new iam.PolicyDocument({
           statements: [
-            new PolicyStatement({
-              effect: Effect.ALLOW,
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
               resources: [
                 Stack.of(this).formatArn({
                   service: 'secretsmanager',
                   resource: 'secret',
-                  resourceName: '*',
+                  resourceName: 'm2c2-*',
                   arnFormat: ArnFormat.COLON_RESOURCE_NAME
                 })
               ],
@@ -236,8 +243,8 @@ export class ConnectionBuilderConstruct extends Construct {
      * If the solution version is not expected format (e.g. customVersion, v.1.0.0, v1, and so on),
      * the Lambda function is going to replace the component version to `1.0.0` by default.
      */
-    const greengrassDeployer = new LambdaFunction(this, 'GreengrassDeployer', {
-      code: Code.fromBucket(sourceCodeBucket, `${sourceCodePrefix}/greengrass-deployer.zip`),
+    const greengrassDeployer = new lambda.Function(this, 'GreengrassDeployer', {
+      code: lambda.Code.fromBucket(sourceCodeBucket, `${sourceCodePrefix}/greengrass-deployer.zip`),
       description: 'Machine to Cloud Connectivity Greengrass deployer function',
       environment: {
         ARTIFACT_BUCKET: props.greengrassResourceBucket.bucketName,
@@ -251,13 +258,14 @@ export class ConnectionBuilderConstruct extends Construct {
         SOLUTION_ID: props.solutionConfig.solutionId,
         SOLUTION_VERSION: props.solutionConfig.solutionVersion,
         SOLUTION_UUID: props.solutionConfig.uuid,
-        TIMESTREAM_KINESIS_STREAM: props.kinesisStreamForTimestreamName
+        TIMESTREAM_KINESIS_STREAM: props.kinesisStreamForTimestreamName,
+        COLLECTOR_ID: props.collectorId
       },
       handler: 'greengrass-deployer/index.handler',
       retryAttempts: 0,
       reservedConcurrentExecutions: 1,
       role: greengrassDeployerRole,
-      runtime: Runtime.NODEJS_14_X,
+      runtime: lambda.Runtime.NODEJS_18_X,
       timeout: Duration.minutes(10)
     });
     this.connectionBuilderLambdaFunction.addEnvironment(
@@ -265,10 +273,10 @@ export class ConnectionBuilderConstruct extends Construct {
       greengrassDeployer.functionName
     );
 
-    const connectionBuilderPolicy = new Policy(this, 'ConnectionBuilderPolicy', {
+    const connectionBuilderPolicy = new iam.Policy(this, 'ConnectionBuilderPolicy', {
       statements: [
-        new PolicyStatement({
-          effect: Effect.ALLOW,
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
           actions: ['iot:Publish'],
           resources: [
             Stack.of(this).formatArn({
@@ -283,23 +291,23 @@ export class ConnectionBuilderConstruct extends Construct {
             })
           ]
         }),
-        new PolicyStatement({
-          effect: Effect.ALLOW,
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
           actions: ['lambda:InvokeFunction'],
           resources: [greengrassDeployer.functionArn]
         }),
-        new PolicyStatement({
-          effect: Effect.ALLOW,
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
           actions: ['dynamodb:Scan', 'dynamodb:Query'],
           resources: [props.logsTableArn]
         }),
-        new PolicyStatement({
-          effect: Effect.ALLOW,
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
           actions: ['dynamodb:DeleteItem', 'dynamodb:GetItem', 'dynamodb:PutItem', 'dynamodb:Scan'],
           resources: [greengrassCoreDevicesTable.tableArn]
         }),
-        new PolicyStatement({
-          effect: Effect.ALLOW,
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
           actions: [
             'iotsitewise:DeleteGateway',
             'iotsitewise:DescribeGateway',
@@ -314,13 +322,13 @@ export class ConnectionBuilderConstruct extends Construct {
             })
           ]
         }),
-        new PolicyStatement({
-          effect: Effect.ALLOW,
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
           actions: ['iotsitewise:CreateGateway', 'iotsitewise:ListGateways'],
           resources: ['*']
         }),
-        new PolicyStatement({
-          effect: Effect.ALLOW,
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
           actions: ['greengrass:DeleteCoreDevice', 'greengrass:ListCoreDevices'],
           resources: [
             Stack.of(this).formatArn({
@@ -331,8 +339,8 @@ export class ConnectionBuilderConstruct extends Construct {
             })
           ]
         }),
-        new PolicyStatement({
-          effect: Effect.ALLOW,
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
           actions: ['iot:CreateThing', 'iot:DescribeThing', 'iot:DeleteThing'],
           resources: [
             Stack.of(this).formatArn({
@@ -342,19 +350,19 @@ export class ConnectionBuilderConstruct extends Construct {
             })
           ]
         }),
-        new PolicyStatement({
-          effect: Effect.ALLOW,
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
           actions: ['s3:DeleteObject', 's3:GetObject', 's3:ListBucket', 's3:PutObject'],
           resources: [props.greengrassResourceBucket.bucketArn, props.greengrassResourceBucket.arnForObjects('*')]
         }),
-        new PolicyStatement({
-          effect: Effect.ALLOW,
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
           actions: ['iot:AttachThingPrincipal', 'iot:DetachThingPrincipal'],
           resources: [props.iotCertificateArn]
         }),
-        new PolicyStatement({
+        new iam.PolicyStatement({
           actions: ['iam:PassRole'],
-          effect: Effect.ALLOW,
+          effect: iam.Effect.ALLOW,
           resources: [
             Stack.of(this).formatArn({
               service: 'iam',
@@ -371,7 +379,7 @@ export class ConnectionBuilderConstruct extends Construct {
       { id: 'W12', reason: 'iotsitewise:CreateGateway and iotsitewise:ListGateways cannot have specific resources.' }
     ]);
 
-    const connectionBuilderRole = this.connectionBuilderLambdaFunction.role as Role;
+    const connectionBuilderRole = this.connectionBuilderLambdaFunction.role as iam.Role;
     connectionBuilderRole.attachInlinePolicy(connectionBuilderPolicy);
 
     // cdk-nag suppressions

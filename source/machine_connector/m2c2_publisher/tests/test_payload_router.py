@@ -129,3 +129,24 @@ class TestPayloadRouter(TestCase):
 
         with self.assertRaises(Exception):
             payload_router.route_payload(MockMessage("String"))
+
+    @mock.patch("targets.iot_topic_target.IoTTopicTarget.__init__", return_value=None)
+    @mock.patch("targets.kinesis_target.KinesisTarget.__init__", return_value=None)
+    @mock.patch("targets.sitewise_target.SiteWiseTarget.__init__", return_value=None)
+    @mock.patch("targets.historian_target.HistorianTarget.__init__", return_value=None)
+    def test_value_error(self, mock_historian_target, mock_sitewise_target, mock_kinesis_target, mock_iot_topic_target):
+        payload_router = PayloadRouter(
+            self.protocol,
+            self.connection_name,
+            self.hierarchy,
+            self.destinations,
+            self.destination_streams,
+            self.max_stream_size,
+            self.kinesis_data_stream,
+            self.timestream_kinesis_data_stream,
+            self.historian_kinesis_data_stream,
+            self.collector_id
+        )
+
+        with self.assertRaises(ValueError):
+            payload_router.route_payload(MockMessage(payload=None))

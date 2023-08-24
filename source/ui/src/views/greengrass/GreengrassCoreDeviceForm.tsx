@@ -23,7 +23,6 @@ import { UserGreengrassCoreDevicesHook } from '../../hooks/GreengrassCoreDeviceH
 import { requestApi } from '../../util/apis';
 import {
   CreatedBy,
-  OsPlatform,
   FormControlElement,
   GreengrassCoreDeviceControl,
   GreengrassCoreDeviceDomIds,
@@ -35,20 +34,18 @@ import { getErrorMessage } from '../../util/utils';
 const logger = new Logger('GreengrassCoreDeviceForm');
 const domIds: GreengrassCoreDeviceDomIds = {
   category: 'category',
-  greengrassCoreDeviceName: 'greengrassCoreDeviceName',
-  osPlatform: 'osPlatform'
+  greengrassCoreDeviceName: 'greengrassCoreDeviceName'
 };
 
 /**
  * Renders the Greengrass core device registration form.
  * @returns The Greengrass core device modal
  */
-export default function GreengrassCoreDeviceForm(): React.JSX.Element {
+export default function GreengrassCoreDeviceForm(): JSX.Element {
   const [confirmMessage, setConfirmMessage] = useState<string>('');
   const [createdBy, setCreatedBy] = useState<CreatedBy>(CreatedBy.SYSTEM);
   const [greengrassCoreDeviceName, setGreengrassCoreDeviceName] = useState<string>('');
   const [greengrassCoreDeviceStatus, setGreengrassCoreDeviceStatus] = useState<string>('');
-  const [greengrassCoreDeviceOSPlatform, setGreengrassCoreDeviceOSPlatform] = useState<string>(OsPlatform.LINUX);
   const [hasConfirmActionError, setHasConfirmActionError] = useState<boolean>(false);
   const [isGreengrassCoreDeviceNameValid, setIsGreengrassCoreDeviceNameValid] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -69,7 +66,6 @@ export default function GreengrassCoreDeviceForm(): React.JSX.Element {
       setGreengrassCoreDeviceName,
       setGreengrassCoreDeviceStatus,
       setIsGreengrassCoreDeviceNameValid,
-      setGreengrassCoreDeviceOSPlatform,
       statusMap
     });
   };
@@ -104,7 +100,6 @@ export default function GreengrassCoreDeviceForm(): React.JSX.Element {
         options: {
           body: {
             name: greengrassCoreDeviceName,
-            osPlatform: greengrassCoreDeviceOSPlatform,
             control: GreengrassCoreDeviceControl.CREATE,
             createdBy
           }
@@ -169,32 +164,6 @@ export default function GreengrassCoreDeviceForm(): React.JSX.Element {
             />
             <EmptyRow />
             <Row>
-              <Col className="justify-content-left grid">
-                <Form.Label>
-                  {I18n.get('os.platform')} <span className="red-text">*</span>
-                </Form.Label>
-                <div>
-                  <Form.Check
-                    type="radio"
-                    label="Linux"
-                    value={OsPlatform.LINUX}
-                    id={domIds.osPlatform}
-                    onChange={change}
-                    checked={greengrassCoreDeviceOSPlatform == OsPlatform.LINUX}
-                  />
-                  <Form.Check
-                    type="radio"
-                    label="Windows"
-                    value={OsPlatform.WINDOWS}
-                    id={domIds.osPlatform}
-                    onChange={change}
-                    checked={greengrassCoreDeviceOSPlatform == OsPlatform.WINDOWS}
-                  />
-                </div>
-              </Col>
-            </Row>
-            <EmptyRow />
-            <Row>
               <Col className="justify-content-center grid">
                 <ButtonGroup>
                   <Button
@@ -205,9 +174,7 @@ export default function GreengrassCoreDeviceForm(): React.JSX.Element {
                     disabled={
                       loading ||
                       (createdBy === CreatedBy.SYSTEM && !isGreengrassCoreDeviceNameValid) ||
-                      (createdBy === CreatedBy.USER && greengrassCoreDevices.length === 0) ||
-                      (greengrassCoreDeviceOSPlatform != OsPlatform.LINUX &&
-                        greengrassCoreDeviceOSPlatform != OsPlatform.WINDOWS)
+                      (createdBy === CreatedBy.USER && greengrassCoreDevices.length === 0)
                     }>
                     <LoadingSpinner loading={loading} />
                     {I18n.get('register')}

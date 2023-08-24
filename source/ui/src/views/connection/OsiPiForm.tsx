@@ -12,11 +12,7 @@ import EmptyRow from '../../components/EmptyRow';
  * @param props The properties for the OSI PI form
  * @returns The OSI PI form
  */
-<<<<<<< HEAD
 export default function OsiPiForm(props: FormProps): JSX.Element {
-=======
-export default function OsiPiForm(props: FormProps): React.JSX.Element {
->>>>>>> main
   const { connection, onChange, errors } = props;
 
   return (

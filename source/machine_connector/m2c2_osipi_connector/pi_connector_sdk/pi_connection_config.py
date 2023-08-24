@@ -19,11 +19,7 @@ class PiServerConnection:
     server_name: Union[str, None] = None
     auth_mode: Union[str, None] = None
     verify_ssl: bool = True
-<<<<<<< HEAD
     auth_param: PiAuthParam = PiAuthParam()
-=======
-    auth_param: PiAuthParam = field(default_factory=PiAuthParam)
->>>>>>> main
 
 
 @dataclass
@@ -45,16 +41,8 @@ class LocalStorageConfig():
 @dataclass
 class PiConnectionConfig:
 
-<<<<<<< HEAD
     server_connection: PiServerConnection = PiServerConnection()
     query_config: PiQueryConfig = PiQueryConfig()
     local_storage_config: LocalStorageConfig = LocalStorageConfig()
-=======
-    server_connection: PiServerConnection = field(
-        default_factory=PiServerConnection)
-    query_config: PiQueryConfig = field(default_factory=PiQueryConfig)
-    local_storage_config: LocalStorageConfig = field(
-        default_factory=LocalStorageConfig)
->>>>>>> main
     log_level: str = "INFO"
     time_log_file: str = './data/timelog.txt'  # TODO: MAKE DYNAMIC?

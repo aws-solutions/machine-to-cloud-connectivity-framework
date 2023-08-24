@@ -3,10 +3,7 @@
 
 
 import json
-<<<<<<< HEAD
 import logging
-=======
->>>>>>> main
 from pickle import NONE
 import sys
 import time
@@ -35,15 +32,6 @@ from validations.message_validation import MessageValidation
 from utils import StreamManagerHelperClient, AWSEndpointClient, InitMessage
 from utils.subscription_stream_handler import SubscriptionStreamHandler
 from utils.custom_exception import ConnectorException
-<<<<<<< HEAD
-=======
-from utils.custom_exception import ValidationException
-
-from boilerplate.messaging.message import Message
-from boilerplate.messaging.message_batch import MessageBatch
-from boilerplate.messaging.message_sender import MessageSender
-import boilerplate.logging.logger as ConnectorLogging
->>>>>>> main
 
 # payload array containing responses from the OPC DA server
 # appended to at each execution of the thread
@@ -56,7 +44,6 @@ ttl = 0.2
 osi_pi_connector = None
 web_ids = []
 
-<<<<<<< HEAD
 
 # Greengrass Stream name
 CONNECTION_GG_STREAM_NAME = os.environ["CONNECTION_GG_STREAM_NAME"]
@@ -73,20 +60,12 @@ AREA = os.getenv("AREA")
 PROCESS = os.getenv("PROCESS")
 # Machine name from component environment variables
 MACHINE_NAME = os.getenv("MACHINE_NAME")
-=======
-# Constant variables
-# Connection name from component environment variables
-CONNECTION_NAME = os.getenv("CONNECTION_NAME")
->>>>>>> main
 # Connection retry count
 CONNECTION_RETRY = 10
 # Error retry count
 ERROR_RETRY = 5
-<<<<<<< HEAD
 # Log Level Setting
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
-=======
->>>>>>> main
 
 # Max size of message stream when creating (in bytes)
 max_stream_size = 5368706371  # 5G
@@ -94,7 +73,6 @@ max_stream_size = 5368706371  # 5G
 # Clients and logging
 smh_client = StreamManagerHelperClient()
 connector_client = AWSEndpointClient()
-<<<<<<< HEAD
 
 try:
     print(f"setting log level to: {LOG_LEVEL}")
@@ -203,11 +181,6 @@ def post_to_user(post_type: str, message: Union[str, dict]) -> None:
         )
         raise
 
-=======
-message_sender = MessageSender()
-
-logger = ConnectorLogging.get_logger("m2c2-osipi-connector.py")
->>>>>>> main
 
 """Configures Connection from the Device to OSI PI server."""
 
@@ -237,13 +210,8 @@ def create_pi_config(connection_data: dict):
             future_response = operation.get_response()
             response = future_response.result(TIMEOUT)
             secret_json = json.loads(response.secret_value.secret_string)
-<<<<<<< HEAD
             # Handle secret value.
 
-=======
-
-            # Handle secret value.
->>>>>>> main
             pi_config.server_connection.auth_param.username = secret_json['username']
             pi_config.server_connection.auth_param.password = secret_json['password']
 
@@ -310,10 +278,6 @@ def data_collection_control(connection_data: dict, iteration: int = 0, error_cou
 
     if control == "start":
         current_iteration = iteration
-<<<<<<< HEAD
-=======
-        current_error_count = error_count
->>>>>>> main
         osi_pi_config = osi_pi_connector.connection_config
 
         next_timer_interval = osi_pi_config.query_config.req_frequency_sec
@@ -323,10 +287,6 @@ def data_collection_control(connection_data: dict, iteration: int = 0, error_cou
             current_iteration += 1
 
             logger.debug(f'loop count: {current_iteration}')
-<<<<<<< HEAD
-=======
-            logger.debug(f'error count: {current_error_count}')
->>>>>>> main
 
             thread_start_time = time.time()
 
@@ -343,11 +303,8 @@ def data_collection_control(connection_data: dict, iteration: int = 0, error_cou
             payload_content = osi_pi_connector.get_historical_data_batch(
                 web_ids=web_ids, start_time=query_start_time, end_time=query_end_time)
 
-<<<<<<< HEAD
             logger.debug(json.dumps(payload_content, cls=EnhancedJSONEncoder))
 
-=======
->>>>>>> main
             send_osi_pi_data(payload_content=payload_content)
 
             ttl = time.time() - thread_start_time
@@ -368,10 +325,7 @@ def data_collection_control(connection_data: dict, iteration: int = 0, error_cou
         except Exception as err:
             logger.error("Failed..." + str(traceback.format_exc()))
             error_count = handle_get_data_error(
-<<<<<<< HEAD
                 connection_data=connection_data,
-=======
->>>>>>> main
                 error=err,
                 error_count=error_count
             )
@@ -395,21 +349,12 @@ def send_osi_pi_data(payload_content: 'list[PiResponse]') -> None:
     :return: None
     """
 
-<<<<<<< HEAD
     formatted_data_group = {}
     got_new_record = False
 
     for pi_response in payload_content:
 
         formatted_datas = []
-=======
-    message_batch = None
-
-    for pi_response in payload_content:
-
-        message_batch = None
-        messages = []
->>>>>>> main
 
         for record in pi_response.records:
 
@@ -417,7 +362,6 @@ def send_osi_pi_data(payload_content: 'list[PiResponse]') -> None:
             if not record['Good']:
                 quality = 'Bad'
 
-<<<<<<< HEAD
             formatted_data = {
                 'value': record['Value'],
                 'quality': quality,
@@ -432,24 +376,6 @@ def send_osi_pi_data(payload_content: 'list[PiResponse]') -> None:
 
     if got_new_record:
         post_to_user("data", formatted_data_group)
-=======
-            messages.append(Message(
-                value=record['Value'],
-                quality=quality,
-                timestamp=record['Timestamp']
-            ))
-
-        if len(messages) > 0:
-            try:
-                message_batch = MessageBatch(
-                    pi_response.name, messages, CONNECTION_NAME)
-            except ValidationException as validation_exception:
-                logger.error(
-                    f"Could not validate message batch with tag {pi_response.name} and error message {validation_exception}")
-
-    if message_batch is not None:
-        message_sender.post_message_batch(message_batch)
->>>>>>> main
     else:
         logger.info('No new records found in current interval...')
 
@@ -459,13 +385,8 @@ def start(connection_data: dict) -> None:
 
     try:
         if connector_client.is_running:
-<<<<<<< HEAD
             post_to_user(
                 "info", msg.ERR_MSG_FAIL_LAST_COMMAND_START.format(CONNECTION_NAME))
-=======
-            message_sender.post_info_message(
-                msg.ERR_MSG_FAIL_LAST_COMMAND_START.format(CONNECTION_NAME))
->>>>>>> main
         else:
 
             logger.info("User request: start")
@@ -479,11 +400,7 @@ def start(connection_data: dict) -> None:
             )
             device_connect(connection_data)
 
-<<<<<<< HEAD
             post_to_user("info", msg.INF_MSG_CONNECTION_STARTED)
-=======
-            message_sender.post_info_message(msg.INF_MSG_CONNECTION_STARTED)
->>>>>>> main
             data_collection_control(connection_data=connection_data)
     except Exception as err:
         error_message = f"Failed to execute the start: {err}"
@@ -512,18 +429,10 @@ def stop() -> None:
                     connection_name=CONNECTION_NAME,
                     connection_configuration=local_connection_data,
                 )
-<<<<<<< HEAD
                 post_to_user("info", msg.INF_MSG_CONNECTION_STOPPED)
         else:
             post_to_user(
                 "info", msg.ERR_MSG_FAIL_LAST_COMMAND_STOP.format(CONNECTION_NAME))
-=======
-                message_sender.post_info_message(
-                    msg.INF_MSG_CONNECTION_STOPPED)
-        else:
-            message_sender.post_info_message(
-                msg.ERR_MSG_FAIL_LAST_COMMAND_STOP.format(CONNECTION_NAME))
->>>>>>> main
     except Exception as err:
         error_message = f"Failed to execute the stop: {err}"
         logger.error(error_message)
@@ -539,21 +448,12 @@ def push(connection_data: dict) -> None:
         config = create_pi_config(connection_data)
 
         # TODO: Add Query here to make sure server actually is available
-<<<<<<< HEAD
         post_to_user("info", msg.INF_MSG_SERVER_NAME.format(
             config.server_connection.server_name))
     except Exception as err:
         error_message = msg.ERR_MSG_FAIL_SERVER_NAME.format(err)
         logger.error(error_message)
         post_to_user("error", error_message)
-=======
-        message_sender.post_info_message(
-            msg.INF_MSG_SERVER_NAME.format(config.server_connection.server_name))
-    except Exception as err:
-        error_message = msg.ERR_MSG_FAIL_SERVER_NAME.format(err)
-        logger.error(error_message)
-        message_sender.post_error_message(error_message)
->>>>>>> main
 
 
 def pull() -> None:
@@ -566,7 +466,6 @@ def pull() -> None:
             CONNECTION_NAME)
 
         if local_connection_data:
-<<<<<<< HEAD
             post_to_user("info", local_connection_data)
         else:
             post_to_user(
@@ -575,16 +474,6 @@ def pull() -> None:
         error_message = msg.ERR_MSG_FAIL_SERVER_NAME.format(err)
         logger.error(error_message)
         post_to_user("error", error_message)
-=======
-            message_sender.post_info_message(local_connection_data)
-        else:
-            message_sender.post_error_message(
-                msg.ERR_MSG_NO_CONNECTION_FILE.format(CONNECTION_NAME))
-    except Exception as err:
-        error_message = msg.ERR_MSG_FAIL_SERVER_NAME.format(err)
-        logger.error(error_message)
-        message_sender.post_error_message(error_message)
->>>>>>> main
 
 
 def control_switch() -> dict:
@@ -603,10 +492,7 @@ def message_handler(connection_data: dict) -> None:
 
     :param connection_data: The connection data including the connection control and connection information
     """
-<<<<<<< HEAD
 
-=======
->>>>>>> main
     global lock
 
     try:
@@ -626,13 +512,8 @@ def message_handler(connection_data: dict) -> None:
                 else:
                     control_action_function()
             else:
-<<<<<<< HEAD
                 post_to_user("error", msg.ERR_MSG_FAIL_UNKNOWN_CONTROL.format(
                     connection_control))
-=======
-                message_sender.post_error_message(
-                    msg.ERR_MSG_FAIL_UNKNOWN_CONTROL.format(connection_control))
->>>>>>> main
 
             lock = False
         else:
@@ -641,12 +522,7 @@ def message_handler(connection_data: dict) -> None:
         logger.error(f"Failed to run the connection on the function: {err}")
 
         if type(err).__name__ != "KeyError":
-<<<<<<< HEAD
             post_to_user("error", f"Failed to run the connection: {err}")
-=======
-            message_sender.post_error_message(
-                f"Failed to run the connection: {err}")
->>>>>>> main
 
         lock = False
         connector_client.stop_client()
@@ -654,11 +530,7 @@ def message_handler(connection_data: dict) -> None:
         raise
 
 
-<<<<<<< HEAD
 def handle_get_data_error(connection_data: dict, error: Exception, error_count: int) -> int:
-=======
-def handle_get_data_error(error: Exception, error_count: int) -> int:
->>>>>>> main
     """
     Handles job execution error.
     When it exceeds the number of retry, `ERROR_RETRY`, retry to connect to OSI PI server.
@@ -676,13 +548,8 @@ def handle_get_data_error(error: Exception, error_count: int) -> int:
         logger.error(f"Query Failed to OSI PI server...{error}")
         global control
         control = "stop"
-<<<<<<< HEAD
         post_to_user(
             "error", msg.ERR_MSG_LOST_CONNECTION_STOPPED.format(error))
-=======
-        message_sender.post_error_message(
-            msg.ERR_MSG_LOST_CONNECTION_STOPPED.format(error))
->>>>>>> main
 
     return error_count
 
@@ -693,10 +560,7 @@ def main():
     The main subscribes the `m2c2/job/{CONNECTION_NAME}` topic,
     and when it gets a message from the cloud, it handles the connection control.
     """
-<<<<<<< HEAD
 
-=======
->>>>>>> main
     topic = f"m2c2/job/{CONNECTION_NAME}"
     qos = QOS.AT_MOST_ONCE
     operation = None
@@ -707,11 +571,7 @@ def main():
             connection_name=CONNECTION_NAME
         )
 
-<<<<<<< HEAD
         if existing_configuration and existing_configuration.get("control", None) == "start":
-=======
-        if existing_configuration or existing_configuration.get("control", None) == "start":
->>>>>>> main
             message_handler(existing_configuration)
 
         request = SubscribeToIoTCoreRequest()

@@ -4,7 +4,10 @@
 import { IotToSqs, IotToSqsProps } from '@aws-solutions-constructs/aws-iot-sqs';
 import { LambdaToDynamoDB } from '@aws-solutions-constructs/aws-lambda-dynamodb';
 import { SqsToLambda } from '@aws-solutions-constructs/aws-sqs-lambda';
-import { CfnDeletionPolicy, Duration, aws_dynamodb as dynamodb, aws_lambda as lambda, aws_s3 as s3 } from 'aws-cdk-lib';
+import { CfnDeletionPolicy, Duration } from 'aws-cdk-lib';
+import { AttributeType, CfnTable, Table } from 'aws-cdk-lib/aws-dynamodb';
+import { Code, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
 
@@ -13,7 +16,7 @@ export interface SQSMessageConsumerConstructProps {
     loggingLevel: string;
     solutionId: string;
     solutionVersion: string;
-    sourceCodeBucket: s3.IBucket;
+    sourceCodeBucket: IBucket;
     sourceCodePrefix: string;
   };
 }
@@ -22,7 +25,7 @@ export interface SQSMessageConsumerConstructProps {
  * Creates a message SQS queue, a message consumer Lambda function, a logs DynamoDB tables, and IoT rules.
  */
 export class SQSMessageConsumerConstruct extends Construct {
-  public logsTable: dynamodb.Table;
+  public logsTable: Table;
   private readonly sql: string = `SELECT topic(3) as connectionName, topic(2) as logType, timestamp() as timestamp, * FROM 'm2c2/{type}/+'`;
 
   constructor(scope: Construct, id: string, props: SQSMessageConsumerConstructProps) {
@@ -33,7 +36,7 @@ export class SQSMessageConsumerConstruct extends Construct {
 
     const sqsToLambda = new SqsToLambda(this, 'SQSMessageConsumer', {
       lambdaFunctionProps: {
-        code: lambda.Code.fromBucket(sourceCodeBucket, `${sourceCodePrefix}/sqs-message-consumer.zip`),
+        code: Code.fromBucket(sourceCodeBucket, `${sourceCodePrefix}/sqs-message-consumer.zip`),
         description: 'Machine to Cloud Connectivity SQS message consumer function',
         environment: {
           LOGGING_LEVEL: props.solutionConfig.loggingLevel,
@@ -42,7 +45,7 @@ export class SQSMessageConsumerConstruct extends Construct {
         },
         handler: 'sqs-message-consumer/index.handler',
         retryAttempts: 0,
-        runtime: lambda.Runtime.NODEJS_18_X,
+        runtime: Runtime.NODEJS_14_X,
         timeout: Duration.minutes(1)
       },
       queueProps: {
@@ -56,11 +59,11 @@ export class SQSMessageConsumerConstruct extends Construct {
       dynamoTableProps: {
         partitionKey: {
           name: 'connectionName',
-          type: dynamodb.AttributeType.STRING
+          type: AttributeType.STRING
         },
         sortKey: {
           name: 'timestamp',
-          type: dynamodb.AttributeType.NUMBER
+          type: AttributeType.NUMBER
         },
         timeToLiveAttribute: 'ttl'
       },
@@ -68,7 +71,7 @@ export class SQSMessageConsumerConstruct extends Construct {
     });
     this.logsTable = lambdaToDynamoDb.dynamoTable;
 
-    const cfnDynamoTable = <dynamodb.CfnTable>this.logsTable.node.defaultChild;
+    const cfnDynamoTable = <CfnTable>this.logsTable.node.defaultChild;
     cfnDynamoTable.cfnOptions.deletionPolicy = CfnDeletionPolicy.DELETE;
 
     const infoLogsProps: IotToSqsProps = {

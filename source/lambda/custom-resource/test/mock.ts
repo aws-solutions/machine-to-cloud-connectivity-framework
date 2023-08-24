@@ -96,19 +96,9 @@ jest.mock('../../lib/aws-handlers/iot-handler', () => jest.fn(() => ({ ...mockIo
 export const mockS3Handler = {
   copyObject: jest.fn(),
   getObject: jest.fn(),
-  putObject: jest.fn(),
-  deleteObjects: jest.fn(),
-  deleteBucket: jest.fn(),
-  listObjectVersions: jest.fn()
+  putObject: jest.fn()
 };
 jest.mock('../../lib/aws-handlers/s3-handler', () => jest.fn(() => ({ ...mockS3Handler })));
-
-export const mockTimestreamHandler = {
-  listTables: jest.fn(),
-  deleteTable: jest.fn(),
-  deleteDatabase: jest.fn()
-};
-jest.mock('../../lib/aws-handlers/timestream-handler', () => jest.fn(() => ({ ...mockTimestreamHandler })));
 
 export const mockIoTSiteWiseHandler = {
   createGreengrassV2Gateway: jest.fn(),

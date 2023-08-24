@@ -36,8 +36,7 @@ const response: ListConnectionsResponse = {
       status: ConnectionControl.START,
       sendDataToIoTSiteWise: false,
       sendDataToIoTTopic: true,
-      sendDataToKinesisDataStreams: false,
-      sendDataToHistorian: false
+      sendDataToKinesisDataStreams: false
     },
     {
       connectionName: 'mock-connection-2',
@@ -46,12 +45,7 @@ const response: ListConnectionsResponse = {
       status: ConnectionControl.STOP,
       sendDataToIoTSiteWise: true,
       sendDataToIoTTopic: false,
-<<<<<<< HEAD
       sendDataToKinesisDataStreams: true
-=======
-      sendDataToKinesisDataStreams: true,
-      sendDataToHistorian: false
->>>>>>> main
     },
     {
       connectionName: 'mock-connection-3',
@@ -60,12 +54,7 @@ const response: ListConnectionsResponse = {
       status: ConnectionControl.STOP,
       sendDataToIoTSiteWise: true,
       sendDataToIoTTopic: false,
-<<<<<<< HEAD
       sendDataToKinesisDataStreams: true
-=======
-      sendDataToKinesisDataStreams: true,
-      sendDataToHistorian: false
->>>>>>> main
     }
   ]
 };
@@ -77,7 +66,6 @@ const updateResponse: GetConnectionResponse = {
   sendDataToIoTTopic: true,
   sendDataToKinesisDataStreams: true,
   sendDataToTimestream: true,
-  sendDataToHistorian: true,
   area: 'mock-area',
   machineName: 'mock-machine',
   opcDa: {
@@ -285,7 +273,7 @@ test('tests refresh button', async () => {
   expect(mockAPI.get).toHaveBeenNthCalledWith(2, API_NAME, '/connections', {
     queryStringParameters: { nextToken: undefined }
   });
-}, 10000);
+});
 
 test('tests create connection button', async () => {
   mockAPI.get.mockResolvedValueOnce({ connections: [] });

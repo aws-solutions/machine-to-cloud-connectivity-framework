@@ -49,8 +49,8 @@ In addition to the AWS Solutions Constructs, the solution uses AWS CDK directly 
 
 ## Prerequisites for Customization
 
-- [Node.js](https://nodejs.org/en/) 16.x or later
-- [Python](https://www.python.org/) 3.8 or later
+- [Node.js](https://nodejs.org/en/) 14.x or later
+- [Python](https://www.python.org/) 3.7 or later
 - [Yarn](https://yarnpkg.com/)
 
 ### 1. Clone the repository
@@ -87,20 +87,12 @@ chmod +x run-unit-tests.sh
 ```bash
 cd $MAIN_DIRECTORY/deployment
 chmod +x build-s3-dist.sh
-./build-s3-dist.sh $DIST_BUCKET_PREFIX $SOLUTION_NAME $VERSION $SHOULD_SEND_ANONYMOUS_USAGE $SHOULD_TEARDOWN_DATA_ON_DESTROY
+./build-s3-dist.sh $DIST_BUCKET_PREFIX $SOLUTION_NAME $VERSION
 ```
-
-To consent to sending anonymous usage metrics, use "Yes" for $SHOULD_SEND_ANONYMOUS_USAGE
-To have s3 buckets, timestream database torn down, use "Yes" for $SHOULD_TEARDOWN_DATA_ON_DESTROY
 
 ## Deploy
 
 - Deploy the distributable to the Amazon S3 bucket in your account. Make sure you are uploading all files and directories under `deployment/global-s3-assets` and `deployment/regional-s3-assets` to `<SOLUTION_NAME>/<VERSION>` folder in the `<DIST_BUCKET_PREFIX>-<REGION>` bucket (e.g. `s3://<DIST_BUCKET_PREFIX>-<REGION>/<SOLUTION_NAME>/<VERSION>/`).
-  CLI based S3 command to sync the buckets is:
-  ```bash
-  aws s3 sync $MAIN_DIRECTORY/deployment/global-s3-assets/ s3://${DIST_BUCKET_PREFIX}-${REGION}/${SOLUTION_NAME}/${VERSION}/
-  aws s3 sync $MAIN_DIRECTORY/deployment/regional-s3-assets/ s3://${DIST_BUCKET_PREFIX}-${REGION}/${SOLUTION_NAME}/${VERSION}/
-  ```
 - Get the link of the solution template uploaded to your Amazon S3 bucket.
 - Deploy the solution to your account by launching a new AWS CloudFormation stack using the link of the solution template in Amazon S3.
 
@@ -120,12 +112,7 @@ aws cloudformation create-stack \
         ParameterKey=UserEmail,ParameterValue=$INITIAL_USER \
         ParameterKey=LoggingLevel,ParameterValue=ERROR \
         ParameterKey=ExistingKinesisStreamName,ParameterValue="" \
-<<<<<<< HEAD
         ParameterKey=ExistingTimestreamDatabaseName,ParameterValue=""
-=======
-        ParameterKey=ExistingTimestreamDatabaseName,ParameterValue="" \
-        ParameterKey=ShouldRetainBuckets,ParameterValue=True
->>>>>>> main
 
 ```
 
@@ -150,14 +137,4 @@ sudo apt install python3.8-venv
 For the OSI PI connector, the following must be installed prior to deployment of M2C2 on the IoT Core Device
 ```bash
 sudo apt-get install libkrb5-dev
-<<<<<<< HEAD
-=======
-```
-
-If using Amazon linux, use the following commands instead
-```bash
-yum -y install krb5-devel
-yum -y install gcc
-yum -y install python3-devel
->>>>>>> main
 ```

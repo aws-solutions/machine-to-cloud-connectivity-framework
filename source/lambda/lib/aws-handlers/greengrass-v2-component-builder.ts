@@ -7,13 +7,11 @@ import {
   ComponentDependency,
   ComponentType,
   CreateComponentRecipeRequest,
-  CreateComponentRecipeResponse,
-  ComponentManifest
+  CreateComponentRecipeResponse
 } from '../types/greengrass-v2-handler-types';
 import { MachineProtocol } from '../types/solution-common-types';
-import { GreengrassCoreDeviceOsPlatform } from '../types/connection-builder-types';
 
-const { ARTIFACT_BUCKET, KINESIS_STREAM, TIMESTREAM_KINESIS_STREAM, COLLECTOR_ID } = process.env;
+const { ARTIFACT_BUCKET, KINESIS_STREAM, TIMESTREAM_KINESIS_STREAM } = process.env;
 
 /**
  * Python modules have same versions with /source/machine_connector/m2c2_opcda_connector/requirements.txt
@@ -26,19 +24,9 @@ const PYTHON_MODULE_VERSION = {
   'OpenOPC-Python3x': '1.3.1',
   Pyro4: '4.81',
   'python-dateutil': '2.8.1',
-<<<<<<< HEAD
   requests_ntlm: '1.1.0',
   testresources: '2.0.1',
   wheel: '0.37.1'
-=======
-  requests_ntlm: '1.2.0',
-  testresources: '2.0.1',
-  wheel: '0.37.1',
-  'twisted[serial]': '20.3.0',
-  pymodbus: '3.0.0.dev4',
-  pyserial: '3.5',
-  'pyserial-asyncio': '0.6'
->>>>>>> main
 };
 
 export class GreengrassV2ComponentBuilder {
@@ -57,23 +45,9 @@ export class GreengrassV2ComponentBuilder {
       process,
       logLevel,
       protocol,
-<<<<<<< HEAD
       siteName
     } = params;
     const { sendDataToIoTSiteWise, sendDataToIoTTopic, sendDataToKinesisStreams, sendDataToTimestream } = params;
-=======
-      siteName,
-      osPlatform
-    } = params;
-    const {
-      sendDataToIoTSiteWise,
-      sendDataToIoTTopic,
-      sendDataToKinesisStreams,
-      sendDataToTimestream,
-      sendDataToHistorian,
-      historianKinesisDatastreamName
-    } = params;
->>>>>>> main
 
     // By default, all components have the Greengrass Nucleus and stream manager as dependencies.
     const componentDependencies: Record<string, ComponentDependency> = {
@@ -137,21 +111,20 @@ export class GreengrassV2ComponentBuilder {
       }
 
       // Set the data destination metadata for the publisher component.
-      GreengrassV2ComponentBuilder.setConnectionMetadata(
-        connectionMetadata,
-        sendDataToIoTTopic,
-        sendDataToIoTSiteWise,
-        sendDataToKinesisStreams,
-        sendDataToTimestream,
-        sendDataToHistorian
-      );
+      connectionMetadata.sendDataToIoTTopic = sendDataToIoTTopic ? 'Yes' : '';
+      connectionMetadata.sendDataToIoTSiteWise = sendDataToIoTSiteWise ? 'Yes' : '';
+      connectionMetadata.sendDataToKinesisStreams = sendDataToKinesisStreams ? 'Yes' : '';
+      connectionMetadata.sendDataToTimestream = sendDataToTimestream ? 'Yes' : '';
 
       // Set the environment variables for the publisher component.
-      GreengrassV2ComponentBuilder.setComponentEnvironmentVariables(
-        componentEnvironmentVariables,
-        protocol,
-        historianKinesisDatastreamName
-      );
+      componentEnvironmentVariables.KINESIS_STREAM_NAME = KINESIS_STREAM;
+      componentEnvironmentVariables.PROTOCOL = protocol;
+      componentEnvironmentVariables.SEND_TO_IOT_TOPIC = '{configuration:/connectionMetadata/sendDataToIoTTopic}';
+      componentEnvironmentVariables.SEND_TO_SITEWISE = '{configuration:/connectionMetadata/sendDataToIoTSiteWise}';
+      componentEnvironmentVariables.SEND_TO_KINESIS_STREAM =
+        '{configuration:/connectionMetadata/sendDataToKinesisStreams}';
+      componentEnvironmentVariables.SEND_TO_TIMESTREAM = '{configuration:/connectionMetadata/sendDataToTimestream}';
+      componentEnvironmentVariables.TIMESTREAM_KINESIS_STREAM = TIMESTREAM_KINESIS_STREAM;
     } else {
       if (params.protocol == MachineProtocol.OPCDA) {
         artifact = 'm2c2_opcda_connector';
@@ -172,13 +145,6 @@ export class GreengrassV2ComponentBuilder {
           VersionRequirement: '>=2.1.0 <3.0.0',
           DependencyType: 'HARD'
         };
-<<<<<<< HEAD
-=======
-      } else if (params.protocol == MachineProtocol.MODBUSTCP) {
-        artifact = 'm2c2_modbus_tcp_connector';
-
-        pythonPackages.push(...['twisted[serial]', 'pymodbus', 'pyserial', 'pyserial-asyncio']);
->>>>>>> main
       } else {
         throw new LambdaError({
           message: `no handler exists for protocol: "${params.protocol}".`,
@@ -222,7 +188,6 @@ export class GreengrassV2ComponentBuilder {
         }
       },
       ComponentDependencies: componentDependencies,
-<<<<<<< HEAD
       Manifests: [
         {
           Platform: {
@@ -250,105 +215,7 @@ export class GreengrassV2ComponentBuilder {
           ]
         }
       ],
-=======
-      Manifests: [this.constructManifest(osPlatform, componentEnvironmentVariables, pythonPackagesInstall, artifact)],
->>>>>>> main
       Lifecycle: {}
     };
-  }
-
-  private static setConnectionMetadata(
-    connectionMetadata: ComponentConnectionMetadata,
-    sendDataToIoTTopic: boolean,
-    sendDataToIoTSiteWise: boolean,
-    sendDataToKinesisStreams: boolean,
-    sendDataToTimestream: boolean,
-    sendDataToHistorian: boolean
-  ) {
-    connectionMetadata.sendDataToIoTTopic = sendDataToIoTTopic ? 'Yes' : '';
-    connectionMetadata.sendDataToIoTSiteWise = sendDataToIoTSiteWise ? 'Yes' : '';
-    connectionMetadata.sendDataToKinesisStreams = sendDataToKinesisStreams ? 'Yes' : '';
-    connectionMetadata.sendDataToTimestream = sendDataToTimestream ? 'Yes' : '';
-    connectionMetadata.sendDataToHistorian = sendDataToHistorian ? 'Yes' : '';
-  }
-
-  private static setComponentEnvironmentVariables(
-    componentEnvironmentVariables: Record<string, string>,
-    protocol: MachineProtocol,
-    historianKinesisDatastreamName: string
-  ) {
-    componentEnvironmentVariables.KINESIS_STREAM_NAME = KINESIS_STREAM;
-    componentEnvironmentVariables.PROTOCOL = protocol;
-    componentEnvironmentVariables.SEND_TO_IOT_TOPIC = '{configuration:/connectionMetadata/sendDataToIoTTopic}';
-    componentEnvironmentVariables.SEND_TO_SITEWISE = '{configuration:/connectionMetadata/sendDataToIoTSiteWise}';
-    componentEnvironmentVariables.SEND_TO_KINESIS_STREAM =
-      '{configuration:/connectionMetadata/sendDataToKinesisStreams}';
-    componentEnvironmentVariables.SEND_TO_TIMESTREAM = '{configuration:/connectionMetadata/sendDataToTimestream}';
-    componentEnvironmentVariables.SEND_TO_HISTORIAN = '{configuration:/connectionMetadata/sendDataToHistorian}';
-    componentEnvironmentVariables.TIMESTREAM_KINESIS_STREAM = TIMESTREAM_KINESIS_STREAM;
-    componentEnvironmentVariables.HISTORIAN_KINESIS_STREAM = historianKinesisDatastreamName
-      ? historianKinesisDatastreamName
-      : '';
-    componentEnvironmentVariables.COLLECTOR_ID = COLLECTOR_ID;
-  }
-
-  public static constructManifest(
-    osPlatform: string,
-    componentEnvironmentVariables: Record<string, string>,
-    pythonPackagesInstall: string,
-    artifact: string
-  ): ComponentManifest {
-    if (osPlatform == GreengrassCoreDeviceOsPlatform.LINUX) {
-      return {
-        Platform: {
-          os: GreengrassCoreDeviceOsPlatform.LINUX
-        },
-        Name: GreengrassCoreDeviceOsPlatform.LINUX,
-        Lifecycle: {
-          Setenv: componentEnvironmentVariables,
-          Install: `
-                python3 -m venv .venv
-                . .venv/bin/activate
-                pip3 install wheel
-                pip3 install -I ${pythonPackagesInstall}
-                `,
-          Run: `
-                . .venv/bin/activate
-                python3 {artifacts:decompressedPath}/${artifact}/${artifact}.py
-                `
-        },
-        Artifacts: [
-          {
-            Uri: `s3://${ARTIFACT_BUCKET}/${artifact}.zip`,
-            Algorithm: 'SHA-256',
-            Unarchive: 'ZIP'
-          }
-        ]
-      };
-    } else if (osPlatform == GreengrassCoreDeviceOsPlatform.WINDOWS) {
-      return {
-        Platform: {
-          os: GreengrassCoreDeviceOsPlatform.WINDOWS
-        },
-        Name: GreengrassCoreDeviceOsPlatform.WINDOWS,
-        Lifecycle: {
-          Setenv: componentEnvironmentVariables,
-          Install: `python -m venv .venv & .venv\\Scripts\\activate & pip install wheel & pip install -I ${pythonPackagesInstall}`,
-          Run: `.venv\\Scripts\\activate & python {artifacts:decompressedPath}/${artifact}/${artifact}.py`
-        },
-        Artifacts: [
-          {
-            Uri: `s3://${ARTIFACT_BUCKET}/${artifact}.zip`,
-            Algorithm: 'SHA-256',
-            Unarchive: 'ZIP'
-          }
-        ]
-      };
-    } else {
-      throw new LambdaError({
-        message: `Failed to build manifest for recipe because ${osPlatform} not in supportyed os platforms`,
-        name: 'ComponentBuilderError'
-      });
-    }
   }
 }

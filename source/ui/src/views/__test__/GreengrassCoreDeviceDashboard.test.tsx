@@ -10,7 +10,6 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { CreatedBy, GreengrassCoreDeviceControl, ListGreengrassCoreDevicesResponse } from '../../util/types';
 import { API_NAME } from '../../util/utils';
-import { OsPlatform } from '../../util/types';
 import GreengrassCoreDevicesDashboard from '../greengrass/GreengrassCoreDevicesDashboard';
 import GreengrassCoreDeviceForm from '../greengrass/GreengrassCoreDeviceForm';
 
@@ -28,10 +27,10 @@ Storage.get = mockStorage.get;
 
 const greengrassCoreDevicesResponse: ListGreengrassCoreDevicesResponse = {
   greengrassCoreDevices: [
-    { name: 'mock-greengrass-1', createdBy: CreatedBy.SYSTEM, numberOfConnections: 0, osPlatform: OsPlatform.LINUX },
-    { name: 'mock-greengrass-2', createdBy: CreatedBy.USER, numberOfConnections: 1, osPlatform: OsPlatform.LINUX },
-    { name: 'mock-greengrass-3', createdBy: CreatedBy.SYSTEM, numberOfConnections: 2, osPlatform: OsPlatform.LINUX },
-    { name: 'mock-greengrass-4', createdBy: CreatedBy.USER, numberOfConnections: 3, osPlatform: OsPlatform.WINDOWS }
+    { name: 'mock-greengrass-1', createdBy: CreatedBy.SYSTEM, numberOfConnections: 0 },
+    { name: 'mock-greengrass-2', createdBy: CreatedBy.USER, numberOfConnections: 1 },
+    { name: 'mock-greengrass-3', createdBy: CreatedBy.SYSTEM, numberOfConnections: 2 },
+    { name: 'mock-greengrass-4', createdBy: CreatedBy.USER, numberOfConnections: 3 }
   ]
 };
 const error = { errorMessage: 'Failure' };
@@ -202,8 +201,7 @@ test('tests deregister button success', async () => {
     body: {
       name: greengrassCoreDevice.name,
       control: GreengrassCoreDeviceControl.DELETE,
-      createdBy: greengrassCoreDevice.createdBy,
-      osPlatform: greengrassCoreDevice.osPlatform
+      createdBy: greengrassCoreDevice.createdBy
     }
   });
 });
@@ -239,8 +237,7 @@ test('tests deregister button failure', async () => {
     body: {
       name: greengrassCoreDevice.name,
       control: GreengrassCoreDeviceControl.DELETE,
-      createdBy: greengrassCoreDevice.createdBy,
-      osPlatform: greengrassCoreDevice.osPlatform
+      createdBy: greengrassCoreDevice.createdBy
     }
   });
 });
@@ -309,7 +306,7 @@ test('tests download install script button failure', async () => {
   });
   expect(mockStorage.get).toHaveBeenCalledTimes(1);
   expect(mockStorage.get).toHaveBeenCalledWith(`${greengrassCoreDevice.name}.sh`, { expires: 10 });
-}, 10000);
+});
 
 test('tests not showing download install script button for USER Greengrass core device', async () => {
   const greengrassCoreDevice = greengrassCoreDevicesResponse.greengrassCoreDevices[1];

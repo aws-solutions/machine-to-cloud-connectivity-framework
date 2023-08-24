@@ -86,7 +86,7 @@ beforeEach(() => {
   mockBatchWrite.mockReset();
   consoleWarnSpy.mockReset();
   consoleErrorSpy.mockReset();
-  jest.useFakeTimers();
+  jest.useFakeTimers('modern');
   jest.setSystemTime(new Date(mockNowTime));
 });
 

@@ -3,4 +3,3 @@ coverage
 dist
 build
 aws-exports.js
-cdk.out

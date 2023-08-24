@@ -4,4 +4,3 @@
 from .iot_topic_target import IoTTopicTarget
 from .kinesis_target import KinesisTarget
 from .sitewise_target import SiteWiseTarget
-from .historian_target import HistorianTarget

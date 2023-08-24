@@ -33,9 +33,7 @@ export enum ResourceTypes {
   DELETE_IOT_CERTIFICATE = 'DeleteIoTCertificate',
   DESCRIBE_IOT_ENDPOINT = 'DescribeIoTEndpoint',
   MANAGE_IOT_ROLE_ALIAS = 'ManageIoTRoleAlias',
-  SEND_ANONYMOUS_METRICS = 'SendAnonymousMetrics',
-  DELETE_TIMESTREAM_DATABASE = 'DeleteTimestreamDatabase',
-  DELETE_S3_BUCKET = 'DeleteS3Bucket'
+  SEND_ANONYMOUS_METRICS = 'SendAnonymousMetrics'
 }
 
 export enum StatusTypes {
@@ -114,10 +112,6 @@ export interface CopyGreengrassComponentArtifactProperties extends CopyPropertie
   Artifacts: {
     OpcDaConnectorArtifact: string;
     OsiPiConnectorArtifact: string;
-<<<<<<< HEAD
-=======
-    ModbusTcpConnectorArtifact: string;
->>>>>>> main
     PublisherArtifact: string;
   };
 }
@@ -132,14 +126,6 @@ export interface CreateGreengrassInstallationScriptsProperties extends ResourceP
 export interface DeleteIoTCertificateProperties extends ResourceProperty {
   CertificateArn: string;
   CertificateId: string;
-}
-
-export interface DeleteS3BucketProperties extends ResourceProperty {
-  BucketName: string;
-}
-
-export interface DeleteTimestreamDatabaseProperties extends ResourceProperty {
-  DatabaseName: string;
 }
 
 export interface CustomResourceResponse {
@@ -209,14 +195,4 @@ export interface GreengrassInstallationScriptsResponse {
 export interface DeleteIoTCertificateRequest {
   requestType: RequestTypes;
   resourceProperties: DeleteIoTCertificateProperties;
-}
-
-export interface DeleteTimestreamDatabaseRequest {
-  requestType: RequestTypes;
-  resourceProperties: DeleteTimestreamDatabaseProperties;
-}
-
-export interface DeleteS3BucketRequest {
-  requestType: RequestTypes;
-  resourceProperties: DeleteS3BucketProperties;
 }

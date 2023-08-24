@@ -9,8 +9,7 @@
     "experimentalDecorators": true
   },
   "include": [
-    "**/*.ts",
-    "jest.config.js"
+    "**/*.ts"
   ],
   "exclude": [
     "node_modules",

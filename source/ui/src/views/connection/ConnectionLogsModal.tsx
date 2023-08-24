@@ -20,7 +20,7 @@ import { ConnectionLogsModalProps, ListLogsItem, MessageModalType, PaginationTyp
  * @param props The connection logs modal properties
  * @returns The connection logs modal
  */
-export default function ConnectionLogsModal(props: ConnectionLogsModalProps): React.JSX.Element {
+export default function ConnectionLogsModal(props: ConnectionLogsModalProps): JSX.Element {
   const { show, hide, connectionName } = props;
   const [showMessageMessageModal, setShowMessageMessageModal] = useState<boolean>(false);
   const { getLogs, messageModalMessage, loading, logs, pageIndex, pageToken } = ConnectionLogsHook({
@@ -32,7 +32,7 @@ export default function ConnectionLogsModal(props: ConnectionLogsModalProps): Re
    * Renders the message of the empty logs.
    * @returns Empty logs component
    */
-  function EmptyLogs(): React.JSX.Element {
+  function EmptyLogs(): JSX.Element {
     return (
       <Jumbotron className="text-align-center" id="empty-logs-jumbotron">
         <p className="empty-p">{I18n.get('info.message.no.logs')}</p>

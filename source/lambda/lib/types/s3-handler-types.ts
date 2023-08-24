@@ -30,21 +30,3 @@ export interface DeleteObjectRequest {
   sourceBucket: string;
   sourceKey: string;
 }
-
-export interface DeleteObjectsRequest {
-  bucketName: string;
-  keys: DeleteObjectKey[];
-}
-
-interface DeleteObjectKey {
-  Key: string;
-  VersionId?: string;
-}
-
-export interface DeleteBucketRequest {
-  bucketName: string;
-}
-
-export interface ListObjectVersionsRequest {
-  bucketName: string;
-}

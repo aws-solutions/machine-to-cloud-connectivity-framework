@@ -7,7 +7,7 @@ from unittest import mock
 
 @mock.patch.dict(os.environ, {"SITE_NAME": "test_site", "AREA": "test_area", "PROCESS": "test_process", "MACHINE_NAME": "test_machine_name"})
 def test_init_user_message_init(mocker):
-    mocker.patch("pickle_checkpoint_manager.PickleCheckpointManager")
+    mocker.patch("checkpoint_manager.CheckpointManager")
     from init_msg_metadata import InitMessage
     msg_metadata_client = InitMessage()
     assert msg_metadata_client.SITE_NAME == "test_site"
@@ -18,7 +18,7 @@ def test_init_user_message_init(mocker):
 
 @mock.patch.dict(os.environ, {"SITE_NAME": "test_site", "AREA": "test_area", "PROCESS": "test_process", "MACHINE_NAME": "test_machine_name"})
 def test_init_user_message_usrmsg(mocker):
-    mocker.patch("pickle_checkpoint_manager.PickleCheckpointManager")
+    mocker.patch("checkpoint_manager.CheckpointManager")
     from init_msg_metadata import InitMessage
     msg_metadata_client = InitMessage()
     test_user_message = msg_metadata_client.init_user_message()

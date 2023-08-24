@@ -25,7 +25,6 @@ import {
   GreengrassCoreDevicePostResponse,
   ListGreengrassCoreDevicesItem,
   MessageModalType,
-  OsPlatform,
   PaginationType
 } from '../../util/types';
 import { getErrorMessage } from '../../util/utils';
@@ -37,11 +36,10 @@ const logger = new Logger('GreengrassCoreDevicesDashboard');
  * Renders the Greengrass core devices dashboard.
  * @returns The Greengrass core devices dashboard
  */
-export default function GreengrassCoreDevicesDashboard(): React.JSX.Element {
+export default function GreengrassCoreDevicesDashboard(): JSX.Element {
   const navigate = useNavigate();
   const [greengrassCoreDeviceCreatedBy, setGreengrassCoreDeviceCreatedBy] = useState<CreatedBy>();
   const [greengrassCoreDeviceName, setGreengrassCoreDeviceName] = useState<string>();
-  const [greengrassCoreOsPlatform, setGreengrassCoreOsPlatform] = useState<string>();
   const [loading, setLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<string | React.ReactNode>('');
   const [showDeregisterConfirmMessageModal, setShowDeregisterConfirmMessageModal] = useState<boolean>(false);
@@ -56,7 +54,7 @@ export default function GreengrassCoreDevicesDashboard(): React.JSX.Element {
    * Renders the empty Greengrass core device message.
    * @returns Empty Greengrass core device component
    */
-  function EmptyGreengrassCoreDevice(): React.JSX.Element {
+  function EmptyGreengrassCoreDevice(): JSX.Element {
     return (
       <Jumbotron className="text-align-center" id="empty-connection-jumbotron">
         <p className="empty-p">{I18n.get('info.message.no.greengrass.core.device')}</p>
@@ -69,15 +67,14 @@ export default function GreengrassCoreDevicesDashboard(): React.JSX.Element {
    * @param greengrassCoreDevice Greengrass core device
    * @returns Greengrass core device row
    */
-  function GreengrassCoreDevice(greengrassCoreDevice: ListGreengrassCoreDevicesItem): React.JSX.Element {
-    const { name, createdBy, numberOfConnections, osPlatform } = greengrassCoreDevice;
+  function GreengrassCoreDevice(greengrassCoreDevice: ListGreengrassCoreDevicesItem): JSX.Element {
+    const { name, createdBy, numberOfConnections } = greengrassCoreDevice;
 
     return (
       <tr>
         <td>{name}</td>
         <td>{createdBy}</td>
         <td>{numberOfConnections}</td>
-        <td>{osPlatform}</td>
         <td>
           {createdBy === CreatedBy.SYSTEM && (
             <>
@@ -85,7 +82,7 @@ export default function GreengrassCoreDevicesDashboard(): React.JSX.Element {
                 id={`download-script-${name}`}
                 variant="primary"
                 size="sm"
-                onClick={() => downloadInstallScript(name, osPlatform)}>
+                onClick={() => downloadInstallScript(name)}>
                 {I18n.get('download.install.script')}
               </Button>
               <EmptyCol />
@@ -95,7 +92,7 @@ export default function GreengrassCoreDevicesDashboard(): React.JSX.Element {
             id={`deregister-greengrass-core-device-${name}`}
             variant="danger"
             size="sm"
-            onClick={() => handleDeleteGreengrassCoreDevice({ name, createdBy, osPlatform })}>
+            onClick={() => handleDeleteGreengrassCoreDevice({ name, createdBy })}>
             {I18n.get('deregister')}
           </Button>
         </td>
@@ -110,19 +107,16 @@ export default function GreengrassCoreDevicesDashboard(): React.JSX.Element {
   function handleDeleteGreengrassCoreDevice(params: Omit<ListGreengrassCoreDevicesItem, 'numberOfConnections'>): void {
     setGreengrassCoreDeviceCreatedBy(params.createdBy);
     setGreengrassCoreDeviceName(params.name);
-    setGreengrassCoreOsPlatform(params.osPlatform);
     setShowDeregisterConfirmMessageModal(true);
   }
 
   /**
    * Downloads a Greengrass install script.
    * @param name The Greengrass core device name
-   * @param osPlatform
    */
-  async function downloadInstallScript(name: string, osPlatform: string): Promise<void> {
+  async function downloadInstallScript(name: string): Promise<void> {
     try {
-      const scriptName = osPlatform == OsPlatform.LINUX ? `${name}.sh` : `${name}.ps1`;
-      const url = await Storage.get(scriptName, { expires: 10 });
+      const url = await Storage.get(`${name}.sh`, { expires: 10 });
       window.open(url, '_blank');
       setMessage(<span>{I18n.get('info.message.download.greengrass.core.device.install.script')}</span>);
     } catch (error) {
@@ -156,8 +150,7 @@ export default function GreengrassCoreDevicesDashboard(): React.JSX.Element {
           body: {
             name: greengrassCoreDeviceName,
             control: GreengrassCoreDeviceControl.DELETE,
-            createdBy: greengrassCoreDeviceCreatedBy,
-            osPlatform: greengrassCoreOsPlatform
+            createdBy: greengrassCoreDeviceCreatedBy
           }
         }
       })) as GreengrassCoreDevicePostResponse;
@@ -212,7 +205,6 @@ export default function GreengrassCoreDevicesDashboard(): React.JSX.Element {
                     <th>{I18n.get('name')}</th>
                     <th>{I18n.get('created.by')}</th>
                     <th>{I18n.get('number.of.connections')}</th>
-                    <th>{I18n.get('os.platform')}</th>
                     <th>{I18n.get('action')}</th>
                   </tr>
                 </thead>
@@ -223,7 +215,6 @@ export default function GreengrassCoreDevicesDashboard(): React.JSX.Element {
                       name={greengrassCoreDevice.name}
                       createdBy={greengrassCoreDevice.createdBy}
                       numberOfConnections={greengrassCoreDevice.numberOfConnections}
-                      osPlatform={greengrassCoreDevice.osPlatform}
                     />
                   ))}
                 </tbody>

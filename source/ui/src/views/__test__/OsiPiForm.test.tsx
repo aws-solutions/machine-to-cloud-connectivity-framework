@@ -23,10 +23,6 @@ test('renders the OsiPiForm with the existing connection', async () => {
     sendDataToIoTTopic: true,
     sendDataToKinesisDataStreams: true,
     sendDataToTimestream: true,
-<<<<<<< HEAD
-=======
-    sendDataToHistorian: true,
->>>>>>> main
     area: 'mock-area',
     machineName: 'mock-machine',
     osiPi: {

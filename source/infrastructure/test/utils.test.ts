@@ -1,19 +1,20 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { Template } from 'aws-cdk-lib/assertions';
-import { CfnCondition, Fn, Stack, aws_s3 as s3 } from 'aws-cdk-lib';
+import '@aws-cdk/assert/jest';
+import { CfnCondition, Fn, Stack } from 'aws-cdk-lib';
+import { Bucket, CfnBucket } from 'aws-cdk-lib/aws-s3';
 import { addCfnSuppressRules, addOutputs } from '../utils/utils';
 
 describe('addCfnSuppressRules', () => {
   test('Add a new CFN NAG suppression rule', () => {
     const suppressionRule = { id: 'mock', reason: 'mock reason' };
     const stack = new Stack();
-    const s3Bucket = new s3.Bucket(stack, 'TestBucket');
-    (<s3.CfnBucket>s3Bucket.node.defaultChild).overrideLogicalId('TestBucket');
+    const s3Bucket = new Bucket(stack, 'TestBucket');
+    (<CfnBucket>s3Bucket.node.defaultChild).overrideLogicalId('TestBucket');
 
     addCfnSuppressRules(s3Bucket, [suppressionRule]);
-    Template.fromStack(stack).templateMatches({
+    expect(stack).toMatchTemplate({
       Resources: {
         TestBucket: {
           Type: 'AWS::S3::Bucket',
@@ -35,12 +36,12 @@ describe('addCfnSuppressRules', () => {
       { id: 'mock-2', reason: 'mock reason 2' }
     ];
     const stack = new Stack();
-    const s3Bucket = new s3.Bucket(stack, 'TestBucket');
-    (<s3.CfnBucket>s3Bucket.node.defaultChild).overrideLogicalId('TestBucket');
+    const s3Bucket = new Bucket(stack, 'TestBucket');
+    (<CfnBucket>s3Bucket.node.defaultChild).overrideLogicalId('TestBucket');
 
     addCfnSuppressRules(s3Bucket, [suppressionRules[0]]);
     addCfnSuppressRules(s3Bucket, [suppressionRules[1]]);
-    Template.fromStack(stack).templateMatches({
+    expect(stack).toMatchTemplate({
       Resources: {
         TestBucket: {
           Type: 'AWS::S3::Bucket',
@@ -66,14 +67,14 @@ describe('addCfnSuppressRules', () => {
       { id: 'mock-2', reason: 'mock reason 2' }
     ];
     const stack = new Stack();
-    const s3Bucket = new s3.Bucket(stack, 'TestBucket');
-    (<s3.CfnBucket>s3Bucket.node.defaultChild).overrideLogicalId('TestBucket');
-    (<s3.CfnBucket>s3Bucket.node.defaultChild).addMetadata('cfn_nag', {
+    const s3Bucket = new Bucket(stack, 'TestBucket');
+    (<CfnBucket>s3Bucket.node.defaultChild).overrideLogicalId('TestBucket');
+    (<CfnBucket>s3Bucket.node.defaultChild).addMetadata('cfn_nag', {
       rules_to_suppress: suppressionExistingRules
     });
 
     addCfnSuppressRules(s3Bucket, suppressionNewRules);
-    Template.fromStack(stack).templateMatches({
+    expect(stack).toMatchTemplate({
       Resources: {
         TestBucket: {
           Type: 'AWS::S3::Bucket',
@@ -95,14 +96,14 @@ describe('addCfnSuppressRules', () => {
       { id: 'mock-2', reason: 'mock reason 2' }
     ];
     const stack = new Stack();
-    const s3Bucket = new s3.Bucket(stack, 'TestBucket');
-    (<s3.CfnBucket>s3Bucket.node.defaultChild).overrideLogicalId('TestBucket');
-    (<s3.CfnBucket>s3Bucket.node.defaultChild).addMetadata('cfn_nag', {
+    const s3Bucket = new Bucket(stack, 'TestBucket');
+    (<CfnBucket>s3Bucket.node.defaultChild).overrideLogicalId('TestBucket');
+    (<CfnBucket>s3Bucket.node.defaultChild).addMetadata('cfn_nag', {
       rules_to_suppress: 'invalid'
     });
 
     addCfnSuppressRules(s3Bucket, suppressionRules);
-    Template.fromStack(stack).templateMatches({
+    expect(stack).toMatchTemplate({
       Resources: {
         TestBucket: {
           Type: 'AWS::S3::Bucket',
@@ -131,7 +132,7 @@ describe('addOutputs', () => {
     ];
     addOutputs(stack, outputs);
 
-    Template.fromStack(stack).templateMatches({
+    expect(stack).toMatchTemplate({
       Conditions: {
         MockCondition: {
           'Fn::Equals': ['AlwaysYes', 'AlwaysYes']

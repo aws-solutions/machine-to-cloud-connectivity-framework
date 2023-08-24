@@ -126,10 +126,6 @@ declare -a packages=(
   "m2c2_publisher"
   "m2c2_opcda_connector"
   "m2c2_osipi_connector"
-<<<<<<< HEAD
-=======
-  "boilerplate"
->>>>>>> main
 )
 
 for package in "${packages[@]}"

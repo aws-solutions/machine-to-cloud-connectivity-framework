@@ -1,32 +1,31 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { ArnFormat, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import {
-  ArnFormat,
-  RemovalPolicy,
-  Stack,
-  CfnCondition,
-  CustomResource,
-  CfnCustomResource,
-  aws_iam as iam,
-  aws_iot as iot,
-  aws_s3 as s3
-} from 'aws-cdk-lib';
+  Effect,
+  PolicyStatement,
+  Role,
+  ServicePrincipal,
+  CompositePrincipal,
+  AnyPrincipal,
+  PolicyDocument
+} from 'aws-cdk-lib/aws-iam';
+import { CfnPolicy as IoTPolicy } from 'aws-cdk-lib/aws-iot';
+import { BlockPublicAccess, Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3';
 import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
 import { addCfnSuppressRules } from '../../utils/utils';
 
 export interface GreengrassIoTProps {
   readonly kinesisStreamName: string;
-  readonly s3LoggingBucket: s3.Bucket;
+  readonly s3LoggingBucket: Bucket;
   readonly solutionConfig: {
     solutionId: string;
     solutionVersion: string;
     uuid: string;
   };
   readonly timestreamKinesisStreamArn: string;
-  readonly customResourcesFunctionArn: string;
-  readonly shouldTeardownData: CfnCondition;
 }
 
 /**
@@ -34,7 +33,7 @@ export interface GreengrassIoTProps {
  */
 export class GreengrassConstruct extends Construct {
   public greengrassIoTPolicyName: string;
-  public greengrassResourceBucket: s3.Bucket;
+  public greengrassResourceBucket: Bucket;
   public iotCredentialsRoleArn: string;
   public iotPolicyName: string;
   public iotRoleAliasName: string;
@@ -42,43 +41,32 @@ export class GreengrassConstruct extends Construct {
   constructor(scope: Construct, id: string, props: GreengrassIoTProps) {
     super(scope, id);
 
-    this.greengrassResourceBucket = new s3.Bucket(this, 'GreengrassResourceBucket', {
-      enforceSSL: true,
-      versioned: true,
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      encryption: s3.BucketEncryption.S3_MANAGED,
+    this.greengrassResourceBucket = new Bucket(this, 'GreengrassResourceBucket', {
+      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+      encryption: BucketEncryption.S3_MANAGED,
       removalPolicy: RemovalPolicy.RETAIN,
+      serverAccessLogsBucket: props.s3LoggingBucket,
       serverAccessLogsPrefix: 'm2c2/'
     });
     this.greengrassResourceBucket.addToResourcePolicy(
-      new iam.PolicyStatement({
+      new PolicyStatement({
         actions: ['s3:*'],
         conditions: {
           Bool: { 'aws:SecureTransport': 'false' }
         },
-        effect: iam.Effect.DENY,
-        principals: [new iam.AnyPrincipal()],
+        effect: Effect.DENY,
+        principals: [new AnyPrincipal()],
         resources: [this.greengrassResourceBucket.bucketArn, this.greengrassResourceBucket.arnForObjects('*')]
       })
     );
 
-    const teardownGreengrassResourcesBucket = new CustomResource(this, 'TeardownGreengrassResourcesBucket', {
-      serviceToken: props.customResourcesFunctionArn,
-      properties: {
-        Resource: 'DeleteS3Bucket',
-        BucketName: this.greengrassResourceBucket.bucketName
-      }
-    });
-    const cfnTeardownGreengrassResourcesBucket = <CfnCustomResource>teardownGreengrassResourcesBucket.node.defaultChild;
-    cfnTeardownGreengrassResourcesBucket.cfnOptions.condition = props.shouldTeardownData;
-
-    const iotCredentialsRole = new iam.Role(this, 'IoTCredentialsRole', {
-      assumedBy: new iam.CompositePrincipal(new iam.ServicePrincipal('credentials.iot.amazonaws.com')),
+    const iotCredentialsRole = new Role(this, 'IoTCredentialsRole', {
+      assumedBy: new CompositePrincipal(new ServicePrincipal('credentials.iot.amazonaws.com')),
       inlinePolicies: {
-        CloudWatchPolicy: new iam.PolicyDocument({
+        CloudWatchPolicy: new PolicyDocument({
           statements: [
-            new iam.PolicyStatement({
-              effect: iam.Effect.ALLOW,
+            new PolicyStatement({
+              effect: Effect.ALLOW,
               resources: [
                 Stack.of(this).formatArn({
                   service: 'logs',
@@ -91,29 +79,29 @@ export class GreengrassConstruct extends Construct {
             })
           ]
         }),
-        GreengrassPolicy: new iam.PolicyDocument({
+        GreengrassPolicy: new PolicyDocument({
           statements: [
-            new iam.PolicyStatement({
-              effect: iam.Effect.ALLOW,
+            new PolicyStatement({
+              effect: Effect.ALLOW,
               resources: ['*'],
               actions: ['greengrass:*']
             })
           ]
         }),
-        IoTPolicy: new iam.PolicyDocument({
+        IoTPolicy: new PolicyDocument({
           statements: [
-            new iam.PolicyStatement({
-              effect: iam.Effect.ALLOW,
+            new PolicyStatement({
+              effect: Effect.ALLOW,
               resources: [...this.createIoTResourceArns('thing', ['GG_*', '*-gcm', '*-gda', '*-gci'])],
               actions: ['iot:GetThingShadow', 'iot:UpdateThingShadow', 'iot:DeleteThingShadow']
             }),
-            new iam.PolicyStatement({
-              effect: iam.Effect.ALLOW,
+            new PolicyStatement({
+              effect: Effect.ALLOW,
               resources: [...this.createIoTResourceArns('topic', ['m2c2/info/*', 'm2c2/error/*', 'm2c2/data/*'])],
               actions: ['iot:Publish']
             }),
-            new iam.PolicyStatement({
-              effect: iam.Effect.ALLOW,
+            new PolicyStatement({
+              effect: Effect.ALLOW,
               actions: ['iot:DescribeThing'],
               resources: [
                 Stack.of(this).formatArn({
@@ -125,19 +113,19 @@ export class GreengrassConstruct extends Construct {
             })
           ]
         }),
-        IoTSiteWisePolicy: new iam.PolicyDocument({
+        IoTSiteWisePolicy: new PolicyDocument({
           statements: [
-            new iam.PolicyStatement({
-              effect: iam.Effect.ALLOW,
+            new PolicyStatement({
+              effect: Effect.ALLOW,
               resources: ['*'],
               actions: ['iotsitewise:BatchPutAssetPropertyValue']
             })
           ]
         }),
-        KinesisPolicy: new iam.PolicyDocument({
+        KinesisPolicy: new PolicyDocument({
           statements: [
-            new iam.PolicyStatement({
-              effect: iam.Effect.ALLOW,
+            new PolicyStatement({
+              effect: Effect.ALLOW,
               resources: [
                 Stack.of(this).formatArn({
                   service: 'kinesis',
@@ -146,39 +134,28 @@ export class GreengrassConstruct extends Construct {
                 }),
                 props.timestreamKinesisStreamArn
               ],
-              actions: ['kinesis:PutRecords', 'kinesis:PutRecord']
+              actions: ['kinesis:PutRecords']
             })
           ]
         }),
-        S3Policy: new iam.PolicyDocument({
+        S3Policy: new PolicyDocument({
           statements: [
-            new iam.PolicyStatement({
-              effect: iam.Effect.ALLOW,
+            new PolicyStatement({
+              effect: Effect.ALLOW,
               resources: [this.greengrassResourceBucket.bucketArn, this.greengrassResourceBucket.arnForObjects('*')],
               actions: ['s3:GetBucketLocation', 's3:GetObject']
             })
           ]
         }),
-<<<<<<< HEAD
         SecretsManagerPolicy: new PolicyDocument({
           statements: [
             new PolicyStatement({
               effect: Effect.ALLOW,
-=======
-        SecretsManagerPolicy: new iam.PolicyDocument({
-          statements: [
-            new iam.PolicyStatement({
-              effect: iam.Effect.ALLOW,
->>>>>>> main
               resources: [
                 Stack.of(this).formatArn({
                   service: 'secretsmanager',
                   resource: 'secret',
-<<<<<<< HEAD
                   resourceName: '*',
-=======
-                  resourceName: 'm2c2-*',
->>>>>>> main
                   arnFormat: ArnFormat.COLON_RESOURCE_NAME
                 })
               ],
@@ -200,16 +177,16 @@ export class GreengrassConstruct extends Construct {
 
     this.iotRoleAliasName = `m2c2-role-alias-${props.solutionConfig.uuid}`;
 
-    const iotPolicy = new iot.CfnPolicy(this, 'IoTPolicy', {
-      policyDocument: new iam.PolicyDocument({
+    const iotPolicy = new IoTPolicy(this, 'IoTPolicy', {
+      policyDocument: new PolicyDocument({
         statements: [
-          new iam.PolicyStatement({
-            effect: iam.Effect.ALLOW,
+          new PolicyStatement({
+            effect: Effect.ALLOW,
             actions: ['iot:Connect'],
             resources: ['*']
           }),
-          new iam.PolicyStatement({
-            effect: iam.Effect.ALLOW,
+          new PolicyStatement({
+            effect: Effect.ALLOW,
             actions: ['iot:GetThingShadow', 'iot:UpdateThingShadow', 'iot:DeleteThingShadow'],
             resources: [
               Stack.of(this).formatArn({
@@ -219,8 +196,8 @@ export class GreengrassConstruct extends Construct {
               })
             ]
           }),
-          new iam.PolicyStatement({
-            effect: iam.Effect.ALLOW,
+          new PolicyStatement({
+            effect: Effect.ALLOW,
             actions: ['iot:Publish', 'iot:Receive'],
             resources: [
               Stack.of(this).formatArn({
@@ -239,16 +216,16 @@ export class GreengrassConstruct extends Construct {
               ...this.getDefaultIoTPolicyResourceArns('topic')
             ]
           }),
-          new iam.PolicyStatement({
-            effect: iam.Effect.ALLOW,
+          new PolicyStatement({
+            effect: Effect.ALLOW,
             actions: ['iot:Subscribe'],
             resources: [
               Stack.of(this).formatArn({ service: 'iot', resource: 'topicfilter', resourceName: 'm2c2/job/*' }),
               ...this.getDefaultIoTPolicyResourceArns('topicfilter')
             ]
           }),
-          new iam.PolicyStatement({
-            effect: iam.Effect.ALLOW,
+          new PolicyStatement({
+            effect: Effect.ALLOW,
             actions: ['iot:AssumeRoleWithCertificate'],
             resources: [
               Stack.of(this).formatArn({ service: 'iot', resource: 'rolealias', resourceName: this.iotRoleAliasName })
@@ -262,11 +239,11 @@ export class GreengrassConstruct extends Construct {
       { id: 'W39', reason: 'The * resource for iot:Connect is required for the solution.' }
     ]);
 
-    const greengrassIoTPolicy = new iot.CfnPolicy(this, 'GreengrassIoTPolicy', {
-      policyDocument: new iam.PolicyDocument({
+    const greengrassIoTPolicy = new IoTPolicy(this, 'GreengrassIoTPolicy', {
+      policyDocument: new PolicyDocument({
         statements: [
-          new iam.PolicyStatement({
-            effect: iam.Effect.ALLOW,
+          new PolicyStatement({
+            effect: Effect.ALLOW,
             actions: [
               'greengrass:GetComponentVersionArtifact',
               'greengrass:ResolveComponentCandidates',
@@ -277,8 +254,8 @@ export class GreengrassConstruct extends Construct {
             ],
             resources: ['*']
           }),
-          new iam.PolicyStatement({
-            effect: iam.Effect.ALLOW,
+          new PolicyStatement({
+            effect: Effect.ALLOW,
             actions: ['greengrass:VerifyClientDeviceIoTCertificateAssociation', 'greengrass:Discover'],
             resources: [
               Stack.of(this).formatArn({
@@ -288,8 +265,8 @@ export class GreengrassConstruct extends Construct {
               })
             ]
           }),
-          new iam.PolicyStatement({
-            effect: iam.Effect.ALLOW,
+          new PolicyStatement({
+            effect: Effect.ALLOW,
             actions: ['greengrass:GetConnectivityInfo', 'greengrass:UpdateConnectivityInfo'],
             resources: [
               Stack.of(this).formatArn({

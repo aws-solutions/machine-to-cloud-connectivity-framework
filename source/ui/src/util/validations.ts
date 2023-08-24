@@ -7,16 +7,10 @@ import {
   ConnectionDefinition,
   KeyStringValue,
   MachineProtocol,
-  ModbusTcpDefinition,
   OpcDaDefinition,
   OpcUaDefinition,
   OsiPiAuthMode,
-<<<<<<< HEAD
   OsiPiDefinition
-=======
-  OsiPiDefinition,
-  ModbusTcpSecondaryDefinition
->>>>>>> main
 } from './types';
 
 // Constant variables
@@ -30,10 +24,6 @@ const MIN_PORT = 1;
 const MAX_PORT = 65535;
 const MAX_OPCUA_SERVER_NAME_CHARACTERS = 256;
 const MAX_OSIPI_SERVER_NAME_CHARACTERS = 256;
-<<<<<<< HEAD
-=======
-const MAX_MODBUS_TCP_TAG_CHARACTERS = 256;
->>>>>>> main
 const MIN_OSIPI_REQUEST_FREQUENCY = 1; //1 sec
 const MAX_OSIPI_REQUEST_FREQUENCY = 3600; //1 hour
 const MIN_OSIPI_CATCHUP_FREQUENCY = 0.1; //10 ms
@@ -109,8 +99,7 @@ export function validateConnectionDefinition(params: ConnectionDefinition): KeyS
     !params.sendDataToIoTSiteWise &&
     !params.sendDataToIoTTopic &&
     !params.sendDataToKinesisDataStreams &&
-    !params.sendDataToTimestream &&
-    !params.sendDataToHistorian
+    !params.sendDataToTimestream
   ) {
     errors.sendDataTo = I18n.get('invalid.send.data.to');
   }
@@ -121,11 +110,6 @@ export function validateConnectionDefinition(params: ConnectionDefinition): KeyS
     validateOpcUa(params.opcUa as OpcUaDefinition, errors);
   } else if (params.protocol === MachineProtocol.OSIPI) {
     validateOsiPi(params.osiPi as OsiPiDefinition, errors);
-<<<<<<< HEAD
-=======
-  } else if (params.protocol === MachineProtocol.MODBUSTCP) {
-    validateModbusTcp(params.modbusTcp as ModbusTcpDefinition, errors);
->>>>>>> main
   }
 
   return errors;
@@ -143,152 +127,6 @@ function validateAlphaNumericHyphenUnderscoreString(props: AlphaNumericValidatio
     !/^[a-zA-Z0-9-_]+$/.test(props.value)
   ) {
     props.errors[props.errorKeyName] = props.errorMessage;
-  }
-}
-
-/**
- * The Modbus TCP connection requires a JSON config field for secondaries.
- * Most of the validate method is logic on checking that it is a valid
- * JSON config for the connector to work properly.
- * @param modbusTcp Definition for modbustcp coming from form
- * @param errors Existing errors on form
- */
-function validateModbusTcp(modbusTcp: ModbusTcpDefinition, errors: KeyStringValue) {
-  // Host Tag
-  if (modbusTcp.hostTag.trim() === '' || modbusTcp.hostTag.trim().length > MAX_MODBUS_TCP_TAG_CHARACTERS) {
-    errors.modbusTcp_hostTag = I18n.get('invalid.host.tag');
-  }
-
-  // Port
-  validatePort(modbusTcp, errors);
-
-  try {
-    const modbusSecondariesConfig: ModbusTcpSecondaryDefinition[] = JSON.parse(
-      modbusTcp.modbusSecondariesConfigSerialized
-    );
-
-    let validConfig = true;
-
-    if (modbusSecondariesConfig.length === 0) {
-      validConfig = false;
-    }
-
-    for (const secondaryConfig of modbusSecondariesConfig) {
-      if (secondaryConfig.secondaryAddress === undefined) {
-        validConfig = false;
-      } else if (!Number.isInteger(secondaryConfig.secondaryAddress)) {
-        validConfig = false;
-      } else if (!Number.isInteger(secondaryConfig.frequencyInSeconds)) {
-        validConfig = false;
-      } else if (secondaryConfig.commandConfig === undefined) {
-        validConfig = false;
-      } else if (secondaryConfig.commandConfig.readCoils !== undefined) {
-        validConfig = validateReadCoils(secondaryConfig, validConfig);
-      } else if (secondaryConfig.commandConfig.readDiscreteInputs !== undefined) {
-        validConfig = validateDiscreteInputs(secondaryConfig, validConfig);
-      } else if (secondaryConfig.commandConfig.readHoldingRegisters !== undefined) {
-        validConfig = validateReadHoldingRegisters(secondaryConfig, validConfig);
-      } else if (secondaryConfig.commandConfig.readInputRegisters !== undefined) {
-        validConfig = validateReadInputRegisters(secondaryConfig, validConfig);
-      }
-    }
-
-    if (!validConfig) {
-      errors.modbusTcp_modbusSecondariesConfigSerialized = I18n.get('modbus.tcp.invalid.json');
-    }
-  } catch {
-    errors.modbusTcp_modbusSecondariesConfigSerialized = I18n.get('modbus.tcp.invalid.json');
-  }
-}
-
-/**
- *
- * @param secondaryConfig
- * @param validConfig
- */
-function validateReadInputRegisters(secondaryConfig: ModbusTcpSecondaryDefinition, validConfig: boolean) {
-  if (secondaryConfig.commandConfig.readInputRegisters!.address === undefined) {
-    validConfig = false;
-  } else if (!Number.isInteger(secondaryConfig.commandConfig.readInputRegisters!.address)) {
-    validConfig = false;
-  } else if (secondaryConfig.commandConfig.readInputRegisters!.count !== undefined) {
-    if (!Number.isInteger(secondaryConfig.commandConfig.readInputRegisters!.count)) {
-      validConfig = false;
-    }
-  }
-  return validConfig;
-}
-
-/**
- *
- * @param secondaryConfig
- * @param validConfig
- */
-function validateReadHoldingRegisters(secondaryConfig: ModbusTcpSecondaryDefinition, validConfig: boolean) {
-  if (secondaryConfig.commandConfig.readHoldingRegisters!.address === undefined) {
-    validConfig = false;
-  } else if (!Number.isInteger(secondaryConfig.commandConfig.readHoldingRegisters!.address)) {
-    validConfig = false;
-  } else if (secondaryConfig.commandConfig.readHoldingRegisters!.count !== undefined) {
-    if (!Number.isInteger(secondaryConfig.commandConfig.readHoldingRegisters!.count)) {
-      validConfig = false;
-    }
-  }
-  return validConfig;
-}
-
-/**
- *
- * @param secondaryConfig
- * @param validConfig
- */
-function validateDiscreteInputs(secondaryConfig: ModbusTcpSecondaryDefinition, validConfig: boolean) {
-  if (secondaryConfig.commandConfig.readDiscreteInputs!.address === undefined) {
-    validConfig = false;
-  } else if (!Number.isInteger(secondaryConfig.commandConfig.readDiscreteInputs!.address)) {
-    validConfig = false;
-  } else if (secondaryConfig.commandConfig.readDiscreteInputs!.count !== undefined) {
-    if (!Number.isInteger(secondaryConfig.commandConfig.readDiscreteInputs!.count)) {
-      validConfig = false;
-    }
-  }
-  return validConfig;
-}
-
-/**
- *
- * @param secondaryConfig
- * @param validConfig
- */
-function validateReadCoils(secondaryConfig: ModbusTcpSecondaryDefinition, validConfig: boolean) {
-  if (secondaryConfig.commandConfig.readCoils!.address === undefined) {
-    validConfig = false;
-  } else if (!Number.isInteger(secondaryConfig.commandConfig.readCoils!.address)) {
-    validConfig = false;
-  } else if (secondaryConfig.commandConfig.readCoils!.count !== undefined) {
-    if (!Number.isInteger(secondaryConfig.commandConfig.readCoils!.count)) {
-      validConfig = false;
-    }
-  }
-  return validConfig;
-}
-
-/**
- *
- * @param modbusTcp
- * @param errors
- */
-function validatePort(modbusTcp: ModbusTcpDefinition, errors: KeyStringValue) {
-  if (modbusTcp.hostPort !== undefined) {
-    if (
-      typeof modbusTcp.hostPort !== 'string' ||
-      (typeof modbusTcp.hostPort === 'string' && modbusTcp.hostPort.trim() !== '')
-    ) {
-      const port = Number(modbusTcp.hostPort);
-      if (!Number.isInteger(port) || port < MIN_PORT || port > MAX_PORT) {
-        errors.modbusTcp_hostPort = I18n.get('invalid.port');
-      }
-    }
   }
 }
 
@@ -355,144 +193,6 @@ function validateOpcUa(opcUa: OpcUaDefinition, errors: KeyStringValue) {
         errors.port = I18n.get('invalid.port');
       }
     }
-  }
-}
-
-// TODO: Osi Pi Validations logic needs to have unit tests
-/**
- * Validates the OSI PI connection definition.
- * @param osiPi The OSI PI connection definition
- * @param errors The errors
- */
-function validateOsiPi(osiPi: OsiPiDefinition, errors: KeyStringValue) {
-  if (!isValidUrl(osiPi.apiUrl)) {
-    errors.osiPi_apiUrl = I18n.get('invalid.url');
-  }
-
-  // Server name
-  if (osiPi.serverName.trim() === '' || osiPi.serverName.trim().length > MAX_OSIPI_SERVER_NAME_CHARACTERS) {
-    errors.opcUa_serverName = I18n.get('invalid.server.name');
-  }
-
-  if (osiPi.authMode === OsiPiAuthMode.BASIC) {
-    handleBasicOsiPiAuthMode(osiPi, errors);
-  }
-
-  let existingQueryError = false;
-
-  const requestFrequency = Number(osiPi.requestFrequency as string);
-  existingQueryError = validateRequestFrequency(requestFrequency, errors, existingQueryError);
-
-  const catchupFrequency = Number(osiPi.catchupFrequency as string);
-  existingQueryError = validateCatchupFrequency(catchupFrequency, errors, existingQueryError);
-
-  const maxRequestDuration = Number(osiPi.maxRequestDuration as string);
-  existingQueryError = validateMaxRequestDuration(maxRequestDuration, errors, existingQueryError);
-
-  validateRequestFrequencyRelation(existingQueryError, maxRequestDuration, requestFrequency, errors, catchupFrequency);
-
-  const queryOffset = Number(osiPi.queryOffset as string);
-  if (isNaN(queryOffset) || queryOffset < MIN_OSIPI_QUERY_OFFSET || queryOffset > MAX_OSIPI_QUERY_OFFSET) {
-    errors.osiPi_queryOffset = I18n.get('invalid.osiPi.queryOffset');
-  }
-
-  // Tags
-  if (!osiPi.tags || osiPi.tags.length === 0) {
-    errors.osiPi_Tags = I18n.get('invalid.tags');
-  }
-}
-
-/**
- *
- * @param existingQueryError
- * @param maxRequestDuration
- * @param requestFrequency
- * @param errors
- * @param catchupFrequency
- */
-function validateRequestFrequencyRelation(
-  existingQueryError: boolean,
-  maxRequestDuration: number,
-  requestFrequency: number,
-  errors: KeyStringValue,
-  catchupFrequency: number
-) {
-  if (!existingQueryError) {
-    if (maxRequestDuration <= requestFrequency) {
-      errors.osiPi_maxRequestDuration = I18n.get('invalid.osiPi.maxRequestDurationVsRequestFrequency');
-    }
-    if (catchupFrequency > requestFrequency) {
-      errors.osiPi_catchupFrequency = I18n.get('invalid.osiPi.catchupFrequencyVsRequestFrequency');
-    }
-  }
-}
-
-/**
- *
- * @param maxRequestDuration
- * @param errors
- * @param existingQueryError
- */
-function validateMaxRequestDuration(maxRequestDuration: number, errors: KeyStringValue, existingQueryError: boolean) {
-  if (
-    isNaN(maxRequestDuration) ||
-    maxRequestDuration < MIN_OSIPI_REQUEST_DURATION ||
-    maxRequestDuration > MAX_OSIPI_REQUEST_DURATION
-  ) {
-    errors.osiPi_maxRequestDuration = I18n.get('invalid.osiPi.maxRequestDuration');
-    existingQueryError = true;
-  }
-  return existingQueryError;
-}
-
-/**
- *
- * @param catchupFrequency
- * @param errors
- * @param existingQueryError
- */
-function validateCatchupFrequency(catchupFrequency: number, errors: KeyStringValue, existingQueryError: boolean) {
-  if (
-    isNaN(catchupFrequency) ||
-    catchupFrequency < MIN_OSIPI_CATCHUP_FREQUENCY ||
-    catchupFrequency > MAX_OSIPI_CATCHUP_FREQUENCY
-  ) {
-    errors.osiPi_catchupFrequency = I18n.get('invalid.osiPi.requestFrequency');
-    existingQueryError = true;
-  }
-  return existingQueryError;
-}
-
-/**
- *
- * @param requestFrequency
- * @param errors
- * @param existingQueryError
- */
-function validateRequestFrequency(requestFrequency: number, errors: KeyStringValue, existingQueryError: boolean) {
-  if (
-    isNaN(requestFrequency) ||
-    requestFrequency < MIN_OSIPI_REQUEST_FREQUENCY ||
-    requestFrequency > MAX_OSIPI_REQUEST_FREQUENCY
-  ) {
-    errors.osiPi_requestFrequency = I18n.get('invalid.osiPi.requestFrequency');
-    existingQueryError = true;
-  }
-  return existingQueryError;
-}
-
-/**
- *
- * @param osiPi
- * @param errors
- */
-function handleBasicOsiPiAuthMode(osiPi: OsiPiDefinition, errors: KeyStringValue) {
-  if (osiPi.username == undefined || osiPi.username.trim() === '') {
-    errors.osiPi_username = I18n.get('invalid.username');
-  }
-
-  if (osiPi.password == undefined || osiPi.password.trim() === '') {
-    errors.osiPi_password = I18n.get('invalid.password');
   }
 }
 

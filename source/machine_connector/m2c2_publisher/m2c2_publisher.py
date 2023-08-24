@@ -1,17 +1,5 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
-from boilerplate.logging.logger import get_logger
-from utils.constants import WORK_BASE_DIR
-from utils.custom_exception import PublisherException
-from utils import (PickleCheckpointManager, StreamManagerHelperClient)
-from payload_router import PayloadRouter
-from greengrasssdk.stream_manager import (
-    ExportDefinition
-)
-import time
-import os
-import logging
-
 
 """
 This is the Machine To Cloud Connectivity Publisher Lambda function.
@@ -31,7 +19,17 @@ The publisher expects the payload of the messages on the stream to be the follow
 }
 It publishes data to any of the following: SiteWise, Kinesis Data Stream, an IoT topic
 """
+import logging
+import os
+import time
 
+from greengrasssdk.stream_manager import (
+    ExportDefinition
+)
+from payload_router import PayloadRouter
+from utils import (CheckpointManager, StreamManagerHelperClient)
+from utils.custom_exception import PublisherException
+from utils.constants import WORK_BASE_DIR
 
 # Constant variables
 # Kinesis Data Stream name
@@ -40,12 +38,8 @@ KINESIS_STREAM_NAME = os.getenv("KINESIS_STREAM_NAME")
 TIMESTREAM_KINESIS_STREAM = os.getenv("TIMESTREAM_KINESIS_STREAM")
 # Greengrass Stream name
 CONNECTION_GG_STREAM_NAME = os.getenv("CONNECTION_GG_STREAM_NAME")
-# Historian Kinesis Data Stream name
-HISTORIAN_KINESIS_STREAM = os.getenv("HISTORIAN_KINESIS_STREAM")
 # Connection name - used for IoT topic and alias (when needed)
 CONNECTION_NAME = os.getenv("CONNECTION_NAME")
-# Collecotr id - used as an attribute for historian messages
-COLLECTOR_ID = os.getenv("COLLECTOR_ID")
 
 # Connection defined destination values
 # Connection builder won't set these if they aren't defined as a destination in the connection
@@ -53,7 +47,6 @@ SEND_TO_SITEWISE = os.getenv("SEND_TO_SITEWISE")
 SEND_TO_IOT_TOPIC = os.getenv("SEND_TO_IOT_TOPIC")
 SEND_TO_KINESIS_STREAM = os.getenv("SEND_TO_KINESIS_STREAM")
 SEND_TO_TIMESTREAM = os.getenv("SEND_TO_TIMESTREAM")
-SEND_TO_HISTORIAN = os.getenv("SEND_TO_HISTORIAN")
 
 # The following variables may not be set
 # if using a protocol supported by an AWS-managed connector
@@ -85,12 +78,13 @@ read_msg_number = 1
 checkpoint_db = f"{WORK_BASE_DIR}/m2c2-{CONNECTION_NAME}-publisher/stream_checkpoints"
 
 # Checkpoint client for tracking message sequence
-checkpoint_client = PickleCheckpointManager(checkpoint_db)
+checkpoint_client = CheckpointManager(checkpoint_db)
 # Base stream manager client
 smh_client = StreamManagerHelperClient()
 
 # Logging
-logger = logging.getLogger()  # get_logger('m2c2_publisher.py')
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
 def retrieve_checkpoints():
@@ -136,8 +130,7 @@ def create_destinations():
         "send_to_sitewise": SEND_TO_SITEWISE,
         "send_to_kinesis_stream": SEND_TO_KINESIS_STREAM,
         "send_to_iot_topic": SEND_TO_IOT_TOPIC,
-        "send_to_timestream": SEND_TO_TIMESTREAM,
-        "send_to_historian": SEND_TO_HISTORIAN
+        "send_to_timestream": SEND_TO_TIMESTREAM
     }
 
 
@@ -162,8 +155,6 @@ def init_router_client():
         "max_stream_size": max_stream_size,
         "kinesis_data_stream": KINESIS_STREAM_NAME,
         "timestream_kinesis_data_stream": TIMESTREAM_KINESIS_STREAM,
-        "historian_data_stream": HISTORIAN_KINESIS_STREAM,
-        "collector_id": COLLECTOR_ID
     }
     router_client = PayloadRouter(**payload_router_parameters)
     return router_client

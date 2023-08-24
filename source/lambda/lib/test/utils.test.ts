@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { mockAxios, mockCuid2, UPPER_ALPHA_NUMERIC } from './mock';
+import { mockAxios, mockNanoId, UPPER_ALPHA_NUMERIC } from './mock';
 import { LambdaError } from '../errors';
 import { ConnectionControl } from '../types/solution-common-types';
 import {
@@ -59,12 +59,12 @@ describe('Unit tests of getAwsSdkOptions() function', () => {
 
 describe('Unit tests of generateUniqueId() function', () => {
   test('Test with the default parameter', () => {
-    mockCuid2.mockImplementationOnce(() => () => UPPER_ALPHA_NUMERIC.slice(0, 4));
+    mockNanoId.mockImplementationOnce(() => () => UPPER_ALPHA_NUMERIC.slice(0, 4));
     expect(generateUniqueId()).toEqual(UPPER_ALPHA_NUMERIC.slice(0, 4));
   });
 
   test('Test with the length parameter', () => {
-    mockCuid2.mockImplementationOnce(() => () => UPPER_ALPHA_NUMERIC.slice(0, 8));
+    mockNanoId.mockImplementationOnce(() => () => UPPER_ALPHA_NUMERIC.slice(0, 8));
     expect(generateUniqueId(8)).toEqual(UPPER_ALPHA_NUMERIC.slice(0, 8));
   });
 });

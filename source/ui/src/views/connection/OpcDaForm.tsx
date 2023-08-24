@@ -11,7 +11,7 @@ import { FormProps } from '../../util/types';
  * @param props The properties for the OPC DA form
  * @returns The OPC DA form
  */
-export default function OpcDaForm(props: FormProps): React.JSX.Element {
+export default function OpcDaForm(props: FormProps): JSX.Element {
   const { connection, onChange, errors } = props;
 
   return (

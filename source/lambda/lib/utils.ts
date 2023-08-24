@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import axios from 'axios';
-import { init } from '@paralleldrive/cuid2';
+import { customAlphabet } from 'nanoid';
 import { LambdaError } from './errors';
 import { AnonymousMetricData, AwsSdkOptions } from './types/utils-types';
 
+const UPPER_ALPHA_NUMERIC = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 const METRICS_ENDPOINT = 'https://metrics.awssolutionsbuilder.com/generic';
 
 /**
@@ -14,10 +15,8 @@ const METRICS_ENDPOINT = 'https://metrics.awssolutionsbuilder.com/generic';
  * @returns The unique ID
  */
 export function generateUniqueId(length: number = 4) {
-  const createId = init({
-    length: length
-  });
-  return createId().toUpperCase();
+  const nanoid = customAlphabet(UPPER_ALPHA_NUMERIC, length);
+  return nanoid();
 }
 
 /**

@@ -30,7 +30,6 @@ const event: ConnectionDefinition = {
   sendDataToIoTTopic: true,
   sendDataToKinesisDataStreams: false,
   sendDataToTimestream: false,
-  sendDataToHistorian: false,
   opcDa: {
     interval: 5,
     iterations: 10,
@@ -101,7 +100,6 @@ test('Test success to deploy OPC DA connection with list tags and tags', async (
     sendDataToIoTTopic: event.sendDataToIoTTopic,
     sendDataToKinesisDataStreams: event.sendDataToKinesisDataStreams,
     sendDataToTimestream: event.sendDataToTimestream,
-    sendDataToHistorian: event.sendDataToHistorian,
     siteName: event.siteName
   });
   expect(mockDynamoDbHandler.updateGreengrassCoreDevice).toHaveBeenCalledTimes(1);
@@ -132,7 +130,6 @@ test('Test success to deploy OPC DA connection with list tags and tags', async (
     sendDataToIoTTopic: event.sendDataToIoTTopic,
     sendDataToKinesisStreams: event.sendDataToKinesisDataStreams,
     sendDataToTimestream: event.sendDataToTimestream,
-    sendDataToHistorian: event.sendDataToHistorian,
     siteName: event.siteName
   });
   expect(mockGreengrassV2Handler.createDeployment).toHaveBeenCalledTimes(1);
@@ -170,7 +167,7 @@ test('Test success to deploy OPC DA connection with list tags and tags', async (
   expect(sleepSpy).toHaveBeenCalledTimes(2);
   expect(sleepSpy).toHaveBeenNthCalledWith(1, 5);
   expect(sleepSpy).toHaveBeenNthCalledWith(2, 30);
-}, 60000);
+});
 
 test('Test success to deploy OPC DA connection without list tags and tags', async () => {
   // This would happen in the real world because of validation checks. This is only for more coverage.
@@ -203,7 +200,7 @@ test('Test success to deploy OPC DA connection without list tags and tags', asyn
     },
     process.env.SOLUTION_UUID
   );
-}, 60000);
+});
 
 test('Test failure to deploy OPC DA connection due to creating component failure', async () => {
   const error = new Error('Failure');
@@ -228,7 +225,7 @@ test('Test failure to deploy OPC DA connection due to creating component failure
   expect(mockDynamoDbHandler.deleteConnection).toHaveBeenCalledTimes(1);
   expect(mockDynamoDbHandler.deleteConnection).toHaveBeenCalledWith(event.connectionName);
   expect(mockDynamoDbHandler.updateConnection).not.toHaveBeenCalled();
-  expect(mockDynamoDbHandler.updateGreengrassCoreDevice).toHaveBeenCalledTimes(1);
+  expect(mockDynamoDbHandler.updateGreengrassCoreDevice).not.toHaveBeenCalled();
   expect(mockGreengrassV2Handler.createComponent).toHaveBeenCalledTimes(1);
   expect(mockGreengrassV2Handler.createComponent).toHaveBeenCalledWith({
     area: event.area,
@@ -305,7 +302,6 @@ test('Test success to deploy OPC UA connection', async () => {
     sendDataToIoTTopic: event.sendDataToIoTTopic,
     sendDataToKinesisDataStreams: event.sendDataToKinesisDataStreams,
     sendDataToTimestream: event.sendDataToTimestream,
-    sendDataToHistorian: event.sendDataToHistorian,
     siteName: event.siteName
   });
   expect(mockDynamoDbHandler.updateGreengrassCoreDevice).toHaveBeenCalledTimes(1);
@@ -326,7 +322,6 @@ test('Test success to deploy OPC UA connection', async () => {
     sendDataToIoTTopic: event.sendDataToIoTTopic,
     sendDataToKinesisStreams: event.sendDataToKinesisDataStreams,
     sendDataToTimestream: event.sendDataToTimestream,
-    sendDataToHistorian: event.sendDataToHistorian,
     siteName: event.siteName
   });
   expect(mockGreengrassV2Handler.createDeployment).toHaveBeenCalledTimes(1);
@@ -398,7 +393,7 @@ test('Test failure to create OPC UA connection due to adding gateway capability 
   expect(mockDynamoDbHandler.getConnection).toHaveBeenCalledTimes(1);
   expect(mockDynamoDbHandler.getConnection).toHaveBeenCalledWith(event.connectionName);
   expect(mockDynamoDbHandler.updateConnection).not.toHaveBeenCalled();
-  expect(mockDynamoDbHandler.updateGreengrassCoreDevice).toHaveBeenCalledTimes(1);
+  expect(mockDynamoDbHandler.updateGreengrassCoreDevice).not.toHaveBeenCalled();
   expect(mockGreengrassV2Handler.createComponent).not.toHaveBeenCalled();
   expect(mockGreengrassV2Handler.createDeployment).not.toHaveBeenCalled();
   expect(mockGreengrassV2Handler.deleteComponent).toHaveBeenCalledTimes(1);

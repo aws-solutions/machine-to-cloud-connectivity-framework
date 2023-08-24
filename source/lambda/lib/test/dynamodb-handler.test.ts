@@ -6,7 +6,6 @@ import DynamoDBHandler from '../aws-handlers/dynamodb-handler';
 import { LambdaError } from '../errors';
 import { ConnectionControl, MachineProtocol } from '../types/solution-common-types';
 import { CreatedBy, GreengrassCoreDeviceItem } from '../types/dynamodb-handler-types';
-import { GreengrassCoreDeviceOsPlatform } from '../types/connection-builder-types';
 
 const dynamoDbHandler = new DynamoDBHandler();
 
@@ -29,8 +28,7 @@ const createFakeConnectionItems = (loop: number): any[] => {
       sendDataToIoTSiteWise: false,
       sendDataToIoTTopic: true,
       sendDataToKinesisDataStreams: false,
-      sendDataToTimestream: true,
-      sendDataToHistorian: false
+      sendDataToTimestream: true
     });
   }
 
@@ -56,8 +54,7 @@ const convertFakeConnectionItems = (items: any[]): any[] => {
       sendDataToIoTSiteWise: item.sendDataToIoTSiteWise,
       sendDataToIoTTopic: item.sendDataToIoTTopic,
       sendDataToKinesisDataStreams: item.sendDataToKinesisDataStreams,
-      sendDataToTimestream: item.sendDataToTimestream,
-      sendDataToHistorian: item.sendDataToHistorian
+      sendDataToTimestream: item.sendDataToTimestream
     });
   }
 
@@ -100,8 +97,7 @@ function createFakeGreengrassCoreDeviceItems(loop: number): GreengrassCoreDevice
       createdBy: i % 2 === 0 ? CreatedBy.SYSTEM : CreatedBy.USER,
       numberOfConnections: i,
       iotThingArn: `arn:of:iot:thing-${i}`,
-      iotSiteWiseGatewayId: `sitewise-gateway-${i}`,
-      osPlatform: GreengrassCoreDeviceOsPlatform.LINUX
+      iotSiteWiseGatewayId: `sitewise-gateway-${i}`
     });
   }
 
@@ -234,7 +230,7 @@ describe('Unit tests of updateConnection() function', () => {
 
   beforeEach(() => {
     mockAwsDynamoDB.update.mockReset();
-    jest.useFakeTimers();
+    jest.useFakeTimers('modern');
     jest.setSystemTime(new Date(fakeTime));
   });
 
@@ -352,7 +348,7 @@ describe('Unit tests of addConnection() function', () => {
 
   beforeEach(() => {
     mockAwsDynamoDB.put.mockReset();
-    jest.useFakeTimers();
+    jest.useFakeTimers('modern');
     jest.setSystemTime(new Date(fakeTime));
   });
 
@@ -379,7 +375,6 @@ describe('Unit tests of addConnection() function', () => {
         sendDataToIoTTopic: false,
         sendDataToKinesisDataStreams: true,
         sendDataToTimestream: false,
-        sendDataToHistorian: false,
         siteName: undefined,
         timestamp: fakeTimestamp,
         opcDa: { fake: 'OPC DA Data' }
@@ -393,10 +388,6 @@ describe('Unit tests of addConnection() function', () => {
       sendDataToIoTTopic: false,
       sendDataToKinesisDataStreams: true,
       sendDataToTimestream: false,
-<<<<<<< HEAD
-=======
-      sendDataToHistorian: false,
->>>>>>> main
       machineName: undefined,
       logLevel: undefined
     });
@@ -432,7 +423,6 @@ describe('Unit tests of addConnection() function', () => {
         sendDataToIoTTopic: false,
         sendDataToKinesisDataStreams: true,
         sendDataToTimestream: false,
-        sendDataToHistorian: false,
         siteName: 'site',
         timestamp: fakeTimestamp,
         opcUa: { fake: 'OPC UA Data' }
@@ -446,10 +436,6 @@ describe('Unit tests of addConnection() function', () => {
       sendDataToIoTTopic: false,
       sendDataToKinesisDataStreams: true,
       sendDataToTimestream: false,
-<<<<<<< HEAD
-=======
-      sendDataToHistorian: false,
->>>>>>> main
       machineName: 'machine',
       logLevel: undefined
     });
@@ -479,7 +465,6 @@ describe('Unit tests of addConnection() function', () => {
         sendDataToIoTTopic: false,
         sendDataToKinesisDataStreams: true,
         sendDataToTimestream: false,
-        sendDataToHistorian: false,
         siteName: 'site',
         timestamp: fakeTimestamp,
         opcUa: { fake: 'OPC UA Data' }
@@ -493,10 +478,6 @@ describe('Unit tests of addConnection() function', () => {
       sendDataToIoTTopic: false,
       sendDataToKinesisDataStreams: true,
       sendDataToTimestream: false,
-<<<<<<< HEAD
-=======
-      sendDataToHistorian: false,
->>>>>>> main
       machineName: 'machine',
       logLevel: undefined
     });
@@ -526,7 +507,6 @@ describe('Unit tests of addConnection() function', () => {
         sendDataToIoTTopic: true,
         sendDataToKinesisDataStreams: true,
         sendDataToTimestream: false,
-        sendDataToHistorian: false,
         siteName: 'site',
         timestamp: fakeTimestamp,
         opcUa: { fake: 'OPC UA Data' }
@@ -540,10 +520,6 @@ describe('Unit tests of addConnection() function', () => {
       sendDataToIoTTopic: true,
       sendDataToKinesisDataStreams: true,
       sendDataToTimestream: false,
-<<<<<<< HEAD
-=======
-      sendDataToHistorian: false,
->>>>>>> main
       machineName: 'machine',
       logLevel: undefined
     });
@@ -573,7 +549,6 @@ describe('Unit tests of addConnection() function', () => {
         sendDataToIoTTopic: true,
         sendDataToKinesisDataStreams: false,
         sendDataToTimestream: false,
-        sendDataToHistorian: false,
         siteName: 'site',
         timestamp: fakeTimestamp,
         opcUa: { fake: 'OPC UA Data' }
@@ -587,10 +562,6 @@ describe('Unit tests of addConnection() function', () => {
       sendDataToIoTTopic: true,
       sendDataToKinesisDataStreams: false,
       sendDataToTimestream: false,
-<<<<<<< HEAD
-=======
-      sendDataToHistorian: false,
->>>>>>> main
       machineName: 'machine',
       logLevel: undefined
     });
@@ -620,7 +591,6 @@ describe('Unit tests of addConnection() function', () => {
         sendDataToIoTTopic: true,
         sendDataToKinesisDataStreams: false,
         sendDataToTimestream: true,
-        sendDataToHistorian: false,
         siteName: 'site',
         timestamp: fakeTimestamp,
         opcUa: { fake: 'OPC UA Data' }
@@ -634,10 +604,6 @@ describe('Unit tests of addConnection() function', () => {
       sendDataToIoTTopic: true,
       sendDataToKinesisDataStreams: false,
       sendDataToTimestream: true,
-<<<<<<< HEAD
-=======
-      sendDataToHistorian: false,
->>>>>>> main
       machineName: 'machine',
       logLevel: undefined
     });
@@ -1026,8 +992,7 @@ describe('Unit tests of addGreengrassCoreDevice() function', () => {
     name: 'mock-greengrass-core',
     createdBy: CreatedBy.SYSTEM,
     iotThingArn: 'arn:of:iot:thing',
-    iotSiteWiseGatewayId: 'mock-sitewise-gateway',
-    osPlatform: GreengrassCoreDeviceOsPlatform.LINUX
+    iotSiteWiseGatewayId: 'mock-sitewise-gateway'
   };
 
   beforeEach(() => mockAwsDynamoDB.put.mockReset());

@@ -98,7 +98,6 @@ test('When `control` is invalid, it throws an error', () => {
 test('When `protocol` is invalid, it throws an error', () => {
   connectionDefinition.control = 'start';
   connectionDefinition.protocol = 'invalid';
-  connectionDefinition.connectionName = 'test-connection';
 
   expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
     new LambdaError({
@@ -153,7 +152,7 @@ test('When destination is not set, it throws an error', () => {
   expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
     new LambdaError({
       message:
-        'At least one data destination should be set: sendDataToIoTSiteWise, sendDataToIoTTopic, sendDataToKinesisDataStreams, sendDataToTimestream, sendDataToHistorian.',
+        'At least one data destination should be set: sendDataToIoTSiteWise, sendDataToIoTTopic, sendDataToKinesisDataStreams, sendDataToTimestream.',
       name: 'ValidationError',
       statusCode: 400
     })
@@ -165,12 +164,11 @@ test('When all destinations are false, it throws an error', () => {
   connectionDefinition.sendDataToIoTTopic = false;
   connectionDefinition.sendDataToKinesisDataStreams = false;
   connectionDefinition.sendDataToTimestream = false;
-  connectionDefinition.sendDataToHistorian = false;
 
   expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
     new LambdaError({
       message:
-        'At least one data destination should be set: sendDataToIoTSiteWise, sendDataToIoTTopic, sendDataToKinesisDataStreams, sendDataToTimestream, sendDataToHistorian.',
+        'At least one data destination should be set: sendDataToIoTSiteWise, sendDataToIoTTopic, sendDataToKinesisDataStreams, sendDataToTimestream.',
       name: 'ValidationError',
       statusCode: 400
     })
@@ -687,7 +685,6 @@ describe('Test OPC DA', () => {
       sendDataToIoTTopic: false,
       sendDataToKinesisDataStreams: true,
       sendDataToTimestream: false,
-      sendDataToHistorian: false,
       siteName: 'site'
     });
   });
@@ -717,7 +714,6 @@ describe('Test OPC DA', () => {
       sendDataToIoTTopic: false,
       sendDataToKinesisDataStreams: true,
       sendDataToTimestream: false,
-      sendDataToHistorian: false,
       siteName: 'site'
     });
   });
@@ -747,7 +743,6 @@ describe('Test OPC DA', () => {
       sendDataToIoTTopic: false,
       sendDataToKinesisDataStreams: true,
       sendDataToTimestream: false,
-      sendDataToHistorian: false,
       siteName: 'site'
     });
   });
@@ -861,7 +856,6 @@ describe('Test OPC UA', () => {
       sendDataToIoTTopic: false,
       sendDataToKinesisDataStreams: true,
       sendDataToTimestream: false,
-      sendDataToHistorian: false,
       siteName: 'site'
     });
   });
@@ -923,368 +917,7 @@ describe('Test OPC UA', () => {
       sendDataToIoTTopic: false,
       sendDataToKinesisDataStreams: true,
       sendDataToTimestream: false,
-      sendDataToHistorian: false,
       siteName: 'site'
     });
-  });
-});
-
-describe('Test Modbus TCP', () => {
-  test('When `modbusTcp` is missing for Modbus TCP, it throws an error', () => {
-    connectionDefinition.control = 'update';
-    connectionDefinition.protocol = 'modbustcp';
-    delete connectionDefinition.opcUa;
-    delete connectionDefinition.greengrassCoreDeviceName;
-
-    expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
-      new LambdaError({
-        message: '"modbusTcp" is missing or invalid from the connection definition. See the implementation guide.',
-        name: 'ValidationError',
-        statusCode: 400
-      })
-    );
-  });
-
-  test('When `modbusTcp` host is not a string, it throws an error', () => {
-    connectionDefinition.modbusTcp = {
-      host: 1
-    };
-
-    expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
-      new LambdaError({
-        message: '"host" is missing or invalid from the connection definition. It should be a non-empty string.',
-        name: 'ValidationError',
-        statusCode: 400
-      })
-    );
-  });
-
-  test('When `modbusTcp` host port is out of range, it throws an error', () => {
-    connectionDefinition.modbusTcp = {
-      host: 'mock-host',
-      hostPort: 70000
-    };
-
-    expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
-      new LambdaError({
-        message:
-          '"port" is invalid from the connection definition. It should be an integer number between 1 and 65535.',
-        name: 'ValidationError',
-        statusCode: 400
-      })
-    );
-  });
-
-  test('When `modbusTcp` host tag is not a string, it throws an error', () => {
-    connectionDefinition.modbusTcp = {
-      host: 'mock-host',
-      hostPort: 5020,
-      hostTag: 1
-    };
-
-    expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
-      new LambdaError({
-        message: '"hostTag" is missing or invalid from the connection definition. It should be a non-empty string.',
-        name: 'ValidationError',
-        statusCode: 400
-      })
-    );
-  });
-
-  test('When `modbusTcp` modbus secondaries config is empty, it throws an error', () => {
-    connectionDefinition.modbusTcp = {
-      host: 'mock-host',
-      hostPort: 5020,
-      hostTag: 'mock-tag',
-      modbusSecondariesConfig: []
-    };
-
-    expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
-      new LambdaError({
-        message: '"modbusTcp" secondary config cannot be empty',
-        name: 'ValidationError',
-        statusCode: 400
-      })
-    );
-  });
-
-  test('When `modbusTcp` modbus secondaries config secondary address is not a number, it throws an error', () => {
-    connectionDefinition.modbusTcp = {
-      host: 'mock-host',
-      hostPort: 5020,
-      hostTag: 'mock-tag',
-      modbusSecondariesConfig: [
-        {
-          secondaryAddress: 'NaN',
-          frequencyInSeconds: 1,
-          commandConfig: {
-            readCoils: {
-              address: 1,
-              count: 1
-            }
-          }
-        }
-      ]
-    };
-
-    expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
-      new LambdaError({
-        message: '"modbusTcp" secondary definition failed validation: Secondary address must be number',
-        name: 'ValidationError',
-        statusCode: 400
-      })
-    );
-  });
-
-  test('When `modbusTcp` modbus secondaries config frequency in seconds is not a number, it throws an error', () => {
-    connectionDefinition.modbusTcp = {
-      host: 'mock-host',
-      hostPort: 5020,
-      hostTag: 'mock-tag',
-      modbusSecondariesConfig: [
-        {
-          secondaryAddress: 1,
-          frequencyInSeconds: 'NaN',
-          commandConfig: {
-            readCoils: {
-              address: 1,
-              count: 1
-            }
-          }
-        }
-      ]
-    };
-
-    expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
-      new LambdaError({
-        message: '"modbusTcp" secondary definition failed validation: Frequency in seconds must be number',
-        name: 'ValidationError',
-        statusCode: 400
-      })
-    );
-  });
-
-  test('When `modbusTcp` modbus secondaries config read coils address is not a number, it throws an error', () => {
-    connectionDefinition.modbusTcp = {
-      host: 'mock-host',
-      hostPort: 5020,
-      hostTag: 'mock-tag',
-      modbusSecondariesConfig: [
-        {
-          secondaryAddress: 1,
-          frequencyInSeconds: 1,
-          commandConfig: {
-            readCoils: {
-              address: 'NaN',
-              count: 1
-            }
-          }
-        }
-      ]
-    };
-
-    expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
-      new LambdaError({
-        message: '"modbusTcp" secondary definition failed validation: Read coils address must be a number',
-        name: 'ValidationError',
-        statusCode: 400
-      })
-    );
-  });
-
-  test('When `modbusTcp` modbus secondaries config read coils count is not a number, it throws an error', () => {
-    connectionDefinition.modbusTcp = {
-      host: 'mock-host',
-      hostPort: 5020,
-      hostTag: 'mock-tag',
-      modbusSecondariesConfig: [
-        {
-          secondaryAddress: 1,
-          frequencyInSeconds: 1,
-          commandConfig: {
-            readCoils: {
-              address: 1,
-              count: 'NaN'
-            }
-          }
-        }
-      ]
-    };
-
-    expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
-      new LambdaError({
-        message: '"modbusTcp" secondary definition failed validation: Read coils count must be a number',
-        name: 'ValidationError',
-        statusCode: 400
-      })
-    );
-  });
-
-  test('When `modbusTcp` modbus secondaries config read discrete inputs address is not a number, it throws an error', () => {
-    connectionDefinition.modbusTcp = {
-      host: 'mock-host',
-      hostPort: 5020,
-      hostTag: 'mock-tag',
-      modbusSecondariesConfig: [
-        {
-          secondaryAddress: 1,
-          frequencyInSeconds: 1,
-          commandConfig: {
-            readDiscreteInputs: {
-              address: 'NaN',
-              count: 1
-            }
-          }
-        }
-      ]
-    };
-
-    expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
-      new LambdaError({
-        message: '"modbusTcp" secondary definition failed validation: Read discrete inputs address must be a number',
-        name: 'ValidationError',
-        statusCode: 400
-      })
-    );
-  });
-
-  test('When `modbusTcp` modbus secondaries config read discrete inputs count is not a number, it throws an error', () => {
-    connectionDefinition.modbusTcp = {
-      host: 'mock-host',
-      hostPort: 5020,
-      hostTag: 'mock-tag',
-      modbusSecondariesConfig: [
-        {
-          secondaryAddress: 1,
-          frequencyInSeconds: 1,
-          commandConfig: {
-            readDiscreteInputs: {
-              address: 1,
-              count: 'NaN'
-            }
-          }
-        }
-      ]
-    };
-
-    expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
-      new LambdaError({
-        message: '"modbusTcp" secondary definition failed validation: Read discrete inputs count must be a number',
-        name: 'ValidationError',
-        statusCode: 400
-      })
-    );
-  });
-
-  test('When `modbusTcp` modbus secondaries config read holding registers address is not a number, it throws an error', () => {
-    connectionDefinition.modbusTcp = {
-      host: 'mock-host',
-      hostPort: 5020,
-      hostTag: 'mock-tag',
-      modbusSecondariesConfig: [
-        {
-          secondaryAddress: 1,
-          frequencyInSeconds: 1,
-          commandConfig: {
-            readHoldingRegisters: {
-              address: 'NaN',
-              count: 1
-            }
-          }
-        }
-      ]
-    };
-
-    expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
-      new LambdaError({
-        message: '"modbusTcp" secondary definition failed validation: Read holding registers address must be a number',
-        name: 'ValidationError',
-        statusCode: 400
-      })
-    );
-  });
-
-  test('When `modbusTcp` modbus secondaries config read holding registers count is not a number, it throws an error', () => {
-    connectionDefinition.modbusTcp = {
-      host: 'mock-host',
-      hostPort: 5020,
-      hostTag: 'mock-tag',
-      modbusSecondariesConfig: [
-        {
-          secondaryAddress: 1,
-          frequencyInSeconds: 1,
-          commandConfig: {
-            readHoldingRegisters: {
-              address: 1,
-              count: 'NaN'
-            }
-          }
-        }
-      ]
-    };
-
-    expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
-      new LambdaError({
-        message: '"modbusTcp" secondary definition failed validation: Read holding registers count must be a number',
-        name: 'ValidationError',
-        statusCode: 400
-      })
-    );
-  });
-
-  test('When `modbusTcp` modbus secondaries config read input registers address is not a number, it throws an error', () => {
-    connectionDefinition.modbusTcp = {
-      host: 'mock-host',
-      hostPort: 5020,
-      hostTag: 'mock-tag',
-      modbusSecondariesConfig: [
-        {
-          secondaryAddress: 1,
-          frequencyInSeconds: 1,
-          commandConfig: {
-            readInputRegisters: {
-              address: 'NaN',
-              count: 1
-            }
-          }
-        }
-      ]
-    };
-
-    expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
-      new LambdaError({
-        message: '"modbusTcp" secondary definition failed validation: Read input registers address must be a number',
-        name: 'ValidationError',
-        statusCode: 400
-      })
-    );
-  });
-
-  test('When `modbusTcp` modbus secondaries config read input registers count is not a number, it throws an error', () => {
-    connectionDefinition.modbusTcp = {
-      host: 'mock-host',
-      hostPort: 5020,
-      hostTag: 'mock-tag',
-      modbusSecondariesConfig: [
-        {
-          secondaryAddress: 1,
-          frequencyInSeconds: 1,
-          commandConfig: {
-            readInputRegisters: {
-              address: 1,
-              count: 'NaN'
-            }
-          }
-        }
-      ]
-    };
-
-    expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
-      new LambdaError({
-        message: '"modbusTcp" secondary definition failed validation: Read input registers count must be a number',
-        name: 'ValidationError',
-        statusCode: 400
-      })
-    );
   });
 });

@@ -20,7 +20,7 @@ type GreengrassCoreDeviceInputFormRequest = {
  * @param props The Greengrass core device input properties
  * @returns The Greengrass core device input form
  */
-export default function GreengrassCoreDeviceInputForm(props: GreengrassCoreDeviceInputFormRequest): JSX.Element {
+export default function GreengrassCoreDeviceInputForm(props: GreengrassCoreDeviceInputFormRequest): React.JSX.Element {
   const {
     createdBy,
     domIds,

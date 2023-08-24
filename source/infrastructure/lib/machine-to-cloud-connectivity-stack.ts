@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import {
-  Aspects,
   Aws,
   CfnCondition,
   CfnMapping,
@@ -25,7 +24,6 @@ import { TimestreamConstruct } from './data-flow/timestream';
 import { UiConstruct } from './frontend/ui';
 import { CloudFrontConstruct } from './frontend/cloudfront';
 import { GreengrassConstruct } from './greengrass/greengrass';
-import { ConditionAspect } from '../utils/aspects';
 import { addOutputs } from '../utils/utils';
 import { SourceBucketConstruct } from './common-resource/source-bucket';
 
@@ -167,9 +165,9 @@ export class MachineToCloudConnectivityFrameworkStack extends Stack {
     const kinesisDataStream = new KinesisDataStreamConstruct(this, 'Kinesis', {
       s3LoggingBucket: loggingBucket.s3LoggingBucket,
       customResourcesFunctionArn: customResources.customResourceFunction.functionArn,
-      shouldTeardownData: shouldTeardownDataOnDestroyCondition
+      shouldTeardownData: shouldTeardownDataOnDestroyCondition,
+      shouldCreateKinesisResources: createKinesisResourcesCondition
     });
-    Aspects.of(kinesisDataStream).add(new ConditionAspect(createKinesisResourcesCondition));
     this.kinesisStreamName = Fn.conditionIf(
       createKinesisResourcesCondition.logicalId,
       kinesisDataStream.kinesisStreamName,

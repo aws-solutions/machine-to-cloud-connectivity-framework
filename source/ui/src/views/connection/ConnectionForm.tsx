@@ -43,7 +43,7 @@ const logger = new Logger('ConnectionForm');
  * Renders the connection form.
  * @returns The connection form
  */
-export default function ConnectionForm(): JSX.Element {
+export default function ConnectionForm(): React.JSX.Element {
   const { connectionName } = useParams<{ connectionName: string }>();
   const [loading, setLoading] = useState<boolean>(false);
   const [connection, setConnection] = useState<GetConnectionResponse>(INIT_CONNECTION);

@@ -163,6 +163,7 @@ def data_collection_control(connection_data: dict, iteration: int = 0, error_cou
 
     if control == "start":
         current_iteration = iteration
+        current_error_count = error_count
         osi_pi_config = osi_pi_connector.connection_config
 
         next_timer_interval = osi_pi_config.query_config.req_frequency_sec
@@ -172,6 +173,7 @@ def data_collection_control(connection_data: dict, iteration: int = 0, error_cou
             current_iteration += 1
 
             logger.debug(f'loop count: {current_iteration}')
+            logger.debug(f'error count: {current_error_count}')
 
             thread_start_time = time.time()
 
@@ -208,7 +210,6 @@ def data_collection_control(connection_data: dict, iteration: int = 0, error_cou
         except Exception as err:
             logger.error("Failed..." + str(traceback.format_exc()))
             error_count = handle_get_data_error(
-                connection_data=connection_data,
                 error=err,
                 error_count=error_count
             )
@@ -416,7 +417,7 @@ def message_handler(connection_data: dict) -> None:
         raise
 
 
-def handle_get_data_error(connection_data: dict, error: Exception, error_count: int) -> int:
+def handle_get_data_error(error: Exception, error_count: int) -> int:
     """
     Handles job execution error.
     When it exceeds the number of retry, `ERROR_RETRY`, retry to connect to OSI PI server.

@@ -48,9 +48,9 @@ class TestModbusMessageHandler(TestCase):
                     "host": "10.2.0.140",
                     "hostPort": 0,
                     "hostTag": "my-modbus",
-                    "modbusSlavesConfig": [
+                    "modbusSecondariesConfig": [
                         {
-                            "slaveAddress": "1",
+                            "secondaryAddress": "1",
                             "frequencyInSeconds": 30,
                             "commandConfig": {
                                 "readCoils": {

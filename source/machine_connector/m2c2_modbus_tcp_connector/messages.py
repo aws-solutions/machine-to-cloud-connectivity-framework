@@ -11,7 +11,7 @@ INF_MSG_PUBLISH_DATA_TO_TOPIC = "Publishing data to topic %s: %s"
 # Error messages
 ERR_MSG_FAIL_SERVER_NAME = "Failed to retrieve available server(s): {}"
 ERR_MSG_FAIL_TO_CONNECT = "Unable to connect to the server."
-ERR_MSG_LOST_CONNECTION_STOPPED = "Unable to read from slave: {}"
+ERR_MSG_LOST_CONNECTION_STOPPED = "Unable to read from secondary: {}"
 ERR_MSG_FAIL_UNKNOWN_CONTROL = "Unknown control request: {}"
 ERR_MSG_FAIL_LAST_COMMAND_STOP = "Connection '{}' has already been stopped."
 ERR_MSG_FAIL_LAST_COMMAND_START = "A version of the requested '{}' is already running. Please stop it before starting it again."

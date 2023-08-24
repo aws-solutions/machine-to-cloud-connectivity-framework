@@ -991,31 +991,31 @@ describe('Test Modbus TCP', () => {
     );
   });
 
-  test('When `modbusTcp` modbus slaves config is empty, it throws an error', () => {
+  test('When `modbusTcp` modbus secondaries config is empty, it throws an error', () => {
     connectionDefinition.modbusTcp = {
       host: 'mock-host',
       hostPort: 5020,
       hostTag: 'mock-tag',
-      modbusSlavesConfig: []
+      modbusSecondariesConfig: []
     };
 
     expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
       new LambdaError({
-        message: '"modbusTcp" slave config cannot be empty',
+        message: '"modbusTcp" secondary config cannot be empty',
         name: 'ValidationError',
         statusCode: 400
       })
     );
   });
 
-  test('When `modbusTcp` modbus slaves config slave address is not a number, it throws an error', () => {
+  test('When `modbusTcp` modbus secondaries config secondary address is not a number, it throws an error', () => {
     connectionDefinition.modbusTcp = {
       host: 'mock-host',
       hostPort: 5020,
       hostTag: 'mock-tag',
-      modbusSlavesConfig: [
+      modbusSecondariesConfig: [
         {
-          slaveAddress: 'NaN',
+          secondaryAddress: 'NaN',
           frequencyInSeconds: 1,
           commandConfig: {
             readCoils: {
@@ -1029,21 +1029,21 @@ describe('Test Modbus TCP', () => {
 
     expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
       new LambdaError({
-        message: '"modbusTcp" slave definition failed validation: Slave address must be number',
+        message: '"modbusTcp" secondary definition failed validation: Secondary address must be number',
         name: 'ValidationError',
         statusCode: 400
       })
     );
   });
 
-  test('When `modbusTcp` modbus slaves config frequency in seconds is not a number, it throws an error', () => {
+  test('When `modbusTcp` modbus secondaries config frequency in seconds is not a number, it throws an error', () => {
     connectionDefinition.modbusTcp = {
       host: 'mock-host',
       hostPort: 5020,
       hostTag: 'mock-tag',
-      modbusSlavesConfig: [
+      modbusSecondariesConfig: [
         {
-          slaveAddress: 1,
+          secondaryAddress: 1,
           frequencyInSeconds: 'NaN',
           commandConfig: {
             readCoils: {
@@ -1057,21 +1057,21 @@ describe('Test Modbus TCP', () => {
 
     expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
       new LambdaError({
-        message: '"modbusTcp" slave definition failed validation: Frequency in seconds must be number',
+        message: '"modbusTcp" secondary definition failed validation: Frequency in seconds must be number',
         name: 'ValidationError',
         statusCode: 400
       })
     );
   });
 
-  test('When `modbusTcp` modbus slaves config read coils address is not a number, it throws an error', () => {
+  test('When `modbusTcp` modbus secondaries config read coils address is not a number, it throws an error', () => {
     connectionDefinition.modbusTcp = {
       host: 'mock-host',
       hostPort: 5020,
       hostTag: 'mock-tag',
-      modbusSlavesConfig: [
+      modbusSecondariesConfig: [
         {
-          slaveAddress: 1,
+          secondaryAddress: 1,
           frequencyInSeconds: 1,
           commandConfig: {
             readCoils: {
@@ -1085,21 +1085,21 @@ describe('Test Modbus TCP', () => {
 
     expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
       new LambdaError({
-        message: '"modbusTcp" slave definition failed validation: Read coils address must be a number',
+        message: '"modbusTcp" secondary definition failed validation: Read coils address must be a number',
         name: 'ValidationError',
         statusCode: 400
       })
     );
   });
 
-  test('When `modbusTcp` modbus slaves config read coils count is not a number, it throws an error', () => {
+  test('When `modbusTcp` modbus secondaries config read coils count is not a number, it throws an error', () => {
     connectionDefinition.modbusTcp = {
       host: 'mock-host',
       hostPort: 5020,
       hostTag: 'mock-tag',
-      modbusSlavesConfig: [
+      modbusSecondariesConfig: [
         {
-          slaveAddress: 1,
+          secondaryAddress: 1,
           frequencyInSeconds: 1,
           commandConfig: {
             readCoils: {
@@ -1113,21 +1113,21 @@ describe('Test Modbus TCP', () => {
 
     expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
       new LambdaError({
-        message: '"modbusTcp" slave definition failed validation: Read coils count must be a number',
+        message: '"modbusTcp" secondary definition failed validation: Read coils count must be a number',
         name: 'ValidationError',
         statusCode: 400
       })
     );
   });
 
-  test('When `modbusTcp` modbus slaves config read discrete inputs address is not a number, it throws an error', () => {
+  test('When `modbusTcp` modbus secondaries config read discrete inputs address is not a number, it throws an error', () => {
     connectionDefinition.modbusTcp = {
       host: 'mock-host',
       hostPort: 5020,
       hostTag: 'mock-tag',
-      modbusSlavesConfig: [
+      modbusSecondariesConfig: [
         {
-          slaveAddress: 1,
+          secondaryAddress: 1,
           frequencyInSeconds: 1,
           commandConfig: {
             readDiscreteInputs: {
@@ -1141,21 +1141,21 @@ describe('Test Modbus TCP', () => {
 
     expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
       new LambdaError({
-        message: '"modbusTcp" slave definition failed validation: Read discrete inputs address must be a number',
+        message: '"modbusTcp" secondary definition failed validation: Read discrete inputs address must be a number',
         name: 'ValidationError',
         statusCode: 400
       })
     );
   });
 
-  test('When `modbusTcp` modbus slaves config read discrete inputs count is not a number, it throws an error', () => {
+  test('When `modbusTcp` modbus secondaries config read discrete inputs count is not a number, it throws an error', () => {
     connectionDefinition.modbusTcp = {
       host: 'mock-host',
       hostPort: 5020,
       hostTag: 'mock-tag',
-      modbusSlavesConfig: [
+      modbusSecondariesConfig: [
         {
-          slaveAddress: 1,
+          secondaryAddress: 1,
           frequencyInSeconds: 1,
           commandConfig: {
             readDiscreteInputs: {
@@ -1169,21 +1169,21 @@ describe('Test Modbus TCP', () => {
 
     expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
       new LambdaError({
-        message: '"modbusTcp" slave definition failed validation: Read discrete inputs count must be a number',
+        message: '"modbusTcp" secondary definition failed validation: Read discrete inputs count must be a number',
         name: 'ValidationError',
         statusCode: 400
       })
     );
   });
 
-  test('When `modbusTcp` modbus slaves config read holding registers address is not a number, it throws an error', () => {
+  test('When `modbusTcp` modbus secondaries config read holding registers address is not a number, it throws an error', () => {
     connectionDefinition.modbusTcp = {
       host: 'mock-host',
       hostPort: 5020,
       hostTag: 'mock-tag',
-      modbusSlavesConfig: [
+      modbusSecondariesConfig: [
         {
-          slaveAddress: 1,
+          secondaryAddress: 1,
           frequencyInSeconds: 1,
           commandConfig: {
             readHoldingRegisters: {
@@ -1197,21 +1197,21 @@ describe('Test Modbus TCP', () => {
 
     expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
       new LambdaError({
-        message: '"modbusTcp" slave definition failed validation: Read holding registers address must be a number',
+        message: '"modbusTcp" secondary definition failed validation: Read holding registers address must be a number',
         name: 'ValidationError',
         statusCode: 400
       })
     );
   });
 
-  test('When `modbusTcp` modbus slaves config read holding registers count is not a number, it throws an error', () => {
+  test('When `modbusTcp` modbus secondaries config read holding registers count is not a number, it throws an error', () => {
     connectionDefinition.modbusTcp = {
       host: 'mock-host',
       hostPort: 5020,
       hostTag: 'mock-tag',
-      modbusSlavesConfig: [
+      modbusSecondariesConfig: [
         {
-          slaveAddress: 1,
+          secondaryAddress: 1,
           frequencyInSeconds: 1,
           commandConfig: {
             readHoldingRegisters: {
@@ -1225,21 +1225,21 @@ describe('Test Modbus TCP', () => {
 
     expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
       new LambdaError({
-        message: '"modbusTcp" slave definition failed validation: Read holding registers count must be a number',
+        message: '"modbusTcp" secondary definition failed validation: Read holding registers count must be a number',
         name: 'ValidationError',
         statusCode: 400
       })
     );
   });
 
-  test('When `modbusTcp` modbus slaves config read input registers address is not a number, it throws an error', () => {
+  test('When `modbusTcp` modbus secondaries config read input registers address is not a number, it throws an error', () => {
     connectionDefinition.modbusTcp = {
       host: 'mock-host',
       hostPort: 5020,
       hostTag: 'mock-tag',
-      modbusSlavesConfig: [
+      modbusSecondariesConfig: [
         {
-          slaveAddress: 1,
+          secondaryAddress: 1,
           frequencyInSeconds: 1,
           commandConfig: {
             readInputRegisters: {
@@ -1253,21 +1253,21 @@ describe('Test Modbus TCP', () => {
 
     expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
       new LambdaError({
-        message: '"modbusTcp" slave definition failed validation: Read input registers address must be a number',
+        message: '"modbusTcp" secondary definition failed validation: Read input registers address must be a number',
         name: 'ValidationError',
         statusCode: 400
       })
     );
   });
 
-  test('When `modbusTcp` modbus slaves config read input registers count is not a number, it throws an error', () => {
+  test('When `modbusTcp` modbus secondaries config read input registers count is not a number, it throws an error', () => {
     connectionDefinition.modbusTcp = {
       host: 'mock-host',
       hostPort: 5020,
       hostTag: 'mock-tag',
-      modbusSlavesConfig: [
+      modbusSecondariesConfig: [
         {
-          slaveAddress: 1,
+          secondaryAddress: 1,
           frequencyInSeconds: 1,
           commandConfig: {
             readInputRegisters: {
@@ -1281,7 +1281,7 @@ describe('Test Modbus TCP', () => {
 
     expect(() => validateConnectionDefinition(connectionDefinition)).toThrow(
       new LambdaError({
-        message: '"modbusTcp" slave definition failed validation: Read input registers count must be a number',
+        message: '"modbusTcp" secondary definition failed validation: Read input registers count must be a number',
         name: 'ValidationError',
         statusCode: 400
       })

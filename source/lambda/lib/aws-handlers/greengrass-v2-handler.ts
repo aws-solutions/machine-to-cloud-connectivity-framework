@@ -14,7 +14,8 @@ import {
   CreateComponentRecipeRequest,
   CreateDeploymentRequest,
   ListGreengrassCoreDevicesResponse,
-  GreengrassCoreDeviceItem
+  GreengrassCoreDeviceItem,
+  SecretManagement
 } from '../types/greengrass-v2-handler-types';
 import { getAwsSdkOptions, isValidVersion, sleep } from '../utils';
 import { ConnectionControl } from '../types/solution-common-types';
@@ -201,60 +202,7 @@ export default class GreengrassV2Handler {
       deletedComponents.push('aws.greengrass.SecretManager');
     }
 
-    let secretConfigList = [];
-    if (deploymentComponents['aws.greengrass.SecretManager'] != undefined) {
-      const configUpdate = deploymentComponents['aws.greengrass.SecretManager'].configurationUpdate;
-      if (configUpdate != undefined && configUpdate.merge != undefined) {
-        const existingSecretConfig = JSON.parse(configUpdate.merge);
-
-        secretConfigList = existingSecretConfig['cloudSecrets'];
-      }
-
-      // TODO: this needs to be unit tested, was skipped when osi pi was implemented
-      for (const secretInfo of secretManagement) {
-        const secretArnIndex = secretConfigList.findIndex(x => x.arn === secretInfo.secretArn);
-
-        //Add/Update secrets config. Uses the AWSCURRENT version stage for all secrets.
-        switch (secretInfo.action) {
-          case ConnectionControl.DEPLOY:
-          case ConnectionControl.UPDATE:
-            if (secretArnIndex < 0) {
-              secretConfigList.push({
-                arn: secretInfo.secretArn,
-                labels: ['AWSCURRENT']
-              });
-            } else {
-              if (secretConfigList[secretArnIndex]['labels'] == undefined) {
-                secretConfigList[secretArnIndex]['labels'] = ['AWSCURRENT'];
-              } else {
-                //workaround for GreenGrass secret caching to force update to latest version on change
-                secretConfigList[secretArnIndex]['labels'].push('AWSCURRENT');
-              }
-            }
-            break;
-          case ConnectionControl.DELETE:
-            if (secretArnIndex >= 0) {
-              secretConfigList.splice(secretArnIndex, 1);
-            }
-            break;
-          default:
-            break;
-        }
-      }
-
-      if (secretConfigList.length > 0) {
-        const secretConfig = {
-          cloudSecrets: secretConfigList
-        };
-
-        deploymentComponents['aws.greengrass.SecretManager'].configurationUpdate = {
-          merge: JSON.stringify(secretConfig)
-        };
-      } else {
-        //remove secretManager when all secrets are gone
-        deletedComponents.push('aws.greengrass.SecretManager');
-      }
-    }
+    this.addUpdateSecretConfigList(deploymentComponents, secretManagement, deletedComponents);
 
     for (const component of deletedComponents) {
       delete deploymentComponents[component];
@@ -277,6 +225,43 @@ export default class GreengrassV2Handler {
       components: deploymentComponents
     };
     return greengrassV2.createDeployment(deploymentParams).promise();
+  }
+
+  private addUpdateSecretConfigList(
+    deploymentComponents: GreengrassV2.ComponentDeploymentSpecifications,
+    secretManagement: SecretManagement[],
+    deletedComponents: string[]
+  ) {
+    let secretConfigList = [];
+    if (deploymentComponents['aws.greengrass.SecretManager'] != undefined) {
+      const configUpdate = deploymentComponents['aws.greengrass.SecretManager'].configurationUpdate;
+      if (configUpdate != undefined && configUpdate.merge != undefined) {
+        const existingSecretConfig = JSON.parse(configUpdate.merge);
+
+        secretConfigList = existingSecretConfig['cloudSecrets'];
+      }
+
+      // TODO: this needs to be unit tested, was skipped when osi pi was implemented
+      for (const secretInfo of secretManagement) {
+        const secretArnIndex = secretConfigList.findIndex(x => x.arn === secretInfo.secretArn);
+
+        //Add/Update secrets config. Uses the AWSCURRENT version stage for all secrets.
+        handleSecretInfoAction(secretInfo, secretArnIndex, secretConfigList);
+      }
+
+      if (secretConfigList.length > 0) {
+        const secretConfig = {
+          cloudSecrets: secretConfigList
+        };
+
+        deploymentComponents['aws.greengrass.SecretManager'].configurationUpdate = {
+          merge: JSON.stringify(secretConfig)
+        };
+      } else {
+        //remove secretManager when all secrets are gone
+        deletedComponents.push('aws.greengrass.SecretManager');
+      }
+    }
   }
 
   /**
@@ -357,5 +342,40 @@ export default class GreengrassV2Handler {
     componentCount -= deletedComponents.length;
 
     return componentCount > 0;
+  }
+}
+
+/**
+ *
+ * @param secretInfo
+ * @param secretArnIndex
+ * @param secretConfigList
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function handleSecretInfoAction(secretInfo: SecretManagement, secretArnIndex: number, secretConfigList: any[]) {
+  switch (secretInfo.action) {
+    case ConnectionControl.DEPLOY:
+    case ConnectionControl.UPDATE:
+      if (secretArnIndex < 0) {
+        secretConfigList.push({
+          arn: secretInfo.secretArn,
+          labels: ['AWSCURRENT']
+        });
+      } else {
+        if (secretConfigList[secretArnIndex]['labels'] == undefined) {
+          secretConfigList[secretArnIndex]['labels'] = ['AWSCURRENT'];
+        } else {
+          //workaround for GreenGrass secret caching to force update to latest version on change
+          secretConfigList[secretArnIndex]['labels'].push('AWSCURRENT');
+        }
+      }
+      break;
+    case ConnectionControl.DELETE:
+      if (secretArnIndex >= 0) {
+        secretConfigList.splice(secretArnIndex, 1);
+      }
+      break;
+    default:
+      break;
   }
 }

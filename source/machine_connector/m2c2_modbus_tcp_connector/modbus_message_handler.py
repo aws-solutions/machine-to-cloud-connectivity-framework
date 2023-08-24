@@ -10,7 +10,7 @@ from utils import AWSEndpointClient
 from boilerplate.messaging.message_sender import MessageSender
 import boilerplate.logging.logger as ConnectorLogging
 from modbus_data_collection_controller import ModbusDataCollectionController
-from modbus_slave_config import ModbusSlaveConfig
+from modbus_secondary_config import modbusSecondaryConfig
 import config
 from modbus_exception import ModbusException
 
@@ -100,11 +100,11 @@ class ModbusMessageHandler:
             raise ModbusException('Must have "hostTag" configured')
         modbus_host_tag = modbus_connection_data['hostTag']
 
-        for modbus_slave_config in modbus_connection_data['modbusSlavesConfig']:
-            slave_config = ModbusSlaveConfig(
-                modbus_slave_config, modbus_host, modbus_host_port, modbus_host_tag)
+        for modbus_secondary_config in modbus_connection_data['modbusSecondariesConfig']:
+            secondary_config = modbusSecondaryConfig(
+                modbus_secondary_config, modbus_host, modbus_host_port, modbus_host_tag)
             self.data_collection_controller.data_collection_control(
-                slave_config)
+                secondary_config)
 
     def start(self, connection_data: dict) -> None:
         """Start a connection based on the connection data."""

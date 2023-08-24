@@ -6,7 +6,7 @@ import datetime
 from unittest import mock, TestCase
 
 
-from m2c2_modbus_tcp_connector.modbus_slave_config import ModbusSlaveConfig
+from m2c2_modbus_tcp_connector.modbus_secondary_config import modbusSecondaryConfig
 
 
 from utils import AWSEndpointClient
@@ -78,8 +78,8 @@ class TestModbusDataCollectionController(TestCase):
         controller = ModbusDataCollectionController(
             message_sender, connector_client)
 
-        slave_config_dict = {
-            'slaveAddress': 1,
+        secondary_config_dict = {
+            'secondaryAddress': 1,
             'frequencyInSeconds': 5,
             'commandConfig': {
                 'readCoils': {
@@ -100,12 +100,12 @@ class TestModbusDataCollectionController(TestCase):
                 }
             }
         }
-        modbus_slave_config = ModbusSlaveConfig(
-            slave_config_dict, 'mock-host', 5020, 'mock-tag')
+        modbus_secondary_config = modbusSecondaryConfig(
+            secondary_config_dict, 'mock-host', 5020, 'mock-tag')
 
         # act
         config.control = 'start'
-        controller.data_collection_control(modbus_slave_config)
+        controller.data_collection_control(modbus_secondary_config)
 
         # assert
         pymodbus_read_coils_mock.assert_called_with(1, 1, 1)
@@ -164,8 +164,8 @@ class TestModbusDataCollectionController(TestCase):
         controller = ModbusDataCollectionController(
             message_sender, connector_client)
 
-        slave_config_dict = {
-            'slaveAddress': 1,
+        secondary_config_dict = {
+            'secondaryAddress': 1,
             'frequencyInSeconds': 5,
             'commandConfig': {
                 'readCoils': {
@@ -186,13 +186,13 @@ class TestModbusDataCollectionController(TestCase):
                 }
             }
         }
-        modbus_slave_config = ModbusSlaveConfig(
-            slave_config_dict, 'mock-host', 5020, 'mock-tag')
+        modbus_secondary_config = modbusSecondaryConfig(
+            secondary_config_dict, 'mock-host', 5020, 'mock-tag')
 
         # act
         config.control = 'start'
         controller._handle_get_data_error(
-            modbus_slave_config, Exception('mock-error'), 1)
+            modbus_secondary_config, Exception('mock-error'), 1)
 
         # assert
         post_error_mock.assert_not_called()
@@ -200,7 +200,7 @@ class TestModbusDataCollectionController(TestCase):
         # act again
         config.control = 'start'
         controller._handle_get_data_error(
-            modbus_slave_config, Exception('mock-error'), 5)
+            modbus_secondary_config, Exception('mock-error'), 5)
 
         # assert again
         post_error_mock.assert_called()

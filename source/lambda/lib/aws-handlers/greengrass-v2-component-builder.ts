@@ -125,26 +125,21 @@ export class GreengrassV2ComponentBuilder {
       }
 
       // Set the data destination metadata for the publisher component.
-      connectionMetadata.sendDataToIoTTopic = sendDataToIoTTopic ? 'Yes' : '';
-      connectionMetadata.sendDataToIoTSiteWise = sendDataToIoTSiteWise ? 'Yes' : '';
-      connectionMetadata.sendDataToKinesisStreams = sendDataToKinesisStreams ? 'Yes' : '';
-      connectionMetadata.sendDataToTimestream = sendDataToTimestream ? 'Yes' : '';
-      connectionMetadata.sendDataToHistorian = sendDataToHistorian ? 'Yes' : '';
+      GreengrassV2ComponentBuilder.setConnectionMetadata(
+        connectionMetadata,
+        sendDataToIoTTopic,
+        sendDataToIoTSiteWise,
+        sendDataToKinesisStreams,
+        sendDataToTimestream,
+        sendDataToHistorian
+      );
 
       // Set the environment variables for the publisher component.
-      componentEnvironmentVariables.KINESIS_STREAM_NAME = KINESIS_STREAM;
-      componentEnvironmentVariables.PROTOCOL = protocol;
-      componentEnvironmentVariables.SEND_TO_IOT_TOPIC = '{configuration:/connectionMetadata/sendDataToIoTTopic}';
-      componentEnvironmentVariables.SEND_TO_SITEWISE = '{configuration:/connectionMetadata/sendDataToIoTSiteWise}';
-      componentEnvironmentVariables.SEND_TO_KINESIS_STREAM =
-        '{configuration:/connectionMetadata/sendDataToKinesisStreams}';
-      componentEnvironmentVariables.SEND_TO_TIMESTREAM = '{configuration:/connectionMetadata/sendDataToTimestream}';
-      componentEnvironmentVariables.SEND_TO_HISTORIAN = '{configuration:/connectionMetadata/sendDataToHistorian}';
-      componentEnvironmentVariables.TIMESTREAM_KINESIS_STREAM = TIMESTREAM_KINESIS_STREAM;
-      componentEnvironmentVariables.HISTORIAN_KINESIS_STREAM = historianKinesisDatastreamName
-        ? historianKinesisDatastreamName
-        : '';
-      componentEnvironmentVariables.COLLECTOR_ID = COLLECTOR_ID;
+      GreengrassV2ComponentBuilder.setComponentEnvironmentVariables(
+        componentEnvironmentVariables,
+        protocol,
+        historianKinesisDatastreamName
+      );
     } else {
       if (params.protocol == MachineProtocol.OPCDA) {
         artifact = 'm2c2_opcda_connector';
@@ -215,6 +210,41 @@ export class GreengrassV2ComponentBuilder {
       Manifests: [this.constructManifest(osPlatform, componentEnvironmentVariables, pythonPackagesInstall, artifact)],
       Lifecycle: {}
     };
+  }
+
+  private static setConnectionMetadata(
+    connectionMetadata: ComponentConnectionMetadata,
+    sendDataToIoTTopic: boolean,
+    sendDataToIoTSiteWise: boolean,
+    sendDataToKinesisStreams: boolean,
+    sendDataToTimestream: boolean,
+    sendDataToHistorian: boolean
+  ) {
+    connectionMetadata.sendDataToIoTTopic = sendDataToIoTTopic ? 'Yes' : '';
+    connectionMetadata.sendDataToIoTSiteWise = sendDataToIoTSiteWise ? 'Yes' : '';
+    connectionMetadata.sendDataToKinesisStreams = sendDataToKinesisStreams ? 'Yes' : '';
+    connectionMetadata.sendDataToTimestream = sendDataToTimestream ? 'Yes' : '';
+    connectionMetadata.sendDataToHistorian = sendDataToHistorian ? 'Yes' : '';
+  }
+
+  private static setComponentEnvironmentVariables(
+    componentEnvironmentVariables: Record<string, string>,
+    protocol: MachineProtocol,
+    historianKinesisDatastreamName: string
+  ) {
+    componentEnvironmentVariables.KINESIS_STREAM_NAME = KINESIS_STREAM;
+    componentEnvironmentVariables.PROTOCOL = protocol;
+    componentEnvironmentVariables.SEND_TO_IOT_TOPIC = '{configuration:/connectionMetadata/sendDataToIoTTopic}';
+    componentEnvironmentVariables.SEND_TO_SITEWISE = '{configuration:/connectionMetadata/sendDataToIoTSiteWise}';
+    componentEnvironmentVariables.SEND_TO_KINESIS_STREAM =
+      '{configuration:/connectionMetadata/sendDataToKinesisStreams}';
+    componentEnvironmentVariables.SEND_TO_TIMESTREAM = '{configuration:/connectionMetadata/sendDataToTimestream}';
+    componentEnvironmentVariables.SEND_TO_HISTORIAN = '{configuration:/connectionMetadata/sendDataToHistorian}';
+    componentEnvironmentVariables.TIMESTREAM_KINESIS_STREAM = TIMESTREAM_KINESIS_STREAM;
+    componentEnvironmentVariables.HISTORIAN_KINESIS_STREAM = historianKinesisDatastreamName
+      ? historianKinesisDatastreamName
+      : '';
+    componentEnvironmentVariables.COLLECTOR_ID = COLLECTOR_ID;
   }
 
   public static constructManifest(

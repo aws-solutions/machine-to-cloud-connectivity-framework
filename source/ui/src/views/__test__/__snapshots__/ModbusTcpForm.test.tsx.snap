@@ -107,7 +107,7 @@ exports[`renders the ModbusTcpForm errors 1`] = `
     <label
       class="form-label"
     >
-      modbus.slave.config
+      modbus.secondary.config
        
       <span
         class="red-text"
@@ -118,19 +118,19 @@ exports[`renders the ModbusTcpForm errors 1`] = `
     <small
       class="form-text text-muted"
     >
-      description.modbus.slave.config
+      description.modbus.secondary.config
     </small>
     <textarea
       class="form-control is-invalid"
-      id="modbusTcp_modbusSlavesConfigSerialized"
-      placeholder="placeholder.modbus.slave.config"
+      id="modbusTcp_modbusSecondariesConfigSerialized"
+      placeholder="placeholder.modbus.secondary.config"
       required=""
       rows="15"
       type="text"
     >
       [
     {
-        "slaveAddress": 1,
+        "secondaryAddress": 1,
         "frequencyInSeconds": 30,
         "commandConfig": {
             "readCoils": {
@@ -153,7 +153,7 @@ exports[`renders the ModbusTcpForm errors 1`] = `
     <div
       class="invalid-feedback"
     >
-      modbusTcp_modbusSlavesConfigSerialized invalid
+      modbusTcp_modbusSecondariesConfigSerialized invalid
     </div>
   </div>
 </div>
@@ -260,7 +260,7 @@ exports[`renders the ModbusTcpForm with the existing connection 1`] = `
     <label
       class="form-label"
     >
-      modbus.slave.config
+      modbus.secondary.config
        
       <span
         class="red-text"
@@ -271,12 +271,12 @@ exports[`renders the ModbusTcpForm with the existing connection 1`] = `
     <small
       class="form-text text-muted"
     >
-      description.modbus.slave.config
+      description.modbus.secondary.config
     </small>
     <textarea
       class="form-control"
-      id="modbusTcp_modbusSlavesConfigSerialized"
-      placeholder="placeholder.modbus.slave.config"
+      id="modbusTcp_modbusSecondariesConfigSerialized"
+      placeholder="placeholder.modbus.secondary.config"
       required=""
       rows="15"
       type="text"
@@ -391,7 +391,7 @@ exports[`renders the default ModbusTcpForm 1`] = `
     <label
       class="form-label"
     >
-      modbus.slave.config
+      modbus.secondary.config
        
       <span
         class="red-text"
@@ -402,19 +402,19 @@ exports[`renders the default ModbusTcpForm 1`] = `
     <small
       class="form-text text-muted"
     >
-      description.modbus.slave.config
+      description.modbus.secondary.config
     </small>
     <textarea
       class="form-control"
-      id="modbusTcp_modbusSlavesConfigSerialized"
-      placeholder="placeholder.modbus.slave.config"
+      id="modbusTcp_modbusSecondariesConfigSerialized"
+      placeholder="placeholder.modbus.secondary.config"
       required=""
       rows="15"
       type="text"
     >
       [
     {
-        "slaveAddress": 1,
+        "secondaryAddress": 1,
         "frequencyInSeconds": 30,
         "commandConfig": {
             "readCoils": {

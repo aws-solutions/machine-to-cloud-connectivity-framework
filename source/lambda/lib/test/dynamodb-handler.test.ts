@@ -234,7 +234,7 @@ describe('Unit tests of updateConnection() function', () => {
 
   beforeEach(() => {
     mockAwsDynamoDB.update.mockReset();
-    jest.useFakeTimers('modern');
+    jest.useFakeTimers();
     jest.setSystemTime(new Date(fakeTime));
   });
 
@@ -352,7 +352,7 @@ describe('Unit tests of addConnection() function', () => {
 
   beforeEach(() => {
     mockAwsDynamoDB.put.mockReset();
-    jest.useFakeTimers('modern');
+    jest.useFakeTimers();
     jest.setSystemTime(new Date(fakeTime));
   });
 

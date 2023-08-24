@@ -20,6 +20,7 @@ import {
   GreengrassCoreDeviceOsPlatform
 } from '../lib/types/connection-builder-types';
 import { CreatedBy, UpdateConnectionsRequest } from '../lib/types/dynamodb-handler-types';
+import { GreengrassCoreDeviceItem } from '../lib/types/greengrass-v2-handler-types';
 import { IoTMessageTypes } from '../lib/types/iot-handler-types';
 import { CapabilityConfigurationSource } from '../lib/types/iot-sitewise-handler-types';
 import { ConnectionControl, ConnectionDefinition, MachineProtocol } from '../lib/types/solution-common-types';
@@ -409,78 +410,18 @@ async function createGreengrassCoreDevice(
   let iotThingArn: string;
 
   if (createdBy === CreatedBy.SYSTEM) {
-    if (typeof greengrassCoreDeviceGreengrass !== 'undefined') {
-      throw new LambdaError({
-        message: 'The Greengrass core device name is already used in Greengrass.',
-        name: 'DuplicatedGreengrassCoreDeviceNameError',
-        statusCode: 400
-      });
-    }
-
-    try {
-      /**
-       * When user choose to create a Greengrass core device, there are several steps.
-       * 1. Create an IoT thing for the Greengrass core device.
-       * 2. Attach an existing certificate created by the CloudFormation stack to the thing.
-       * 3. Get a Greengrass installation base script, replace the thing name, and upload the script to S3 bucket.
-       * 4. Create an IoT SiteWise gateway.
-       */
-      iotThingArn = await iotHandler.createThing(name);
-      await iotHandler.attachThingPrincipal({ thingName: name, principal: IOT_CERTIFICATE_ARN });
-
-      let key = '';
-      if (osPlatform === GreengrassCoreDeviceOsPlatform.LINUX) {
-        key = 'm2c2-install.sh';
-      } else if (osPlatform === GreengrassCoreDeviceOsPlatform.WINDOWS) {
-        key = 'm2c2-install.ps1';
-      }
-
-      const baseScript = await s3Handler.getObject({
-        bucket: GREENGRASS_RESOURCE_BUCKET,
-        key: key
-      });
-      const body = baseScript.Body.toString().replace('THING_NAME_PLACEHOLDER', name);
-      await s3Handler.putObject({
-        body,
-        contentType: 'text/x-sh',
-        destinationBucket: GREENGRASS_RESOURCE_BUCKET,
-        destinationKey: osPlatform === GreengrassCoreDeviceOsPlatform.LINUX ? `public/${name}.sh` : `public/${name}.ps1`
-      });
-
-      const createGatewayResponse = await iotSiteWiseHandler.createGreengrassV2Gateway(name);
-      iotSiteWiseGatewayId = createGatewayResponse.gatewayId;
-
-      message = `${message} You must install the installation script on your machine.`;
-    } catch (error) {
-      await rollbackCreateGreengrassCoreDevice(name);
-      throw error;
-    }
+    ({ iotThingArn, iotSiteWiseGatewayId, message } = await provisionSystemCreatedGreengrassCoreDevice(
+      greengrassCoreDeviceGreengrass,
+      name,
+      message,
+      osPlatform
+    ));
   } else {
-    if (typeof greengrassCoreDeviceGreengrass === 'undefined') {
-      throw new LambdaError({
-        message: 'The Greengrass core device name does not exist in Greengrass.',
-        name: 'GreengrassCoreDeviceNameNotFoundError',
-        statusCode: 404
-      });
-    }
-
-    /**
-     * When user brings their own Greengrass core device,
-     * it checks if IoT SiteWise gateway with the Greengrass core device exists.
-     */
-    const { gateways } = await iotSiteWiseHandler.listGreengrassV2Gateways();
-    const greengrassCoreDeviceGateway = gateways.find(gateway => gateway.coreDeviceThingName === name);
-
-    if (typeof greengrassCoreDeviceGateway === 'undefined') {
-      message = `${message} "${name}" Greengrass core device is not attached to IoT SiteWise gateway. This Greengrass core device would not allow OPC UA connections.`;
-    } else {
-      iotSiteWiseGatewayId = greengrassCoreDeviceGateway.gatewayId;
-    }
-
-    const thing = await iotHandler.getThing(name);
-    iotThingArn = thing.thingArn;
-
-    message = `${message} You must add relative permissions on your Greengrass. Please refer to the implementation guide.`;
+    ({ iotThingArn, iotSiteWiseGatewayId, message } = await getUserCreatedGreengrassCoreDevice(
+      greengrassCoreDeviceGreengrass,
+      name,
+      message
+    ));
   }
 
   await dynamoDbHandler.addGreengrassCoreDevice({ name, createdBy, iotSiteWiseGatewayId, iotThingArn, osPlatform });
@@ -491,6 +432,112 @@ async function createGreengrassCoreDevice(
   }
 
   return { name, message };
+}
+
+/**
+ *
+ * @param greengrassCoreDeviceGreengrass
+ * @param name
+ * @param message
+ * @param osPlatform
+ */
+async function provisionSystemCreatedGreengrassCoreDevice(
+  greengrassCoreDeviceGreengrass: GreengrassCoreDeviceItem,
+  name: string,
+  message: string,
+  osPlatform: GreengrassCoreDeviceOsPlatform
+) {
+  if (typeof greengrassCoreDeviceGreengrass !== 'undefined') {
+    throw new LambdaError({
+      message: 'The Greengrass core device name is already used in Greengrass.',
+      name: 'DuplicatedGreengrassCoreDeviceNameError',
+      statusCode: 400
+    });
+  }
+
+  let iotSiteWiseGatewayId: string;
+  let iotThingArn: string;
+
+  try {
+    /**
+     * When user choose to create a Greengrass core device, there are several steps.
+     * 1. Create an IoT thing for the Greengrass core device.
+     * 2. Attach an existing certificate created by the CloudFormation stack to the thing.
+     * 3. Get a Greengrass installation base script, replace the thing name, and upload the script to S3 bucket.
+     * 4. Create an IoT SiteWise gateway.
+     */
+    iotThingArn = await iotHandler.createThing(name);
+    await iotHandler.attachThingPrincipal({ thingName: name, principal: IOT_CERTIFICATE_ARN });
+
+    let key = '';
+    if (osPlatform === GreengrassCoreDeviceOsPlatform.LINUX) {
+      key = 'm2c2-install.sh';
+    } else if (osPlatform === GreengrassCoreDeviceOsPlatform.WINDOWS) {
+      key = 'm2c2-install.ps1';
+    }
+
+    const baseScript = await s3Handler.getObject({
+      bucket: GREENGRASS_RESOURCE_BUCKET,
+      key: key
+    });
+    const body = baseScript.Body.toString().replace('THING_NAME_PLACEHOLDER', name);
+    await s3Handler.putObject({
+      body,
+      contentType: 'text/x-sh',
+      destinationBucket: GREENGRASS_RESOURCE_BUCKET,
+      destinationKey: osPlatform === GreengrassCoreDeviceOsPlatform.LINUX ? `public/${name}.sh` : `public/${name}.ps1`
+    });
+
+    const createGatewayResponse = await iotSiteWiseHandler.createGreengrassV2Gateway(name);
+    iotSiteWiseGatewayId = createGatewayResponse.gatewayId;
+
+    message = `${message} You must install the installation script on your machine.`;
+  } catch (error) {
+    await rollbackCreateGreengrassCoreDevice(name);
+    throw error;
+  }
+  return { iotThingArn, iotSiteWiseGatewayId, message };
+}
+
+/**
+ *
+ * @param greengrassCoreDeviceGreengrass
+ * @param name
+ * @param message
+ */
+async function getUserCreatedGreengrassCoreDevice(
+  greengrassCoreDeviceGreengrass: GreengrassCoreDeviceItem,
+  name: string,
+  message: string
+) {
+  if (typeof greengrassCoreDeviceGreengrass === 'undefined') {
+    throw new LambdaError({
+      message: 'The Greengrass core device name does not exist in Greengrass.',
+      name: 'GreengrassCoreDeviceNameNotFoundError',
+      statusCode: 404
+    });
+  }
+
+  let iotSiteWiseGatewayId: string;
+
+  /**
+   * When user brings their own Greengrass core device,
+   * it checks if IoT SiteWise gateway with the Greengrass core device exists.
+   */
+  const { gateways } = await iotSiteWiseHandler.listGreengrassV2Gateways();
+  const greengrassCoreDeviceGateway = gateways.find(gateway => gateway.coreDeviceThingName === name);
+
+  if (typeof greengrassCoreDeviceGateway === 'undefined') {
+    message = `${message} "${name}" Greengrass core device is not attached to IoT SiteWise gateway. This Greengrass core device would not allow OPC UA connections.`;
+  } else {
+    iotSiteWiseGatewayId = greengrassCoreDeviceGateway.gatewayId;
+  }
+
+  const thing = await iotHandler.getThing(name);
+  const iotThingArn: string = thing.thingArn;
+
+  message = `${message} You must add relative permissions on your Greengrass. Please refer to the implementation guide.`;
+  return { iotThingArn, iotSiteWiseGatewayId, message };
 }
 
 /**

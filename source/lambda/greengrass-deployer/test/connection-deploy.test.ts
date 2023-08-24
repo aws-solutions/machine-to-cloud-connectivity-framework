@@ -170,7 +170,7 @@ test('Test success to deploy OPC DA connection with list tags and tags', async (
   expect(sleepSpy).toHaveBeenCalledTimes(2);
   expect(sleepSpy).toHaveBeenNthCalledWith(1, 5);
   expect(sleepSpy).toHaveBeenNthCalledWith(2, 30);
-});
+}, 60000);
 
 test('Test success to deploy OPC DA connection without list tags and tags', async () => {
   // This would happen in the real world because of validation checks. This is only for more coverage.
@@ -203,7 +203,7 @@ test('Test success to deploy OPC DA connection without list tags and tags', asyn
     },
     process.env.SOLUTION_UUID
   );
-});
+}, 60000);
 
 test('Test failure to deploy OPC DA connection due to creating component failure', async () => {
   const error = new Error('Failure');

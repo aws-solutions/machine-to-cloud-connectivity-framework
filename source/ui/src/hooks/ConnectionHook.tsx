@@ -56,46 +56,13 @@ export function ConnectionHook(props: ConnectionHookRequest): ConnectionHookResp
       })) as GetConnectionResponse;
 
       if (response.protocol === MachineProtocol.OPCDA) {
-        const opcDaListTags: string[] = [];
-        const tags: string[] = [];
-
-        if (response.opcDa?.listTags) {
-          for (const tag of response.opcDa.listTags) {
-            opcDaListTags.push(tag);
-          }
-        }
-
-        if (response.opcDa?.tags) {
-          for (const tag of response.opcDa.tags) {
-            tags.push(tag);
-          }
-        }
-
-        response.opcDaListTags = opcDaListTags.join('\n');
-        response.opcDaTags = tags.join('\n');
+        handleOpcDaMachineProtocol(response);
       } else if (response.protocol === MachineProtocol.OPCUA) {
         if (response.opcUa?.port === undefined) {
           (response.opcUa as OpcUaDefinition).port = '';
         }
       } else if (response.protocol === MachineProtocol.OSIPI) {
-        if (response.osiPi != undefined) {
-          if (response.osiPi.username == undefined) {
-            response.osiPi.username = INIT_CONNECTION.osiPi?.username;
-          }
-          if (response.osiPi.password == undefined) {
-            response.osiPi.password = INIT_CONNECTION.osiPi?.password;
-          }
-        }
-
-        const tags: string[] = [];
-
-        if (response.osiPi?.tags) {
-          for (const tag of response.osiPi.tags) {
-            tags.push(tag);
-          }
-        }
-
-        response.osiPiTags = tags.join('\n');
+        handleOsiPiMachineProtocol(response);
       }
 
       setConnection(response);
@@ -195,6 +162,55 @@ type ConnectionsHookResponse = {
   pageIndex: number;
   pageToken: string[];
 };
+
+/**
+ *
+ * @param response
+ */
+function handleOsiPiMachineProtocol(response: GetConnectionResponse) {
+  if (response.osiPi != undefined) {
+    if (response.osiPi.username == undefined) {
+      response.osiPi.username = INIT_CONNECTION.osiPi?.username;
+    }
+    if (response.osiPi.password == undefined) {
+      response.osiPi.password = INIT_CONNECTION.osiPi?.password;
+    }
+  }
+
+  const tags: string[] = [];
+
+  if (response.osiPi?.tags) {
+    for (const tag of response.osiPi.tags) {
+      tags.push(tag);
+    }
+  }
+
+  response.osiPiTags = tags.join('\n');
+}
+
+/**
+ *
+ * @param response
+ */
+function handleOpcDaMachineProtocol(response: GetConnectionResponse) {
+  const opcDaListTags: string[] = [];
+  const tags: string[] = [];
+
+  if (response.opcDa?.listTags) {
+    for (const tag of response.opcDa.listTags) {
+      opcDaListTags.push(tag);
+    }
+  }
+
+  if (response.opcDa?.tags) {
+    for (const tag of response.opcDa.tags) {
+      tags.push(tag);
+    }
+  }
+
+  response.opcDaListTags = opcDaListTags.join('\n');
+  response.opcDaTags = tags.join('\n');
+}
 
 /**
  * Connections hook.

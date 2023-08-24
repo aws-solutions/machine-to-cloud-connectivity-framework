@@ -37,7 +37,7 @@ const logger = new Logger('GreengrassCoreDevicesDashboard');
  * Renders the Greengrass core devices dashboard.
  * @returns The Greengrass core devices dashboard
  */
-export default function GreengrassCoreDevicesDashboard(): JSX.Element {
+export default function GreengrassCoreDevicesDashboard(): React.JSX.Element {
   const navigate = useNavigate();
   const [greengrassCoreDeviceCreatedBy, setGreengrassCoreDeviceCreatedBy] = useState<CreatedBy>();
   const [greengrassCoreDeviceName, setGreengrassCoreDeviceName] = useState<string>();
@@ -56,7 +56,7 @@ export default function GreengrassCoreDevicesDashboard(): JSX.Element {
    * Renders the empty Greengrass core device message.
    * @returns Empty Greengrass core device component
    */
-  function EmptyGreengrassCoreDevice(): JSX.Element {
+  function EmptyGreengrassCoreDevice(): React.JSX.Element {
     return (
       <Jumbotron className="text-align-center" id="empty-connection-jumbotron">
         <p className="empty-p">{I18n.get('info.message.no.greengrass.core.device')}</p>
@@ -69,7 +69,7 @@ export default function GreengrassCoreDevicesDashboard(): JSX.Element {
    * @param greengrassCoreDevice Greengrass core device
    * @returns Greengrass core device row
    */
-  function GreengrassCoreDevice(greengrassCoreDevice: ListGreengrassCoreDevicesItem): JSX.Element {
+  function GreengrassCoreDevice(greengrassCoreDevice: ListGreengrassCoreDevicesItem): React.JSX.Element {
     const { name, createdBy, numberOfConnections, osPlatform } = greengrassCoreDevice;
 
     return (

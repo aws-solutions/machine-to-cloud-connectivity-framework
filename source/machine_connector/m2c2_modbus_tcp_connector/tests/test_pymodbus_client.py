@@ -44,7 +44,7 @@ class TestPyModbusClient(TestCase):
         pymodbus_client.read_coils(1, None, 1)
 
         # assert
-        read_coils_mock.assert_called_with(1, slave=1)
+        read_coils_mock.assert_called_with(1, secondary=1)
 
     @mock.patch('pymodbus.client.sync.ModbusTcpClient.read_coils', return_value=None)
     def test_read_coils_with_count(self, read_coils_mock):
@@ -55,7 +55,7 @@ class TestPyModbusClient(TestCase):
         pymodbus_client.read_coils(1, 1, 1)
 
         # assert
-        read_coils_mock.assert_called_with(1, 1, slave=1)
+        read_coils_mock.assert_called_with(1, 1, secondary=1)
 
     @mock.patch('pymodbus.client.sync.ModbusTcpClient.read_coils', return_value=None)
     def test_read_coils_error(self, read_coils_mock):
@@ -75,7 +75,7 @@ class TestPyModbusClient(TestCase):
         pymodbus_client.read_discrete_inputs(1, None, 1)
 
         # assert
-        read_discrete_inputs_mock.assert_called_with(1, slave=1)
+        read_discrete_inputs_mock.assert_called_with(1, secondary=1)
 
     @mock.patch('pymodbus.client.sync.ModbusTcpClient.read_discrete_inputs', return_value=None)
     def test_read_discrete_inputs_with_count(self, read_discrete_inputs_mock):
@@ -86,7 +86,7 @@ class TestPyModbusClient(TestCase):
         pymodbus_client.read_discrete_inputs(1, 1, 1)
 
         # assert
-        read_discrete_inputs_mock.assert_called_with(1, 1, slave=1)
+        read_discrete_inputs_mock.assert_called_with(1, 1, secondary=1)
 
     @mock.patch('pymodbus.client.sync.ModbusTcpClient.read_discrete_inputs', return_value=None)
     def test_read_discrete_inputs_error(self, read_discrete_inputs_mock):
@@ -107,7 +107,7 @@ class TestPyModbusClient(TestCase):
         pymodbus_client.read_holding_registers(1, None, 1)
 
         # assert
-        read_holding_registers_mock.assert_called_with(1, slave=1)
+        read_holding_registers_mock.assert_called_with(1, secondary=1)
 
     @mock.patch('pymodbus.client.sync.ModbusTcpClient.read_holding_registers', return_value=None)
     def test_read_holding_registers_with_count(self, read_holding_registers_mock):
@@ -118,7 +118,7 @@ class TestPyModbusClient(TestCase):
         pymodbus_client.read_holding_registers(1, 1, 1)
 
         # assert
-        read_holding_registers_mock.assert_called_with(1, 1, slave=1)
+        read_holding_registers_mock.assert_called_with(1, 1, secondary=1)
 
     @mock.patch('pymodbus.client.sync.ModbusTcpClient.read_holding_registers', return_value=None)
     def test_read_holding_registers_error(self, read_holding_registers_mock):
@@ -139,7 +139,7 @@ class TestPyModbusClient(TestCase):
         pymodbus_client.read_input_registers(1, None, 1)
 
         # assert
-        read_input_registers_mock.assert_called_with(1, slave=1)
+        read_input_registers_mock.assert_called_with(1, secondary=1)
 
     @mock.patch('pymodbus.client.sync.ModbusTcpClient.read_input_registers', return_value=None)
     def test_read_input_registers_with_count(self, read_input_registers_mock):
@@ -150,7 +150,7 @@ class TestPyModbusClient(TestCase):
         pymodbus_client.read_input_registers(1, 1, 1)
 
         # assert
-        read_input_registers_mock.assert_called_with(1, 1, slave=1)
+        read_input_registers_mock.assert_called_with(1, 1, secondary=1)
 
     @mock.patch('pymodbus.client.sync.ModbusTcpClient.read_input_registers', return_value=None)
     def test_read_input_registers_error(self, read_input_registers_mock):

@@ -39,7 +39,7 @@ class TagConverter:
     def convert_modbustcp_tag(self, payload):
         """
         Using the alias to pull out the tag for modbustcp, tag is 
-        last part of alias designated as "(user custom tag)_(modbus command)_(slave address)"
+        last part of alias designated as "(user custom tag)_(modbus command)_(secondary address)"
         """
         tag = payload["alias"].split('/')[-1]
         return tag

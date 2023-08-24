@@ -1,9 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { RemovalPolicy, Aws } from 'aws-cdk-lib';
-import { AnyPrincipal, Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { Bucket, BucketEncryption, ObjectOwnership } from 'aws-cdk-lib/aws-s3';
+import { RemovalPolicy, aws_iam as iam, aws_s3 as s3 } from 'aws-cdk-lib';
 import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
 import { addCfnSuppressRules } from '../../utils/utils';
@@ -12,25 +10,26 @@ import { addCfnSuppressRules } from '../../utils/utils';
  * Creates a common CloudWatch Logs policy for Lambda functions.
  */
 export class LoggingBucketConstruct extends Construct {
-  public s3LoggingBucket: Bucket;
+  public s3LoggingBucket: s3.Bucket;
 
   constructor(scope: Construct, id: string) {
     super(scope, id);
 
-    this.s3LoggingBucket = new Bucket(this, 'LogBucket', {
-      objectOwnership: ObjectOwnership.OBJECT_WRITER,
-      encryption: BucketEncryption.S3_MANAGED,
+    this.s3LoggingBucket = new s3.Bucket(this, 'LogBucket', {
+      enforceSSL: true,
+      objectOwnership: s3.ObjectOwnership.OBJECT_WRITER,
+      encryption: s3.BucketEncryption.S3_MANAGED,
       removalPolicy: RemovalPolicy.RETAIN,
-      bucketName: `${Aws.STACK_NAME}-${Aws.ACCOUNT_ID}-log`
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL
     });
     this.s3LoggingBucket.addToResourcePolicy(
-      new PolicyStatement({
+      new iam.PolicyStatement({
         actions: ['s3:*'],
         conditions: {
           Bool: { 'aws:SecureTransport': 'false' }
         },
-        effect: Effect.DENY,
-        principals: [new AnyPrincipal()],
+        effect: iam.Effect.DENY,
+        principals: [new iam.AnyPrincipal()],
         resources: [this.s3LoggingBucket.bucketArn, this.s3LoggingBucket.arnForObjects('*')]
       })
     );

@@ -118,7 +118,7 @@
   "description.modbus.tcp.host": "The host url or IP address for the Modbus TCP server",
   "description.modbus.tcp.hostPort": "The port for the Modbus TCP server",
   "description.modbus.tcp.hostTag": "Customized tag to tie data back to Modbus TCP server",
-  "description.modbus.slave.config": "Customized JSON configuration for multiple Modbus Slaves connected to Modbus TCP server",
+  "description.modbus.secondary.config": "Customized JSON configuration for multiple Modbus Secondaries connected to Modbus TCP server",
   "error.message.control.connection": "An error occurred while processing the connection control.",
   "error.message.create.connection": "An error occurred while creating a connection.",
   "error.message.deregister.greengrass.core.device": "An error occurred while deregistering a Greengrass core device.",
@@ -178,7 +178,7 @@
   "placeholder.modbus.tcp.host": "127.0.0.1",
   "placeholder.modbus.tcp.hostPort": "5020",
   "placeholder.modbus.tcp.hostTag": "Your customized tag",
-  "placeholder.modbus.slave.config": "{}",
+  "placeholder.modbus.secondary.config": "{}",
   "invalid.alphanumeric.hyphens.underscores": "{name} is required. It should contain only alphanumeric characters, hyphens, and underscores. The maximum characters are 30 characters.",
   "invalid.connection.name": "Connection name is required. It should be unique and contains only alphanumeric characters, hyphens, and underscores. The maximum characters are 30 characters.",
   "invalid.duplicated.server.name": "The server name is already used. The server name should be unique.",
@@ -200,6 +200,6 @@
   "invalid.osiPi.maxRequestDurationVsRequestFrequency": "Max Request Duration must be greater than Request Frequency",
   "invalid.osiPi.catchupFrequencyVsRequestFrequency": "Catchup Frequency must be less than or equal to Request Frequency",
   "invalid.osiPi.queryOffset": "Query Offset should be a number between 0 and 86400",
-  "modbus.tcp.invalid.json": "Invalid modbus slave config json",
-  "modbus.slave.config": "Configuration JSON for Modbus Slaves"
+  "modbus.tcp.invalid.json": "Invalid modbus secondary config json",
+  "modbus.secondary.config": "Configuration JSON for Modbus Secondaries"
 }

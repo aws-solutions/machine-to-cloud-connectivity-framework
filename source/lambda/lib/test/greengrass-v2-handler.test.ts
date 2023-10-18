@@ -11,7 +11,6 @@ import {
 } from '../types/greengrass-v2-handler-types';
 import { MachineProtocol } from '../types/solution-common-types';
 import * as utils from '../utils';
-import { GreengrassCoreDeviceOsPlatform } from '../types/connection-builder-types';
 
 const sleepSpy = jest.spyOn(utils, 'sleep');
 const mockValues = {
@@ -38,8 +37,7 @@ describe('Unit tests of createComponent() function', () => {
     machineName: mockValues.machineName,
     logLevel: mockValues.logLevel,
     process: mockValues.process,
-    siteName: mockValues.siteName,
-    osPlatform: GreengrassCoreDeviceOsPlatform.LINUX
+    siteName: mockValues.siteName
   };
 
   beforeEach(() => {
@@ -81,7 +79,6 @@ describe('Unit tests of createComponent() function', () => {
     params.sendDataToIoTTopic = false;
     params.sendDataToKinesisStreams = true;
     params.sendDataToTimestream = false;
-    params.sendDataToHistorian = false;
 
     const recipe = GreengrassV2ComponentBuilder.createRecipe(params);
 
@@ -114,7 +111,6 @@ describe('Unit tests of createComponent() function', () => {
     params.sendDataToIoTTopic = true;
     params.sendDataToKinesisStreams = false;
     params.sendDataToTimestream = true;
-    params.sendDataToHistorian = false;
 
     const recipe = GreengrassV2ComponentBuilder.createRecipe(params);
 

@@ -7,7 +7,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import GreengrassCoreDeviceForm from '../greengrass/GreengrassCoreDeviceForm';
-import { CreatedBy, GreengrassCoreDeviceControl, OsPlatform, UserGreengrassCoreDeviceResponse } from '../../util/types';
+import { CreatedBy, GreengrassCoreDeviceControl, UserGreengrassCoreDeviceResponse } from '../../util/types';
 import { API_NAME } from '../../util/utils';
 
 const mockAPI = {
@@ -248,8 +248,7 @@ test('tests registerGreengrassCoreDevice function - System success', async () =>
     body: {
       name: greengrassCoreDeviceName,
       control: GreengrassCoreDeviceControl.CREATE,
-      createdBy: CreatedBy.SYSTEM,
-      osPlatform: OsPlatform.LINUX
+      createdBy: CreatedBy.SYSTEM
     }
   });
 });
@@ -289,8 +288,7 @@ test('tests registerGreengrassCoreDevice function - User failure', async () => {
     body: {
       name: mockDevice.coreDeviceThingName,
       control: GreengrassCoreDeviceControl.CREATE,
-      createdBy: CreatedBy.USER,
-      osPlatform: OsPlatform.LINUX
+      createdBy: CreatedBy.USER
     }
   });
 });

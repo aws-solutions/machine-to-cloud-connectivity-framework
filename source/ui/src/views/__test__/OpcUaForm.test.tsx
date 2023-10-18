@@ -23,7 +23,6 @@ test('renders the OpcUaForm with the existing connection', async () => {
     sendDataToIoTTopic: true,
     sendDataToKinesisDataStreams: true,
     sendDataToTimestream: true,
-    sendDataToHistorian: true,
     area: 'mock-area',
     machineName: 'mock-machine',
     opcUa: {

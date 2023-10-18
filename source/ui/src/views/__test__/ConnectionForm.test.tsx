@@ -13,8 +13,7 @@ import {
   GetConnectionResponse,
   ListGreengrassCoreDevicesResponse,
   MachineProtocol,
-  OsiPiAuthMode,
-  OsPlatform
+  OsiPiAuthMode
 } from '../../util/types';
 import { API_NAME } from '../../util/utils';
 
@@ -36,7 +35,6 @@ const opcDaResponse: GetConnectionResponse = {
   sendDataToIoTTopic: true,
   sendDataToKinesisDataStreams: true,
   sendDataToTimestream: true,
-  sendDataToHistorian: true,
   siteName: 'mock-site',
   area: 'mock-area',
   process: 'mock-process',
@@ -59,7 +57,6 @@ const opcUaResponse: GetConnectionResponse = {
   sendDataToIoTTopic: true,
   sendDataToKinesisDataStreams: true,
   sendDataToTimestream: true,
-  sendDataToHistorian: true,
   siteName: 'mock-site',
   area: 'mock-area',
   process: 'mock-process',
@@ -79,7 +76,6 @@ const osiPiResponse: GetConnectionResponse = {
   sendDataToIoTTopic: true,
   sendDataToKinesisDataStreams: true,
   sendDataToTimestream: true,
-  sendDataToHistorian: true,
   siteName: 'mock-site',
   area: 'mock-area',
   process: 'mock-process',
@@ -102,10 +98,10 @@ const osiPiResponse: GetConnectionResponse = {
 
 const greengrassCoreDevicesResponse: ListGreengrassCoreDevicesResponse = {
   greengrassCoreDevices: [
-    { name: 'mock-greengrass-1', createdBy: CreatedBy.SYSTEM, numberOfConnections: 0, osPlatform: OsPlatform.LINUX },
-    { name: 'mock-greengrass-2', createdBy: CreatedBy.USER, numberOfConnections: 1, osPlatform: OsPlatform.LINUX },
-    { name: 'mock-greengrass-3', createdBy: CreatedBy.SYSTEM, numberOfConnections: 2, osPlatform: OsPlatform.LINUX },
-    { name: 'mock-greengrass-4', createdBy: CreatedBy.USER, numberOfConnections: 3, osPlatform: OsPlatform.LINUX }
+    { name: 'mock-greengrass-1', createdBy: CreatedBy.SYSTEM, numberOfConnections: 0 },
+    { name: 'mock-greengrass-2', createdBy: CreatedBy.USER, numberOfConnections: 1 },
+    { name: 'mock-greengrass-3', createdBy: CreatedBy.SYSTEM, numberOfConnections: 2 },
+    { name: 'mock-greengrass-4', createdBy: CreatedBy.USER, numberOfConnections: 3 }
   ]
 };
 const error = { errorMessage: 'Failure' };
@@ -328,23 +324,6 @@ test('tests handleValueChange function - sendDataToTimestream for checkbox chang
   userEvent.click(screen.getByLabelText(I18n.get('timestream')));
   expect((document.getElementById('sendDataToTimestream') as HTMLInputElement).checked).toBeTruthy();
 
-  expect(mockAPI.get).toHaveBeenCalledTimes(1);
-  expect(mockAPI.get).toHaveBeenCalledWith(API_NAME, '/greengrass', {
-    queryStringParameters: { nextToken: undefined }
-  });
-});
-
-test('tests handleValueChange function - sendDataToHistorian for checkbox change', async () => {
-  mockAPI.get.mockResolvedValueOnce(greengrassCoreDevicesResponse);
-  render(
-    <MemoryRouter initialEntries={['/connection']}>
-      <Routes>
-        <Route path="/connection" element={<ConnectionForm />} />
-      </Routes>
-    </MemoryRouter>
-  );
-  userEvent.click(screen.getByLabelText(I18n.get('historian')));
-  expect((document.getElementById('sendDataToHistorian') as HTMLInputElement).checked).toBeTruthy();
   expect(mockAPI.get).toHaveBeenCalledTimes(1);
   expect(mockAPI.get).toHaveBeenCalledWith(API_NAME, '/greengrass', {
     queryStringParameters: { nextToken: undefined }

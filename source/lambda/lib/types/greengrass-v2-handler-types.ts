@@ -32,9 +32,6 @@ export interface CreateComponentRecipeRequest {
   sendDataToIoTTopic?: boolean;
   sendDataToKinesisStreams?: boolean;
   sendDataToTimestream?: boolean;
-  sendDataToHistorian?: boolean;
-  historianKinesisDatastreamName?: string;
-  osPlatform: string;
 }
 
 /**
@@ -83,11 +80,9 @@ export interface ComponentConnectionMetadata {
   sendDataToIoTSiteWise?: string;
   sendDataToKinesisStreams?: string;
   sendDataToTimestream?: string;
-  sendDataToHistorian?: string;
-  historianKinesisDatastreamName?: string;
 }
 
-export interface ComponentManifest {
+interface ComponentManifest {
   Platform: {
     os: string;
   };

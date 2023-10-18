@@ -87,14 +87,14 @@ class StreamManagerHelperClient:
                                                      min_message_count=read_msg_number
                                                  )
                                                  )
-            self.logger.debug("Message read from stream: {}".format(self.msg))
+            self.logger.info("Message read from stream: {}".format(self.msg))
             return (self.msg)
         except NotEnoughMessagesException as err:
-            self.logger.debug(
+            self.logger.info(
                 "Encountered an error when reading from stream {}: {}".format(stream_name, err))
             self.msg = []
             if "greater than the last sequence number" in err.message:
-                self.logger.debug("Trying to read sequence number {}. Current last sequence number in stream is {}".format(
+                self.logger.info("Trying to read sequence number {}. Current last sequence number in stream is {}".format(
                     sequence,
                     self.get_latest_sequence_number(stream_name)))
             return (self.msg)
@@ -102,7 +102,7 @@ class StreamManagerHelperClient:
             # TODO: Retry reading
             self.error_msg = "Encountered an error when trying to read from stream {}: {}".format(
                 err, stream_name)
-            self.logger.debug(self.error_msg)
+            self.logger.error(self.error_msg)
             raise
 
     def write_to_stream(self, stream_name: str, data: dict):

@@ -12,4 +12,3 @@ export * as MessageConsumerTypes from './message-consumer-types';
 export * as S3HandlerTypes from './s3-handler-types';
 export * as SolutionCommonTypes from './solution-common-types';
 export * as UtilsTypes from './utils-types';
-export * as TimestreamHandlerTypes from './timestream-handler-types';

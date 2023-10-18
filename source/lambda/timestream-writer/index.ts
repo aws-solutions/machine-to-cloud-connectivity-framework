@@ -5,14 +5,13 @@ import TimestreamWrite from 'aws-sdk/clients/timestreamwrite';
 import TimestreamHandler from '../lib/aws-handlers/timestream-handler';
 import { LambdaError } from '../lib/errors';
 import Logger, { LoggingLevel } from '../lib/logger';
-import { WriteRecordsRequest } from '../lib/types/timestream-handler-types';
 
 const { LOGGING_LEVEL, TIMESTREAM_DATABASE, TIMESTREAM_TABLE } = process.env;
 const A_DAY_MS = 60 * 60 * 24 * 1000;
 const MAX_WRITE_RECORDS = 100;
 
 const logger = new Logger('timestream-putter', LOGGING_LEVEL);
-const timestream = new TimestreamHandler();
+const timestream = new TimestreamHandler(TIMESTREAM_DATABASE, TIMESTREAM_TABLE);
 
 /**
  * This is an abstract type of Kinesis record event.
@@ -69,12 +68,7 @@ export async function handler(event: EventMessage): Promise<void> {
 
     if (timestreamRecords.length > 0) {
       try {
-        const params: WriteRecordsRequest = {
-          databaseName: TIMESTREAM_DATABASE,
-          tableName: TIMESTREAM_TABLE,
-          records: timestreamRecords
-        };
-        await timestream.write(params);
+        await timestream.write(timestreamRecords);
       } catch (error) {
         logger.log(LoggingLevel.ERROR, 'Error occurred while storing data into Timestream: ', error);
       }

@@ -18,6 +18,8 @@ ENABLE_DATA_PROCESSING_PACK='false'
 VERSION='1.0.82.0'
 GREENGRASS_NUCLEUS_VERSION='2.11.2'
 
+GREENGRASS_NUCLEUS_VERSION='2.5.6'
+
 function printUsage() {
   cat 1>&2 <<EOF
 Installs and configures SiteWise Edge and the associated Greengrass software and permissions.

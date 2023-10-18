@@ -65,18 +65,12 @@ export const mockAwsS3 = {
   deleteObject: jest.fn(),
   getObject: jest.fn(),
   getSignedUrlPromise: jest.fn(),
-  putObject: jest.fn(),
-  deleteObjects: jest.fn(),
-  deleteBucket: jest.fn(),
-  listObjectVersions: jest.fn()
+  putObject: jest.fn()
 };
 jest.mock('aws-sdk/clients/s3', () => jest.fn(() => ({ ...mockAwsS3 })));
 
 export const mockAwsTimestreamWrite = {
-  writeRecords: jest.fn(),
-  listTables: jest.fn(),
-  deleteTable: jest.fn(),
-  deleteDatabase: jest.fn()
+  writeRecords: jest.fn()
 };
 jest.mock('aws-sdk/clients/timestreamwrite', () => jest.fn(() => ({ ...mockAwsTimestreamWrite })));
 

@@ -13,7 +13,6 @@ type HandleValueChangeRequest = {
   setGreengrassCoreDeviceName: React.Dispatch<string>;
   setGreengrassCoreDeviceStatus: React.Dispatch<string>;
   setIsGreengrassCoreDeviceNameValid: React.Dispatch<boolean>;
-  setGreengrassCoreDeviceOSPlatform: React.Dispatch<string>;
   statusMap: Map<string, string>;
 };
 
@@ -38,7 +37,6 @@ export function handleValueChange(props: HandleValueChangeRequest): void {
     setGreengrassCoreDeviceName,
     setGreengrassCoreDeviceStatus,
     setIsGreengrassCoreDeviceNameValid,
-    setGreengrassCoreDeviceOSPlatform,
     statusMap
   } = props;
   const { id, value } = event.target;
@@ -65,9 +63,6 @@ export function handleValueChange(props: HandleValueChangeRequest): void {
         setIsGreengrassCoreDeviceNameValid(validateGreengrassCoreDeviceName(value));
       }
 
-      break;
-    case domIds.osPlatform:
-      setGreengrassCoreDeviceOSPlatform(value);
       break;
     default:
       break;

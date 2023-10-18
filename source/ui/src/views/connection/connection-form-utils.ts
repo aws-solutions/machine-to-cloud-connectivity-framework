@@ -10,7 +10,6 @@ import {
   GetConnectionResponse,
   KeyStringValue,
   MachineProtocol,
-  ModbusTcpDefinition,
   OpcDaDefinition,
   OpcUaDefinition,
   OsiPiDefinition
@@ -40,8 +39,6 @@ export async function checkErrors(props: CheckErrorsRequest): Promise<KeyStringV
   } else if (connectionDefinition.protocol === MachineProtocol.OSIPI) {
     connectionDefinition.osiPi = connection.osiPi as OsiPiDefinition;
     connectionDefinition.osiPi.tags = buildPerLineTags(connection.osiPiTags);
-  } else if (connectionDefinition.protocol === MachineProtocol.MODBUSTCP) {
-    connectionDefinition.modbusTcp = connection.modbusTcp as ModbusTcpDefinition;
   }
 
   const newErrors = validateConnectionDefinition(connectionDefinition);
@@ -111,7 +108,6 @@ export function handleValueChange(props: HandleValueChangeRequest): void {
   const { connection, errors, event, setConnection, setErrors } = props;
   let { id } = event.target;
   let value: string | boolean = event.target.value;
-
   const copiedConnection = copyObject(connection as unknown as Record<string, unknown>);
 
   if (event.target.type == 'checkbox') {
@@ -131,18 +127,11 @@ export function handleValueChange(props: HandleValueChangeRequest): void {
     osiPiId = id.split('_').pop() as string;
   }
 
-  let modbusTcpId: string | undefined;
-  if (id.startsWith('modbusTcp_')) {
-    modbusTcpId = id.split('_').pop() as string;
-  }
-
   let valueChangeCondition: boolean;
   if (typeof opcUaId !== 'undefined') {
     valueChangeCondition = setValue(copiedConnection.opcUa as Record<string, unknown>, opcUaId, value);
   } else if (typeof osiPiId !== 'undefined') {
     valueChangeCondition = setValue(copiedConnection.osiPi as Record<string, unknown>, osiPiId, value);
-  } else if (typeof modbusTcpId !== 'undefined') {
-    valueChangeCondition = setValue(copiedConnection.modbusTcp as Record<string, unknown>, modbusTcpId, value);
   } else {
     valueChangeCondition = setValue(copiedConnection, id, value);
   }

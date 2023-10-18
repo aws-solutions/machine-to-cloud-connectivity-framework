@@ -16,8 +16,7 @@ import { handler } from '../index';
 import {
   GreengrassCoreDeviceControl,
   GreengrassCoreDeviceEventTypes,
-  PostGreengrassRequestBodyInput,
-  GreengrassCoreDeviceOsPlatform
+  PostGreengrassRequestBodyInput
 } from '../../lib/types/connection-builder-types';
 import { CreatedBy } from '../../lib/types/dynamodb-handler-types';
 
@@ -25,8 +24,7 @@ describe('Unit tests of POST /greengrass - creation', () => {
   const body: PostGreengrassRequestBodyInput = {
     name: 'mock-greengrass',
     control: GreengrassCoreDeviceControl.CREATE,
-    createdBy: CreatedBy.SYSTEM,
-    osPlatform: GreengrassCoreDeviceOsPlatform.LINUX
+    createdBy: CreatedBy.SYSTEM
   };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const event: any = {
@@ -106,8 +104,7 @@ describe('Unit tests of POST /greengrass - creation', () => {
       name: body.name,
       createdBy: body.createdBy,
       iotSiteWiseGatewayId: mockValue.iotSiteWiseGateways[0].gatewayId,
-      iotThingArn: mockValue.iotThingArn,
-      osPlatform: GreengrassCoreDeviceOsPlatform.LINUX
+      iotThingArn: mockValue.iotThingArn
     });
     expect(mockIoTSiteWiseHandler.listGreengrassV2Gateways).not.toHaveBeenCalled();
     expect(mockIoTHandler.getThing).not.toHaveBeenCalled();
@@ -419,8 +416,7 @@ describe('Unit tests of POST /greengrass - creation', () => {
       name: body.name,
       createdBy: body.createdBy,
       iotSiteWiseGatewayId: mockValue.iotSiteWiseGateways[0].gatewayId,
-      iotThingArn: mockValue.iotThingArn,
-      osPlatform: GreengrassCoreDeviceOsPlatform.LINUX
+      iotThingArn: mockValue.iotThingArn
     });
     expect(mockIoTHandler.getThing).toHaveBeenCalledTimes(1);
     expect(mockIoTHandler.getThing).toHaveBeenCalledWith(body.name);
@@ -478,8 +474,7 @@ describe('Unit tests of POST /greengrass - creation', () => {
       name: body.name,
       createdBy: body.createdBy,
       iotSiteWiseGatewayId: undefined,
-      iotThingArn: mockValue.iotThingArn,
-      osPlatform: GreengrassCoreDeviceOsPlatform.LINUX
+      iotThingArn: mockValue.iotThingArn
     });
     expect(mockIoTHandler.getThing).toHaveBeenCalledTimes(1);
     expect(mockIoTHandler.getThing).toHaveBeenCalledWith(body.name);
@@ -571,8 +566,7 @@ describe('Unit tests of POST /greengrass - deletion', () => {
   const body: PostGreengrassRequestBodyInput = {
     name: 'mock-greengrass',
     control: GreengrassCoreDeviceControl.DELETE,
-    createdBy: CreatedBy.SYSTEM,
-    osPlatform: GreengrassCoreDeviceOsPlatform.LINUX
+    createdBy: CreatedBy.SYSTEM
   };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const event: any = {

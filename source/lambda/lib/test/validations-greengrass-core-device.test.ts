@@ -3,7 +3,7 @@
 
 // PREPARE
 import { LambdaError } from '../errors';
-import { GreengrassCoreDeviceControl, GreengrassCoreDeviceOsPlatform } from '../types/connection-builder-types';
+import { GreengrassCoreDeviceControl } from '../types/connection-builder-types';
 import { CreatedBy } from '../types/dynamodb-handler-types';
 import { validateGreengrassCoreDeviceRequest } from '../validations';
 
@@ -73,7 +73,6 @@ test('When `name` length is larger than 128, it throws an error', () => {
 test('When `control` is invalid, it throws an error', () => {
   input.name = 'it-should_be:fine-123';
   input.control = 'invalid';
-  input.osPlatform = GreengrassCoreDeviceOsPlatform.LINUX;
 
   expect(() => validateGreengrassCoreDeviceRequest(input)).toThrow(
     new LambdaError({
@@ -87,7 +86,6 @@ test('When `control` is invalid, it throws an error', () => {
 test('When `createdBy` is invalid, it throws an error', () => {
   input.control = GreengrassCoreDeviceControl.CREATE;
   input.createdBy = 'invalid';
-  input.osPlatform = GreengrassCoreDeviceOsPlatform.LINUX;
 
   expect(() => validateGreengrassCoreDeviceRequest(input)).toThrow(
     new LambdaError({
@@ -101,7 +99,6 @@ test('When `createdBy` is invalid, it throws an error', () => {
 test('When every value is valid, it does not throw an error', () => {
   input.control = GreengrassCoreDeviceControl.DELETE;
   input.createdBy = CreatedBy.SYSTEM;
-  input.osPlatform = GreengrassCoreDeviceOsPlatform.LINUX;
 
   expect(() => validateGreengrassCoreDeviceRequest(input)).not.toThrow();
 

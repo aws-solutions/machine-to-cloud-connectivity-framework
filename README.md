@@ -49,8 +49,8 @@ In addition to the AWS Solutions Constructs, the solution uses AWS CDK directly 
 
 ## Prerequisites for Customization
 
-- [Node.js](https://nodejs.org/en/) 16.x or later
-- [Python](https://www.python.org/) 3.8 or later
+- [Node.js](https://nodejs.org/en/) 14.x or later
+- [Python](https://www.python.org/) 3.7 or later
 - [Yarn](https://yarnpkg.com/)
 
 ### 1. Clone the repository
@@ -87,11 +87,8 @@ chmod +x run-unit-tests.sh
 ```bash
 cd $MAIN_DIRECTORY/deployment
 chmod +x build-s3-dist.sh
-./build-s3-dist.sh $DIST_BUCKET_PREFIX $SOLUTION_NAME $VERSION $SHOULD_SEND_ANONYMOUS_USAGE $SHOULD_TEARDOWN_DATA_ON_DESTROY
+./build-s3-dist.sh $DIST_BUCKET_PREFIX $SOLUTION_NAME $VERSION
 ```
-
-To consent to sending anonymous usage metrics, use "Yes" for $SHOULD_SEND_ANONYMOUS_USAGE
-To have s3 buckets, timestream database torn down, use "Yes" for $SHOULD_TEARDOWN_DATA_ON_DESTROY
 
 ## Deploy
 
@@ -120,8 +117,7 @@ aws cloudformation create-stack \
         ParameterKey=UserEmail,ParameterValue=$INITIAL_USER \
         ParameterKey=LoggingLevel,ParameterValue=ERROR \
         ParameterKey=ExistingKinesisStreamName,ParameterValue="" \
-        ParameterKey=ExistingTimestreamDatabaseName,ParameterValue="" \
-        ParameterKey=ShouldRetainBuckets,ParameterValue=True
+        ParameterKey=ExistingTimestreamDatabaseName,ParameterValue=""
 
 ```
 
@@ -146,11 +142,4 @@ sudo apt install python3.8-venv
 For the OSI PI connector, the following must be installed prior to deployment of M2C2 on the IoT Core Device
 ```bash
 sudo apt-get install libkrb5-dev
-```
-
-If using Amazon linux, use the following commands instead
-```bash
-yum -y install krb5-devel
-yum -y install gcc
-yum -y install python3-devel
 ```

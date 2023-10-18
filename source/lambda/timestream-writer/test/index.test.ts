@@ -87,11 +87,7 @@ test('Test success to write records in Timestream table', async () => {
 
   await handler(event);
   expect(mockTimestreamHandler.write).toHaveBeenCalledTimes(1);
-  expect(mockTimestreamHandler.write).toHaveBeenCalledWith({
-    databaseName: 'mock-timestream-database',
-    records: records.map(record => parseToTimestream(record)),
-    tableName: 'mock-timestream-table'
-  });
+  expect(mockTimestreamHandler.write).toHaveBeenCalledWith(records.map(record => parseToTimestream(record)));
   expect(consoleErrorSpy).not.toHaveBeenCalled();
 });
 
@@ -108,16 +104,14 @@ test('Test success to write records in Timestream table when there are more than
 
   await handler(event);
   expect(mockTimestreamHandler.write).toHaveBeenCalledTimes(2);
-  expect(mockTimestreamHandler.write).toHaveBeenNthCalledWith(1, {
-    databaseName: 'mock-timestream-database',
-    records: records.splice(0, 100).map(record => parseToTimestream(record)),
-    tableName: 'mock-timestream-table'
-  });
-  expect(mockTimestreamHandler.write).toHaveBeenNthCalledWith(2, {
-    databaseName: 'mock-timestream-database',
-    records: records.splice(0, 100).map(record => parseToTimestream(record)),
-    tableName: 'mock-timestream-table'
-  });
+  expect(mockTimestreamHandler.write).toHaveBeenNthCalledWith(
+    1,
+    records.splice(0, 100).map(record => parseToTimestream(record))
+  );
+  expect(mockTimestreamHandler.write).toHaveBeenNthCalledWith(
+    2,
+    records.splice(0, 100).map(record => parseToTimestream(record))
+  );
   expect(consoleErrorSpy).not.toHaveBeenCalled();
 });
 
@@ -476,11 +470,7 @@ test('Test failure to write records in Timestream table due to write failure', a
 
   await handler(event);
   expect(mockTimestreamHandler.write).toHaveBeenCalledTimes(1);
-  expect(mockTimestreamHandler.write).toHaveBeenCalledWith({
-    databaseName: 'mock-timestream-database',
-    records: records.map(record => parseToTimestream(record)),
-    tableName: 'mock-timestream-table'
-  });
+  expect(mockTimestreamHandler.write).toHaveBeenCalledWith(records.map(record => parseToTimestream(record)));
   expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
   expect(consoleErrorSpy).toHaveBeenCalledWith(
     '[timestream-putter]',

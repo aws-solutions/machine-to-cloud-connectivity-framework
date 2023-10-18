@@ -31,8 +31,6 @@ const event: ConnectionDefinition = {
   sendDataToIoTTopic: true,
   sendDataToKinesisDataStreams: true,
   sendDataToTimestream: true,
-  sendDataToHistorian: true,
-  historianKinesisDatastreamName: 'Historian-test',
   opcDa: {
     interval: 5,
     iterations: 10,
@@ -62,9 +60,7 @@ const publisherComponent = {
   sendDataToIoTTopic: 'Yes',
   sendDataToIoTSiteWise: 'Yes',
   sendDataToKinesisStreams: 'Yes',
-  sendDataToTimestream: 'Yes',
-  sendDataToHistorian: 'Yes',
-  historianKinesisDatastreamName: 'Historian-test'
+  sendDataToTimestream: 'Yes'
 };
 const defaultSource = iotSiteWiseHandler.getDefaultSource({
   connectionName: event.connectionName,
@@ -128,8 +124,6 @@ test('Test success to update running OPC DA connection with list tags', async ()
     sendDataToIoTTopic: event.sendDataToIoTTopic,
     sendDataToKinesisDataStreams: event.sendDataToKinesisDataStreams,
     sendDataToTimestream: event.sendDataToTimestream,
-    sendDataToHistorian: event.sendDataToHistorian,
-    historianKinesisDatastreamName: event.historianKinesisDatastreamName,
     siteName: event.siteName
   });
   expect(mockGreengrassV2Handler.createDeployment).toHaveBeenCalledTimes(1);
@@ -187,12 +181,10 @@ test('Test success to update stopped OPC DA connection with tags', async () => {
   event.sendDataToIoTTopic = false;
   event.sendDataToKinesisDataStreams = false;
   event.sendDataToTimestream = false;
-  event.sendDataToHistorian = false;
   publisherComponent.sendDataToIoTSiteWise = '';
   publisherComponent.sendDataToIoTTopic = '';
   publisherComponent.sendDataToKinesisStreams = '';
   publisherComponent.sendDataToTimestream = '';
-  publisherComponent.sendDataToHistorian = '';
 
   mockDynamoDbHandler.getConnection.mockResolvedValueOnce({ control: ConnectionControl.STOP });
   mockDynamoDbHandler.updateConnection.mockResolvedValue(undefined);
@@ -225,8 +217,6 @@ test('Test success to update stopped OPC DA connection with tags', async () => {
     sendDataToIoTTopic: event.sendDataToIoTTopic,
     sendDataToKinesisDataStreams: event.sendDataToKinesisDataStreams,
     sendDataToTimestream: event.sendDataToTimestream,
-    sendDataToHistorian: event.sendDataToHistorian,
-    historianKinesisDatastreamName: event.historianKinesisDatastreamName,
     siteName: event.siteName
   });
   expect(mockGreengrassV2Handler.createDeployment).toHaveBeenCalledTimes(1);
@@ -270,12 +260,10 @@ test('Test success to update running OPC UA connection when current server name 
   event.sendDataToIoTTopic = false;
   event.sendDataToKinesisDataStreams = true;
   event.sendDataToTimestream = false;
-  event.sendDataToHistorian = false;
   publisherComponent.sendDataToIoTSiteWise = 'Yes';
   publisherComponent.sendDataToIoTTopic = '';
   publisherComponent.sendDataToKinesisStreams = 'Yes';
   publisherComponent.sendDataToTimestream = '';
-  publisherComponent.sendDataToHistorian = '';
 
   const newSourceConfiguration = { ...defaultSource };
   newSourceConfiguration.endpoint.endpointUri = iotSiteWiseHandler.getEndpointUri(event.opcUa.machineIp);
@@ -331,8 +319,6 @@ test('Test success to update running OPC UA connection when current server name 
     sendDataToIoTTopic: event.sendDataToIoTTopic,
     sendDataToKinesisDataStreams: event.sendDataToKinesisDataStreams,
     sendDataToTimestream: event.sendDataToTimestream,
-    sendDataToHistorian: event.sendDataToHistorian,
-    historianKinesisDatastreamName: event.historianKinesisDatastreamName,
     siteName: event.siteName
   });
   expect(mockGreengrassV2Handler.createDeployment).toHaveBeenCalledTimes(1);
@@ -435,8 +421,6 @@ test('Test success to update stopped OPC UA connection when current server name 
     sendDataToIoTTopic: event.sendDataToIoTTopic,
     sendDataToKinesisDataStreams: event.sendDataToKinesisDataStreams,
     sendDataToTimestream: event.sendDataToTimestream,
-    sendDataToHistorian: event.sendDataToHistorian,
-    historianKinesisDatastreamName: event.historianKinesisDatastreamName,
     siteName: event.siteName
   });
   expect(mockGreengrassV2Handler.createDeployment).toHaveBeenCalledTimes(1);

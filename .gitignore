@@ -3,8 +3,6 @@ global-s3-assets/
 regional-s3-assets/
 open-source/
 package/
-package-lock.json
-yarn.lock
 source/test/
 .venv/
 __pycache__

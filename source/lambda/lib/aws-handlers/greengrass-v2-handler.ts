@@ -17,7 +17,7 @@ import {
   GreengrassCoreDeviceItem,
   SecretManagement
 } from '../types/greengrass-v2-handler-types';
-import { getAwsSdkOptions, isValidVersion, sleep } from '../utils';
+import { extractValidVersion, getAwsSdkOptions, sleep } from '../utils';
 import { ConnectionControl } from '../types/solution-common-types';
 
 const { LOGGING_LEVEL } = process.env;
@@ -30,12 +30,7 @@ export default class GreengrassV2Handler {
 
   constructor() {
     const { COMPONENT_VERSION } = process.env;
-
-    if (isValidVersion(COMPONENT_VERSION)) {
-      this.componentVersion = COMPONENT_VERSION;
-    } else {
-      this.componentVersion = '1.0.0';
-    }
+    this.componentVersion = extractValidVersion(COMPONENT_VERSION);
   }
 
   /**

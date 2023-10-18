@@ -1,6 +1,6 @@
 {
   "name": "custom-resource",
-  "version": "4.2.2",
+  "version": "4.2.3",
   "description": "The solution's custom resource function",
   "main": "index.js",
   "scripts": {

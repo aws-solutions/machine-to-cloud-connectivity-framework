@@ -51,7 +51,7 @@ class ScriptConstants {
 
     static [string] $Version = '1.0.28.0'
 
-    static [string] $GreengrassNucleusVersion = '2.5.6'
+    static [string] $GreengrassNucleusVersion = '2.11.2'
 
     static [string] $PythonVersion = '3.9.1'
 

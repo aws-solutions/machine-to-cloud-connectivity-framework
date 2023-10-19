@@ -72,6 +72,7 @@ echo "--------------------------------------------------------------------------
 python3 -m venv .venv
 source .venv/bin/activate
 pip3 install autopep8
+pip3 install packaging
 
 echo "------------------------------------------------------------------------------"
 echo "[autopep8] Run autopep8"
@@ -114,6 +115,29 @@ then
   echo "******************************************************************************"
   exit 1
 fi
+
+# shortening app_registry_name as AppInsights application_id has a character limit
+app_registry_name=$(echo "$SOLUTION_NAME_PLACEHOLDER" | sed 's/ /-/g' | sed 's/machine-to-cloud-connectivity-framework/m2c2/g' | awk '{print tolower($0)}' | cut -c 1-17)
+echo "-----------------------------------------------------------------------------"
+echo "Setting App Registry Application Name as $app_registry_name"
+echo "-----------------------------------------------------------------------------"
+
+echo "------------------------------------------------------------------------------"
+echo "[Packing] Updating placeholders"
+echo "------------------------------------------------------------------------------"
+file=$template_dist_dir/machine-to-cloud-connectivity-framework.template
+replace="s/%%BUCKET_NAME%%/$BUCKET_NAME_PLACEHOLDER/g"
+sed -i -e $replace $file
+
+replace="s/%%SOLUTION_NAME%%/$SOLUTION_NAME_PLACEHOLDER/g"
+sed -i -e $replace $file
+
+replace="s/%%VERSION%%/$VERSION_PLACEHOLDER/g"
+sed -i -e $replace $file
+
+replace="s/%%APP_REG_NAME%%/$app_registry_name/g"
+sed -i -e $replace $file
+
 
 echo "------------------------------------------------------------------------------"
 echo "Build the common Lambda library"

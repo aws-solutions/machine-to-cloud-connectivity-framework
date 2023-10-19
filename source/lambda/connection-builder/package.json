@@ -1,6 +1,6 @@
 {
   "name": "connection-builder",
-  "version": "4.2.2",
+  "version": "4.2.3",
   "description": "The function creates a connection and deploys the connection into the Greengrass edge device.",
   "main": "index.js",
   "scripts": {

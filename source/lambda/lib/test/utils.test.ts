@@ -8,6 +8,7 @@ import {
   getAwsSdkOptions,
   generateUniqueId,
   isValidVersion,
+  extractValidVersion,
   sendAnonymousMetric,
   sleep,
   trimAllStringInObjectOrArray
@@ -137,11 +138,35 @@ test('Unit tests of isValidVersion() function', () => {
   expect(isValidVersion('1.1.0')).toEqual(true);
   expect(isValidVersion('1.1.1')).toEqual(true);
   expect(isValidVersion('1.10.10')).toEqual(true);
+  expect(isValidVersion('v1.0.0')).toEqual(true);
+  expect(isValidVersion('v3.2.1')).toEqual(true);
   expect(isValidVersion('01.0.0')).toEqual(false);
   expect(isValidVersion('0.01.0')).toEqual(false);
   expect(isValidVersion('0.0.01')).toEqual(false);
   expect(isValidVersion('0.0')).toEqual(false);
   expect(isValidVersion('0.0.x')).toEqual(false);
   expect(isValidVersion('x.y.z')).toEqual(false);
-  expect(isValidVersion('v1.0.0')).toEqual(false);
+  expect(isValidVersion('vmain')).toEqual(false);
+  expect(isValidVersion('v1.0')).toEqual(false);
+  expect(isValidVersion('customVersion')).toEqual(false);
+});
+
+test('Unite tests of extractVersion() function', () => {
+  expect(extractValidVersion('0.0.0')).toEqual('0.0.0');
+  expect(extractValidVersion('1.0.0')).toEqual('1.0.0');
+  expect(extractValidVersion('10.0.0')).toEqual('10.0.0');
+  expect(extractValidVersion('1.1.0')).toEqual('1.1.0');
+  expect(extractValidVersion('1.1.1')).toEqual('1.1.1');
+  expect(extractValidVersion('1.10.10')).toEqual('1.10.10');
+  expect(extractValidVersion('v1.0.0')).toEqual('1.0.0');
+  expect(extractValidVersion('v3.2.1')).toEqual('3.2.1');
+  expect(extractValidVersion('01.0.0')).toEqual('1.0.0');
+  expect(extractValidVersion('0.01.0')).toEqual('1.0.0');
+  expect(extractValidVersion('0.0.01')).toEqual('1.0.0');
+  expect(extractValidVersion('0.0')).toEqual('1.0.0');
+  expect(extractValidVersion('0.0.x')).toEqual('1.0.0');
+  expect(extractValidVersion('x.y.z')).toEqual('1.0.0');
+  expect(extractValidVersion('vmain')).toEqual('1.0.0');
+  expect(extractValidVersion('v1.0')).toEqual('1.0.0');
+  expect(extractValidVersion('customVersion')).toEqual('1.0.0');
 });

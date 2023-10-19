@@ -6,7 +6,6 @@ import {
   ArnFormat,
   CfnDeletionPolicy,
   Duration,
-  Fn,
   Stack,
   aws_dynamodb as dynamodb,
   aws_iam as iam,
@@ -248,7 +247,7 @@ export class ConnectionBuilderConstruct extends Construct {
       description: 'Machine to Cloud Connectivity Greengrass deployer function',
       environment: {
         ARTIFACT_BUCKET: props.greengrassResourceBucket.bucketName,
-        COMPONENT_VERSION: Fn.select(1, Fn.split('v', props.solutionConfig.solutionVersion)),
+        COMPONENT_VERSION: props.solutionConfig.solutionVersion,
         CONNECTION_DYNAMODB_TABLE: this.connectionTableName,
         GREENGRASS_CORE_DEVICES_DYNAMODB_TABLE: this.greengrassCoreDevicesTableName,
         IOT_ENDPOINT: props.iotEndpointAddress,

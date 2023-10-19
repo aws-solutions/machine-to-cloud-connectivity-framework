@@ -115,3 +115,5 @@ tomli under the Massachusetts Institute of Technology (MIT) License
 tzdata under the Massachusetts Institute of Technology (MIT) Licensex
 is-typedarray under the Massachusetts Institute of Technology (MIT) License
 @paralleldrive/cuid2 under the Massachusetts Institute of Technology (MIT) License
+boolean.py under the 2-Clause BSD License
+license-expression under the Apache License 2.0

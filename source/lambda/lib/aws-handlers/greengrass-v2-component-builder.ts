@@ -22,7 +22,7 @@ const { ARTIFACT_BUCKET, KINESIS_STREAM, TIMESTREAM_KINESIS_STREAM, COLLECTOR_ID
 const PYTHON_MODULE_VERSION = {
   awsiotsdk: '1.11.1',
   backoff: '1.10.0',
-  greengrasssdk: '1.6.0',
+  greengrasssdk: '1.6.1',
   'OpenOPC-Python3x': '1.3.1',
   Pyro4: '4.81',
   'python-dateutil': '2.8.1',
@@ -66,7 +66,7 @@ export class GreengrassV2ComponentBuilder {
     // By default, all components have the Greengrass Nucleus and stream manager as dependencies.
     const componentDependencies: Record<string, ComponentDependency> = {
       'aws.greengrass.Nucleus': {
-        VersionRequirement: '=2.5.6',
+        VersionRequirement: '=2.11.2',
         DependencyType: 'HARD'
       },
       'aws.greengrass.StreamManager': {

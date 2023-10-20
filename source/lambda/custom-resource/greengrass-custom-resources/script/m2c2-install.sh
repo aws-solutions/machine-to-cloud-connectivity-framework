@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# IMPORTANT NOTE FOR M2C2 Developers!
+# Most of this script was generated via IoT Sitewise Edge Gateway creation
+# Python3 download and installation was added and will need to be maintained
+
 GREENGRASS_FOLDER="/greengrass"
 
 AWS_REGION='REGION_PLACEHOLDER'
@@ -12,7 +16,7 @@ IOT_PRIVATE_KEY='PRIVATE_KEY_PLACEHOLDER'
 ENABLE_DATA_PROCESSING_PACK='false'
 
 VERSION='1.0.82.0'
-GREENGRASS_NUCLEUS_VERSION='2.5.6'
+GREENGRASS_NUCLEUS_VERSION='2.11.2'
 
 function printUsage() {
   cat 1>&2 <<EOF

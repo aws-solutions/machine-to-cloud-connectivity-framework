@@ -6,7 +6,7 @@
     "name": "Amazon Web Services",
     "url": "https://aws.amazon.com/solutions"
   },
-  "version": "4.2.2",
+  "version": "4.2.3",
   "private": true,
   "devDependencies": {
     "@aws-amplify/api": "4.0.40",
@@ -33,13 +33,14 @@
     "sass": "~1.49.9",
     "typescript": "~4.6.3"
   },
-  "overrides": {
+  "resolutions": {
+    "@types/react": "17.0.65",
     "fast-xml-parser": "4.2.6",
     "nth-check": "2.1.1"
   },
   "scripts": {
     "start": "react-scripts start",
-    "clean": "rm -rf yarn.lock package-lock.json && rm -rf node_modules && rm -rf build",
+    "clean": "rm -rf node_modules && rm -rf build",
     "build:react": "react-scripts build",
     "build": "yarn clean && yarn install && yarn build:react",
     "test": "react-scripts test --coverage --passWithNoTests --watchAll=false --silent",

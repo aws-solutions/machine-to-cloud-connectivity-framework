@@ -7,6 +7,8 @@ import {
   MachineToCloudConnectivityFrameworkStack
 } from '../lib/machine-to-cloud-connectivity-stack';
 import { AwsSolutionsChecks } from 'cdk-nag';
+import { AppRegistry } from '../lib/app-registry/app-registry';
+import * as crypto from 'crypto';
 
 /**
  * Gets the solution props from the environment variables.
@@ -60,11 +62,18 @@ function getProps(): MachineToCloudConnectivityFrameworkProps {
   };
 }
 
+const appProps = getProps();
 const app = new App();
-new MachineToCloudConnectivityFrameworkStack(app, 'Stack', {
+const m2c2Stack = new MachineToCloudConnectivityFrameworkStack(app, 'Stack', {
   synthesizer: new DefaultStackSynthesizer({
     generateBootstrapVersionRule: false
   }),
-  ...getProps()
+  ...appProps
 });
 Aspects.of(app).add(new AwsSolutionsChecks());
+const hash = crypto.createHash('sha256').update(m2c2Stack.stackName).digest('hex');
+Aspects.of(m2c2Stack).add(
+  new AppRegistry(m2c2Stack, `AppRegistry-${hash}`, {
+    solutionID: appProps.solutionId
+  })
+);

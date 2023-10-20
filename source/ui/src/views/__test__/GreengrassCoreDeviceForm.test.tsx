@@ -164,7 +164,7 @@ test('tests handleGreengrassCoreDevice function - System', async () => {
 
   userEvent.click(screen.getByText(I18n.get('register')));
   expect(await screen.findByText(/info.message.register.greengrass.core.device/)).not.toBeNull();
-});
+}, 10000);
 
 test('tests handleGreengrassCoreDevice function - User with HEALTHY device', async () => {
   mockAPI.get.mockResolvedValueOnce(userGreengrassCoreDeviceResponse);

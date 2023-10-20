@@ -118,10 +118,30 @@ export function trimAllStringInObjectOrArray(obj: unknown) {
 /**
  * Validates if the provided version is valid.
  * The valid version consists of a major version number, a minor version number, and a patch version number.
- * (e.g. 1.0.0)
+ * (e.g. 1.0.0, v1.0.0)
  * @param version The version to validate
  * @returns If the version is valid or not
  */
 export function isValidVersion(version: string): boolean {
-  return /^(\d|[1-9]\d*)\.(\d|[1-9]\d*)\.(\d|[1-9]\d*)$/.test(version);
+  return (
+    /^(\d|[1-9]\d*)\.(\d|[1-9]\d*)\.(\d|[1-9]\d*)$/.test(version) ||
+    /^v(\d|[1-9]\d*)\.(\d|[1-9]\d*)\.(\d|[1-9]\d*)$/.test(version)
+  );
+}
+
+/**
+ * Extracts the version from the version string.
+ * The expected solution version is vX.Y.Z. X, Y, and Z are integer numbers.
+ * When the solution version is v1.0.0, the component version would be 1.0.0.
+ * If the solution version is not expected format (e.g. customVersion, v.1.0.0, v1, and so on),
+ * the Lambda function is going to replace the component version to `1.0.0` by default.
+ * @param version
+ * @returns The version number
+ */
+export function extractValidVersion(version: string): string {
+  if (isValidVersion(version)) {
+    return version.replace(/^v/, '');
+  } else {
+    return '1.0.0';
+  }
 }

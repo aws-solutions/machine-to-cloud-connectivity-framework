@@ -49,9 +49,23 @@ In addition to the AWS Solutions Constructs, the solution uses AWS CDK directly 
 
 ## Prerequisites for Customization
 
-- [Node.js](https://nodejs.org/en/) 16.x or later
-- [Python](https://www.python.org/) 3.8 or later
+- [Node.js](https://nodejs.org/en/) 18.x or later
+- [Python](https://www.python.org/) 3.11 or later
 - [Yarn](https://yarnpkg.com/)
+
+# NOTES
+
+On some operating systems, Python virtual environment must be installed manually
+```bash
+sudo apt install python3.10-venv
+```
+
+If using Amazon linux, use the following commands instead
+```bash
+yum -y install krb5-devel
+yum -y install gcc
+yum -y install python3-devel
+```
 
 ### 1. Clone the repository
 
@@ -95,6 +109,11 @@ To have s3 buckets, timestream database torn down, use "Yes" for $SHOULD_TEARDOW
 
 ## Deploy
 
+- (Optional) Check bucket ownership for anti-sniping protection
+ ```bash
+ export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+ aws s3api head-bucket --bucket ${DIST_BUCKET_PREFIX}-${REGION} --expected-bucket-owner $ACCOUNT_ID
+ ```
 - Deploy the distributable to the Amazon S3 bucket in your account. Make sure you are uploading all files and directories under `deployment/global-s3-assets` and `deployment/regional-s3-assets` to `<SOLUTION_NAME>/<VERSION>` folder in the `<DIST_BUCKET_PREFIX>-<REGION>` bucket (e.g. `s3://<DIST_BUCKET_PREFIX>-<REGION>/<SOLUTION_NAME>/<VERSION>/`).
   CLI based S3 command to sync the buckets is:
   ```bash
@@ -135,22 +154,3 @@ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
 SPDX-License-Identifier: Apache-2.0
 
-
-# NOTES
-
-On some operating systems, Python virtual environment must be installed manually
-```bash
-sudo apt install python3.8-venv
-```
-
-For the OSI PI connector, the following must be installed prior to deployment of M2C2 on the IoT Core Device
-```bash
-sudo apt-get install libkrb5-dev
-```
-
-If using Amazon linux, use the following commands instead
-```bash
-yum -y install krb5-devel
-yum -y install gcc
-yum -y install python3-devel
-```
